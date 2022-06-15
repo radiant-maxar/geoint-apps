@@ -1,0 +1,14 @@
+.env
+el7
+RPMS/noarch
+RPMS/x86_64
+SOURCES/*.asc
+SOURCES/*.bz2
+SOURCES/*.gem
+SOURCES/*.gz
+SOURCES/*.pbf
+SOURCES/*.pdf
+SOURCES/*.sha256
+SOURCES/*.tar.*
+SOURCES/*.tgz
+SOURCES/*.zip
