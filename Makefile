@@ -45,12 +45,13 @@ OVERPASS_API_RPM := $(call rpm_file,overpass-api)
 TAGINFO_RPM := $(call rpm_file,taginfo)
 
 
-# Build containers and RPMs.
-RPMBUILD_CONTAINERS := \
+# Build images and RPMs.
+RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
 	rpmbuild-generic \
 	rpmbuild-generic-geoint-deps \
-	rpmbuild-generic-nodejs \
+	rpmbuild-generic-nodejs
+RPMBUILD_RPM_IMAGES := \
 	rpmbuild-nominatim \
 	rpmbuild-nominatim-ui \
 	rpmbuild-osrm-backend \
@@ -70,7 +71,8 @@ RPMBUILD_RPMS := \
 .PHONY: \
 	all \
 	distclean \
-	$(RPMBUILD_CONTAINERS) \
+	$(RPMBUILD_BASE_IMAGES) \
+	$(RPMBUILD_RPM_IMAGES) \
 	$(RPMBUILD_RPMS)
 
 all:
@@ -99,9 +101,9 @@ distclean: .env
 	echo RPMBUILD_OVERPASS_API_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/overpass-api.spec) >> .env
 	echo RPMBUILD_TAGINFO_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/taginfo.spec) >> .env
 
-## Container targets
+## Image targets
 
-# Build containers.
+# Base images
 rpmbuild: .env
 	$(call pull_unless_ci,$@)
 	$(call build_unless_image_exists,$@)
@@ -121,6 +123,7 @@ rpmbuild-generic-nodejs: rpmbuild-generic
 	$(call pull_unless_ci,$@)
 	$(call build_unless_image_exists,$@)
 
+# RPM images
 rpmbuild-nominatim: $(call rpmbuild_image_parent,nominatim)
 	$(call pull_unless_ci,$?)
 	$(call build_unless_image_exists,$@)
