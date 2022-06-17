@@ -33,3 +33,31 @@ The [Nominatim](https://nominatim.org/) source archives are obtained directly fr
 The [Nominatim-UI](https://nominatim.org/) source archives are obtained directly from
 [GitHub](https://github.com/osm-search/nominatim-ui/releases) and are
 [GPLv2 licensed](https://github.com/osm-search/nominatim-ui/blob/master/LICENSE).
+
+
+## Open Source Routing Machine Backend (osrm-backend)
+
+The [osrm-backend](http://project-osrm.org/) source archives are obtained directly from
+[GitHub](https://github.com/Project-OSRM/osrm-backend/releases) and are
+[BSD licensed](https://github.com/Project-OSRM/osrm-backend/blob/master/LICENSE.TXT).
+
+
+## Open Source Routing Machine Frontend (osrm-frontend)
+
+The [osrm-frontend](http://project-osrm.org/) source archives are obtained directly from
+[GitHub](https://github.com/Project-OSRM/osrm-frontend) and are
+[BSD licensed](https://github.com/Project-OSRM/osrm-frontend/blob/master/LICENSE.TXT).
+
+
+## Overpass API
+
+The [Overpass API](http://overpass-api.de/) source archives are obtained directly from
+[GitHub](https://github.com/drolbr/Overpass-API) and are
+[AGPLv3 license](https://github.com/drolbr/Overpass-API/blob/master/COPYING).
+
+
+## Taginfo
+
+The [Taginfo](https://taginfo.openstreetmap.org/) source archives are obtained directly from
+[GitHub](https://github.com/taginfo/taginfo) and are
+[GPLv3 licensed](https://github.com/taginfo/taginfo/blob/master/LICENSE).
