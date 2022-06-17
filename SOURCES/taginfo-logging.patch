@@ -1,15 +1,15 @@
 diff --git a/sources/update_all.sh b/sources/update_all.sh
-index 1173b5c..e01f657 100755
+index f40dfdf..1bb5817 100755
 --- a/sources/update_all.sh
 +++ b/sources/update_all.sh
-@@ -28,10 +28,6 @@ fi
- 
- source $SRCDIR/util.sh all
+@@ -29,10 +29,6 @@ fi
+ # shellcheck source=/dev/null
+ source "$SRCDIR/util.sh" all
  
 -readonly LOGFILE=$(date +%Y%m%dT%H%M)
--mkdir -p $DATADIR/log
--exec >$DATADIR/log/$LOGFILE.log 2>&1
+-mkdir -p "$DATADIR/log"
+-exec >"$DATADIR/log/$LOGFILE.log" 2>&1
 -
- if which pbzip2 >/dev/null; then
+ if command -v pbzip2 >/dev/null; then
      BZIP_COMMAND=pbzip2
  else

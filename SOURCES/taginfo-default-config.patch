@@ -1,5 +1,5 @@
 diff --git a/taginfo-config-example.json b/taginfo-config-example.json
-index 2a88fe0..7c32e70 100644
+index dd9b2eb..9b9307f 100644
 --- a/taginfo-config-example.json
 +++ b/taginfo-config-example.json
 @@ -41,19 +41,19 @@
@@ -59,12 +59,11 @@ index 2a88fe0..7c32e70 100644
          // SQL queries longer than this many seconds are logged
          "min_duration": 0.1
      },
-@@ -131,7 +131,7 @@
+@@ -131,6 +131,6 @@
          // size of OSM file, but may need a bit more memory than other values.
          // For really large OSM files (whole planet or large continent)
          // this should be "DenseMmapArray" (or "DenseMemArray" on OSX), otherwise "SparseMemArray".
--        "geodistribution": "FlexMem",
-+        "geodistribution": "SparseMemArray",
-         // C++ type used for geodistribution
-         "geodistribution_int": "uint16_t"
+-        "geodistribution": "FlexMem"
++        "geodistribution": "SparseMemArray"
      }
+ }

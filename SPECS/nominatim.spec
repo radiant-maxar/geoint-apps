@@ -41,7 +41,7 @@ Patch0:         nominatim-external-osm2pgsql.patch
 Patch1:         nominatim-phpunit-resolve-deprecation-warnings.patch
 Patch2:         nominatim-no-calculate-postcodes.patch
 Patch3:         nominatim-legacy-tokenizer.patch
-Patch4:         nominatim-test-bdd_db-run_serial.patch
+Patch4:         nominatim-tests-run-serial.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel

@@ -7,7 +7,7 @@
 %global taginfo_uid 744
 
 # Prerequisite versions
-%{!?abseil_cpp_version: %global abseil_cpp_version 20210324.2}
+%{!?abseil_cpp_version: %global abseil_cpp_version 20211102.0}
 %{!?libosmium_min_version: %global libosmium_min_version 2.14.0}
 %{!?ruby_max_version: %global ruby_max_version 2.8.0}
 %{!?ruby_min_version: %global ruby_min_version 2.7.0}
@@ -37,6 +37,7 @@ Patch0:         taginfo-default-config.patch
 Patch1:         taginfo-logging.patch
 Patch2:         taginfo-use-bundler.patch
 Patch3:         taginfo-sqlite-enable-loadextension.patch
+Patch4:         taginfo-tools-tests-run-serial.patch
 
 BuildRequires:  bzip2-devel
 BuildRequires:  cmake3
@@ -91,7 +92,11 @@ other OSM file.
 
 
 %prep
-%autosetup -n taginfo-%{commit} -p 1
+%setup -q -n taginfo-%{commit}
+%patch -P0 -p1
+%patch -P1 -p1
+%patch -P2 -p1
+%patch -P3 -p1
 
 
 %build
@@ -106,10 +111,13 @@ other OSM file.
 %{__tar} -C taginfo-tools --strip-components 1 -xzf %{SOURCE1}
 %{__tar} -C taginfo-tools/abseil-cpp --strip-components 1 -xzf %{SOURCE2}
 
-mkdir -p taginfo-tools/build
-pushd taginfo-tools/build
+pushd taginfo-tools
+cat %{PATCH4} | patch -p1 -s
+%{__mkdir_p} build
+pushd build
 %{cmake3} ..
 %{cmake3_build}
+popd
 popd
 
 
@@ -182,8 +190,6 @@ EOF
 
 %check
 pushd taginfo-tools/build
-# Tests need to be run under one process.
-%global _smp_mflags -j1
 %{ctest3}
 popd
 pushd web
