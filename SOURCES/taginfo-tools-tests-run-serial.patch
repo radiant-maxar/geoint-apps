@@ -1,11 +1,11 @@
 diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
-index 0a1d5f2..80948f5 100644
+index 0a1d5f2..83c68fc 100644
 --- a/test/CMakeLists.txt
 +++ b/test/CMakeLists.txt
-@@ -26,4 +26,6 @@ foreach(file ${TEST_SCRIPTS})
+@@ -25,5 +25,6 @@ foreach(file ${TEST_SCRIPTS})
+     message(STATUS "Adding test: ${tid}")
      add_test(NAME test-${tid}
               COMMAND ${file} ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${tid})
++    set_tests_properties(test-${tid} PROPERTIES RUN_SERIAL TRUE)
  endforeach()
-+set_tests_properties(test-similarity PROPERTIES RUN_SERIAL TRUE)
-+set_tests_properties(test-stats PROPERTIES RUN_SERIAL TRUE)
  
