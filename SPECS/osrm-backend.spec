@@ -86,8 +86,6 @@ popd
 %install
 pushd build
 %{cmake3_install}
-# libosrm_guidance.so is not installed by default, do it manually.
-%{__install} -p libosrm_guidance.so %{buildroot}%{_libdir}
 popd
 
 
