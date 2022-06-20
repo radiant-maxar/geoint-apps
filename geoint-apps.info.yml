@@ -1,0 +1,18 @@
+---
+name: geoint-apps
+description: Build system for FoundationGEOINT Application RPMs
+source: https://gitub.com/radiant-maxar/geoint-apps
+team: FoundationGEOINT Team
+data_classification:
+  - public
+language:
+  - python
+  - shell
+  - yaml
+poc:
+  - name: Justin Bronn
+    email: justin.bronn@maxar.com
+  - name: David Hummel
+    email: david.hummel@maxar.com
+  - name: Josh Sisskind
+    email: josh.sisskind@maxar.com

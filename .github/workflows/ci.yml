@@ -1,0 +1,86 @@
+---
+name: CI
+
+on:
+  - push
+
+env:
+  DOCKER_BUILDKIT: 1
+  IMAGE_PREFIX: ghcr.io/${{ github.repository }}/
+
+jobs:
+  build-images:
+    name: Build `${{ matrix.image }}` Image
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        image:
+          # Uncomment the following lines in order to build & push base images
+          # - rpmbuild
+          # - rpmbuild-generic
+          - rpmbuild-generic-geoint-deps
+          - rpmbuild-generic-nodejs
+      # max-parallel: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Delete old images
+        run: |
+          ORG=${{ github.repository_owner }}
+          PKG_PRE=${GITHUB_REPOSITORY#*/}
+          REQ="/orgs/${ORG}/packages/container/${PKG_PRE}%2F${{ matrix.image }}"
+
+          curl \
+            --header "Accept: application/vnd.github.v3+json" \
+            --header "Authorization: token ${{ secrets.PKG_DELETE_TOKEN }}" \
+            --request DELETE \
+            --silent \
+            --url "https://api.github.com${REQ}"
+        shell: bash --noprofile --norc -euxo pipefail {0}
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ github.token }}" | docker login ghcr.io -u $ --password-stdin
+
+      - name: Build `${{ matrix.image }}` Image
+        run: |
+          make ${{ matrix.image }}
+
+      - name: Push `${{ matrix.image }}` to GHCR
+        run: |
+          docker push ${IMAGE_PREFIX}${{ matrix.image }}:latest
+
+  build-rpms:
+    name: Build `${{ matrix.rpm }}` RPM(s)
+    needs: build-images
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rpm:
+          - nominatim
+          - nominatim-ui
+          - osrm-backend
+          - osrm-frontend
+          - overpass-api
+          - taginfo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io -u $ --password-stdin
+
+      - name: Build `${{ matrix.rpm }}` RPM(s)
+        run: make ${{ matrix.rpm }}
+
+      - name: Upload RPMS directory
+        uses: actions/upload-artifact@v3
+        with:
+          name: RPMS
+          path: RPMS

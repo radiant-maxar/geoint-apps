@@ -1,0 +1,69 @@
+diff --git a/taginfo-config-example.json b/taginfo-config-example.json
+index dd9b2eb..9b9307f 100644
+--- a/taginfo-config-example.json
++++ b/taginfo-config-example.json
+@@ -41,19 +41,19 @@
+     },
+     "paths": {
+         // Directory where the database files for use by taginfo are kept.
+-        "data_dir": "../../data",
++        "data_dir": "/var/lib/taginfo/data",
+         // Directory for the compressed database files for download. If you
+         // change this, you might have also to change the "download" symbolic
+         // link in the "web/public" directory and/or add this path to your
+         // web server config.
+-        "download_dir": "../../download",
++        "download_dir": "/var/lib/taginfo/download",
+         // Path to binaries (like 'taginfo-stats' and 'taginfo-similarity').
+         // Probably something like '.../taginfo-tools/build/src'. If this is
+         // a relative path, it must be relative to the subdirectory of the
+         // 'sources' directory.
+-        "bin_dir": "../../../taginfo-tools/build/src",
++        "bin_dir": "/usr/bin",
+         // Path to sqlite regexp extension.
+-        "sqlite3_pcre_extension": "/usr/lib/sqlite3/pcre.so"
++        "sqlite3_pcre_extension": "/usr/lib64/sqlite3/pcre.so"
+     },
+     // "XAPI" and "JOSM" buttons on key/tag pages
+     "xapi": {
+@@ -91,17 +91,17 @@
+         // Note that this will NOT work for the "db" source! Well, you can download it,
+         // but it will fail later, because the database is changed by the master.sql
+         // scripts.
+-        "download": "languages projects wiki chronology",
++        "download": "languages projects wiki",
+         // These sources will be created from the actual sources.
+         "create": "db",
+         "db": {
+             // The OSM planet file or extract where we read the OSM data from.
+-            "planetfile": "/osm/planet/var/current-planet.osm.pbf"
+-        },
+-        "chronology": {
+-            // The OSM history planet file or extract where we read the OSM data from.
+-            "osm_history_file": "/osm/planet/var/current-history-planet.osh.pbf"
++            "planetfile": "/var/cache/planet.osm.pbf"
+         },
++        //"chronology": {
++        //    // The OSM history planet file or extract where we read the OSM data from.
++        //    "osm_history_file": "/osm/planet/var/current-history-planet.osh.pbf"
++        //},
+         // If you change any of the following you have to run the update
+         // twice for it to take effect.
+         "master": {
+@@ -121,7 +121,7 @@
+     },
+     "logging": {
+         // Directory for log files. If this is empty, logs are written to stderr
+-        "directory": "",
++        "directory": "/var/log/taginfo",
+         // SQL queries longer than this many seconds are logged
+         "min_duration": 0.1
+     },
+@@ -131,6 +131,6 @@
+         // size of OSM file, but may need a bit more memory than other values.
+         // For really large OSM files (whole planet or large continent)
+         // this should be "DenseMmapArray" (or "DenseMemArray" on OSX), otherwise "SparseMemArray".
+-        "geodistribution": "FlexMem"
++        "geodistribution": "SparseMemArray"
+     }
+ }
