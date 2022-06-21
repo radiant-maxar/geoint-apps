@@ -7,6 +7,7 @@ on:
 env:
   DOCKER_BUILDKIT: 1
   IMAGE_PREFIX: ghcr.io/${{ github.repository }}/
+  IMAGE_REGISTRY: ghcr.io
 
 jobs:
   build-images:
@@ -14,44 +15,40 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      # Uncomment the following lines in order to build & push base images
+      # max-parallel: 1
       matrix:
         image:
-          # Uncomment the following lines in order to build & push base images
           # - rpmbuild
           # - rpmbuild-generic
           - rpmbuild-generic-geoint-deps
           - rpmbuild-generic-nodejs
-      # max-parallel: 1
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Delete old images
-        run: |
-          ORG=${{ github.repository_owner }}
-          PKG_PRE=${GITHUB_REPOSITORY#*/}
-          REQ="/orgs/${ORG}/packages/container/${PKG_PRE}%2F${{ matrix.image }}"
-
-          curl \
-            --header "Accept: application/vnd.github.v3+json" \
-            --header "Authorization: token ${{ secrets.PKG_DELETE_TOKEN }}" \
-            --request DELETE \
-            --silent \
-            --url "https://api.github.com${REQ}"
-        shell: bash --noprofile --norc -euxo pipefail {0}
+        uses: ./.github/actions/github-api/delete-package
+        with:
+          package_name: geoint-apps%2F${{ matrix.image }}
+          token: ${{ secrets.PKG_DELETE_TOKEN }}
+          token_type: token
 
       - name: Log in to GHCR
-        run: |
-          echo "${{ github.token }}" | docker login ghcr.io -u $ --password-stdin
+        uses: ./.github/actions/docker/registry-login
+        with:
+          server: ${{ env.IMAGE_REGISTRY }}
 
       - name: Build `${{ matrix.image }}` Image
-        run: |
-          make ${{ matrix.image }}
+        uses: ./.github/actions/build
+        with:
+          image_prefix: ${{ env.IMAGE_PREFIX }}
+          make_target: ${{ matrix.image }}
 
       - name: Push `${{ matrix.image }}` to GHCR
         run: |
-          docker push ${IMAGE_PREFIX}${{ matrix.image }}:latest
+          docker-compose push ${{ matrix.image }}
 
   build-rpms:
     name: Build `${{ matrix.rpm }}` RPM(s)
@@ -74,13 +71,66 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Log in to GHCR
-        run: echo "${{ github.token }}" | docker login ghcr.io -u $ --password-stdin
+        uses: ./.github/actions/docker/registry-login
+        with:
+          server: ${{ env.IMAGE_REGISTRY }}
 
       - name: Build `${{ matrix.rpm }}` RPM(s)
-        run: make ${{ matrix.rpm }}
+        uses: ./.github/actions/build
+        with:
+          image_prefix: ${{ env.IMAGE_PREFIX }}
+          make_target: ${{ matrix.rpm }}
 
       - name: Upload RPMS directory
         uses: actions/upload-artifact@v3
         with:
           name: RPMS
           path: RPMS
+          retention-days: 1
+
+  create-and-push-repo:
+    name: Create & push repository
+    needs: build-rpms
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/${{ github.repository }}/rpmbuild:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download RPMS directory
+        uses: actions/download-artifact@v3
+        with:
+          name: RPMS
+          path: RPMS
+
+      - name: Set up repository
+        run: |
+          mkdir --parents /tmp/repos/${{ github.ref_name }}
+          cp RPMS/{noarch,x86_64}/*.rpm /tmp/repos/${{ github.ref_name }}/
+          scripts/repo-update.sh /tmp/repos/${{ github.ref_name }}
+
+      - name: Upload repository to workflow artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Repository
+          path: /tmp/repos
+        if: github.ref_name == 'el7/stable'
+
+      - name: Upload repository to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          yum -q -y install python3-pip
+          pip3 install awscli
+
+          aws s3 sync --delete --no-progress \
+            /tmp/repos/${{ github.ref_name }} \
+            s3://geoint-apps/${{ github.ref_name }}
+        if: |
+          github.ref_name != 'el7/stable' &&
+          startsWith(github.ref_name, 'el7/') ||
+          startsWith(github.ref_name, 'el9/')

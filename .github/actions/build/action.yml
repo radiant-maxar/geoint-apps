@@ -1,0 +1,21 @@
+---
+name: Build Image / RPM(s)
+
+inputs:
+  image_prefix:
+    description: Image Prefix
+    required: true
+  make_target:
+    description: Make target
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Build Image / RPM(s)
+      env:
+        IMAGE_PREFIX: ${{ inputs.image_prefix }}
+      run: |
+        make ${{ inputs.make_target }}
+      shell: bash --noprofile --norc -euxo pipefail {0}
