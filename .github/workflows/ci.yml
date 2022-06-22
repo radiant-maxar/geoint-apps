@@ -59,6 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         rpm:
+          - mod_tile
           - nominatim
           - nominatim-ui
           - osrm-backend

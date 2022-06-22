@@ -39,6 +39,9 @@ x-rpmbuild:
     sqlite_min_version: &sqlite_min_version '3.11.0'
   # Configuration for building every application RPM.
   rpms:
+    mod_tile:
+      image: rpmbuild-mod_tile
+      version: &mod_tile_version '0.6.1-3'
     nominatim:
       image: rpmbuild-nominatim
       version: &nominatim_version '4.0.1-1'
@@ -111,6 +114,16 @@ services:
         <<: *build_args_defaults
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
     image: ${IMAGE_PREFIX}rpmbuild-generic-nodejs
+
+  rpmbuild-mod_tile:
+    <<: *service_defaults
+    build:
+      <<: *build_defaults
+      args:
+        <<: *build_args_defaults
+        packages: "${RPMBUILD_MOD_TILE_PACKAGES}"
+        rpmbuild_image: rpmbuild-generic-geoint-deps
+      dockerfile: docker/Dockerfile.rpmbuild-generic-geoint-deps
   rpmbuild-nominatim:
     <<: *service_defaults
     build:

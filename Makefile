@@ -37,6 +37,7 @@ RPMBUILD_UID := $(shell id -u)
 RPMBUILD_GID := $(shell id -g)
 
 # RPM files at desired versions.
+MOD_TILE_RPM := $(call rpm_file,mod_tile)
 NOMINATIM_RPM := $(call rpm_file,nominatim)
 NOMINATIM_UI_RPM := $(call rpm_file,nominatim-ui)
 OSRM_BACKEND_RPM := $(call rpm_file,osrm-backend)
@@ -52,6 +53,7 @@ RPMBUILD_BASE_IMAGES := \
 	rpmbuild-generic-geoint-deps \
 	rpmbuild-generic-nodejs
 RPMBUILD_RPM_IMAGES := \
+	rpmbuild-mod_tile \
 	rpmbuild-nominatim \
 	rpmbuild-nominatim-ui \
 	rpmbuild-osrm-backend \
@@ -59,6 +61,7 @@ RPMBUILD_RPM_IMAGES := \
 	rpmbuild-overpass-api \
 	rpmbuild-taginfo
 RPMBUILD_RPMS := \
+	mod_tile \
 	nominatim \
 	nominatim-ui \
 	osrm-backend \
@@ -94,6 +97,7 @@ distclean: .env
 	echo IMAGE_PREFIX=$(IMAGE_PREFIX) >> .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env
+	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/mod_tile.spec) >> .env
 	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim.spec --define postgres_dotless=$(POSTGRES_DOTLESS)) >> .env
 	echo RPMBUILD_NOMINATIM_UI_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim-ui.spec) >> .env
 	echo RPMBUILD_OSRM_BACKEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/osrm-backend.spec) >> .env
@@ -124,6 +128,10 @@ rpmbuild-generic-nodejs: rpmbuild-generic
 	$(call build_unless_image_exists,$@)
 
 # RPM images
+rpmbuild-mod_tile: $(call rpmbuild_image_parent,mod_tile)
+	$(call pull_unless_ci,$?)
+	$(call build_unless_image_exists,$@)
+
 rpmbuild-nominatim: $(call rpmbuild_image_parent,nominatim)
 	$(call pull_unless_ci,$?)
 	$(call build_unless_image_exists,$@)
@@ -150,6 +158,7 @@ rpmbuild-taginfo: $(call rpmbuild_image_parent,taginfo)
 
 
 ## RPM targets
+mod_tile: rpmbuild-mod_tile $(MOD_TILE_RPM)
 nominatim: rpmbuild-nominatim $(NOMINATIM_RPM)
 nominatim-ui: rpmbuild-nominatim-ui $(NOMINATIM_UI_RPM)
 osrm-backend: rpmbuild-osrm-backend $(OSRM_BACKEND_RPM)
