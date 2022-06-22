@@ -50,7 +50,7 @@ x-rpmbuild:
       version: &osrm_backend_version '5.26.0-1'
     osrm-frontend:
       defines:
-        commit: 4a9f214b4cdd35e7dff5c171e2bad549da6a2d8e
+        git_ref: 4a9f214b4cdd35e7dff5c171e2bad549da6a2d8e
       image: rpmbuild-osrm-frontend
       version: &osrm_frontend_version '2021.9.30-1'
     overpass-api:
@@ -58,9 +58,9 @@ x-rpmbuild:
       version: &overpass_api_version '0.7.56.9-2'
     taginfo:
       defines:
-        abseil_commit: 384a25d5e19228ceb7641676aefd58c4ca7a9568
-        commit: 39de5998cffca74ae6814e70f417b1eb580109a2
-        tools_commit: 28264e63a2b3027cec69ae4906ef689029df627b
+        abseil_git_ref: 384a25d5e19228ceb7641676aefd58c4ca7a9568
+        git_ref: 39de5998cffca74ae6814e70f417b1eb580109a2
+        tools_git_ref: 28264e63a2b3027cec69ae4906ef689029df627b
       image: rpmbuild-taginfo
       version: &taginfo_version '2022.6.9-1'
   service_volumes: &service_volumes
