@@ -106,6 +106,18 @@ scl enable devtoolset-9 '%{cmake3} \
         ..; %{cmake3_build}'
 popd
 example/build/osrm-example test/data/mld/monaco.osrm
+pushd build
+%{cmake3_build} --target tests
+for TEST_BIN in unit_tests/*-tests; do
+  if [ "${TEST_BIN}" == "unit_tests/library-extract-tests" ] \
+  || [ "${TEST_BIN}" == "unit_tests/updater-tests" ]; then
+    echo "Skipping '${TEST_BIN}'."
+    continue
+  fi
+  echo "Running '${TEST_BIN}':"
+  ${TEST_BIN}
+done
+popd
 %endif
 
 

@@ -10,8 +10,8 @@ Summary:        Frontend for OSRM
 
 License:        BSD
 URL:            https://map.project-osrm.org
-# The `commit` variable must be defined because the project doesn't use tags.
-Source0:        https://github.com/Project-OSRM/osrm-frontend/archive/%{commit}/osrm-frontend-%{commit}.tar.gz
+# The `git_ref` variable must be defined because the project doesn't use tags.
+Source0:        https://github.com/Project-OSRM/osrm-frontend/archive/%{git_ref}/osrm-frontend-%{git_ref}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  nodejs-devel >= %{nodejs_min_version}
@@ -27,7 +27,7 @@ Frontend for OSRM, a routing engine for OpenStreetMap data.
 
 
 %prep
-%autosetup -n osrm-frontend-%{commit} -p 1
+%autosetup -n osrm-frontend-%{git_ref} -p 1
 
 
 %build

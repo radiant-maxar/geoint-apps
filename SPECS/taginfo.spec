@@ -24,9 +24,9 @@ Summary:        OpenStreetMap Taginfo
 License:        GPLv3
 URL:            https://github.com/taginfo/taginfo
 
-Source0:        https://github.com/taginfo/taginfo/archive/%{commit}/taginfo-%{commit}.tar.gz
-Source1:        https://github.com/taginfo/taginfo-tools/archive/%{tools_commit}/taginfo-tools-%{tools_commit}.tar.gz
-Source2:        https://github.com/abseil/abseil-cpp/archive/%{abseil_commit}/abseil-cpp-%{abseil_commit}.tar.gz
+Source0:        https://github.com/taginfo/taginfo/archive/%{git_ref}/taginfo-%{git_ref}.tar.gz
+Source1:        https://github.com/taginfo/taginfo-tools/archive/%{tools_git_ref}/taginfo-tools-%{tools_git_ref}.tar.gz
+Source2:        https://github.com/abseil/abseil-cpp/archive/%{abseil_git_ref}/abseil-cpp-%{abseil_git_ref}.tar.gz
 Source3:        https://taginfo.openstreetmap.org/download/taginfo-languages.db.bz2
 Source4:        https://taginfo.openstreetmap.org/download/taginfo-projects.db.bz2
 Source5:        https://taginfo.openstreetmap.org/download/taginfo-wiki.db.bz2
@@ -92,7 +92,7 @@ other OSM file.
 
 
 %prep
-%setup -q -n taginfo-%{commit}
+%setup -q -n taginfo-%{git_ref}
 %patch -P0 -p1
 %patch -P1 -p1
 %patch -P2 -p1
