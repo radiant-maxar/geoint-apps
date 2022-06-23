@@ -107,31 +107,11 @@ jobs:
           name: RPMS
           path: RPMS
 
-      - name: Set up repository
-        run: |
-          mkdir --parents /tmp/repos/${{ github.ref_name }}
-          cp RPMS/{noarch,x86_64}/*.rpm /tmp/repos/${{ github.ref_name }}/
-          scripts/repo-update.sh /tmp/repos/${{ github.ref_name }}
+      - name: Create repository
+        uses: ./.github/actions/repository/create
 
-      - name: Upload repository to workflow artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload repository
+        uses: ./.github/actions/repository/upload
         with:
-          name: Repository
-          path: /tmp/repos
-        if: github.ref_name == 'el7/stable'
-
-      - name: Upload repository to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          yum -q -y install python3-pip
-          pip3 install awscli
-
-          aws s3 sync --delete --no-progress \
-            /tmp/repos/${{ github.ref_name }} \
-            s3://geoint-apps/${{ github.ref_name }}
-        if: |
-          github.ref_name != 'el7/stable' &&
-          startsWith(github.ref_name, 'el7/') ||
-          startsWith(github.ref_name, 'el9/')
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -9,7 +9,7 @@ inputs:
   server:
     default: ghcr.io
     description: Server
-    required: true
+    required: false
   username:
     default: '$'
     description: Username
