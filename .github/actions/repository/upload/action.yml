@@ -25,21 +25,12 @@ runs:
   using: composite
 
   steps:
-    - name: Upload repository to workflow artifacts
-      if: |
-        github.ref_name == 'el7/stable' ||
-        github.ref_name == 'el9/stable'
-      uses: actions/upload-artifact@v3
-      with:
-        name: Repository
-        path: ${{ inputs.repo_parent_dir }}
-
     - name: Upload repository to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
       if: |
-        github.ref_name != 'el7/stable' &&
+        !endsWith(github.ref_name, '/stable') &&
         startsWith(github.ref_name, 'el7/') ||
         startsWith(github.ref_name, 'el9/')
       run: |
