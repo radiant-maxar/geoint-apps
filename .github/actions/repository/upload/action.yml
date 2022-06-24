@@ -29,10 +29,6 @@ runs:
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
-      if: |
-        !endsWith(github.ref_name, '/stable') &&
-        startsWith(github.ref_name, 'el7/') ||
-        startsWith(github.ref_name, 'el9/')
       run: |
         yum -q -y install python3-pip
         pip3 install awscli

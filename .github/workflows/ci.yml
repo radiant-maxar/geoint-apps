@@ -91,6 +91,10 @@ jobs:
 
   create-and-push-repo:
     name: Create & push repository
+    if: |
+      !endsWith(github.ref_name, '/stable') &&
+      startsWith(github.ref_name, 'el7/') ||
+      startsWith(github.ref_name, 'el9/')
     needs: build-rpms
     runs-on: ubuntu-latest
 
