@@ -133,7 +133,7 @@ This package contains the Nominatim shared library.
 
 
 %prep
-%autosetup -n Nominatim-%{version} -p1
+%autosetup -p1 -n Nominatim-%{version}
 
 
 %build

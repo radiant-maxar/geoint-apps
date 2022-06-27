@@ -92,7 +92,7 @@ other OSM file.
 
 
 %prep
-%setup -q -n taginfo-%{git_ref}
+%autosetup -N -n taginfo-%{git_ref}
 %{__mkdir_p} taginfo-tools
 %{__tar} -C taginfo-tools --strip-components 1 -xzf %{SOURCE1}
 %{__tar} -C taginfo-tools/abseil-cpp --strip-components 1 -xzf %{SOURCE2}
