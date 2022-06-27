@@ -20,7 +20,7 @@ jobs:
       matrix:
         image:
           # - rpmbuild
-          # - rpmbuild-generic
+          - rpmbuild-generic
           - rpmbuild-generic-nodejs
 
     steps:
