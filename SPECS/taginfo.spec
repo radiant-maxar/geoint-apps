@@ -93,31 +93,26 @@ other OSM file.
 
 %prep
 %setup -q -n taginfo-%{git_ref}
+%{__mkdir_p} taginfo-tools
+%{__tar} -C taginfo-tools --strip-components 1 -xzf %{SOURCE1}
+%{__tar} -C taginfo-tools/abseil-cpp --strip-components 1 -xzf %{SOURCE2}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 
 %build
 # taginfo
 %{_bindir}/bundle config set --local path vendor/bundle
 %{_bindir}/bundle install
-
 # taginfo-tools
-# Enable the updated compiler toolchain prior to building.
-. /opt/rh/devtoolset-9/enable
-%{__mkdir_p} taginfo-tools
-%{__tar} -C taginfo-tools --strip-components 1 -xzf %{SOURCE1}
-%{__tar} -C taginfo-tools/abseil-cpp --strip-components 1 -xzf %{SOURCE2}
-
-pushd taginfo-tools
-cat %{PATCH4} | patch -p1 -s
-%{__mkdir_p} build
-pushd build
-%{cmake3} ..
-%{cmake3_build}
-popd
+%{__mkdir_p} taginfo-tools/build
+pushd taginfo-tools/build
+scl enable devtoolset-9 '%{cmake3} \
+        -DCMAKE_BUILD_TYPE=Release \
+        ..; %{cmake3_build}'
 popd
 
 
