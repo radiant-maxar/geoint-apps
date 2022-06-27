@@ -4,7 +4,7 @@ ARG rpmbuild_image_prefix
 # hadolint ignore=DL3007
 FROM ${rpmbuild_image_prefix}${rpmbuild_image}:latest
 
-ARG packages=""
+ARG packages
 
 # Temporarily switch to root for package installation.
 USER root
@@ -15,7 +15,7 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 RUN --mount=type=cache,target=/var/cache/yum \
     /usr/local/bin/nodesource-repo.sh && \
     /usr/local/bin/yarn-repo.sh && \
-    if [ -n "${packages}" ]; then yum -q -y install ${packages}; fi
+    if [ -n "${packages:-}" ]; then yum -q -y install ${packages}; fi
 
 # Use unprivileged RPM build user and work directory by default.
 USER ${RPMBUILD_USER}

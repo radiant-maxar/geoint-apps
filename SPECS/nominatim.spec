@@ -55,7 +55,7 @@ BuildRequires:  libtool
 BuildRequires:  libxml2-devel
 BuildRequires:  make
 BuildRequires:  osm2pgsql >= %{osm2pgsql_min_version}
-BuildRequires:  postgresql%{postgres_dotless}-devel
+BuildRequires:  postgresql%{postgres_version}-devel
 BuildRequires:  proj-devel
 BuildRequires:  python3-devel
 BuildRequires:  python3-osmium
@@ -68,8 +68,8 @@ BuildRequires:  zlib-devel
 %if %{with tests}
 BuildRequires:  libtidy
 BuildRequires:  postgis
-BuildRequires:  postgresql%{postgres_dotless}-contrib
-BuildRequires:  postgresql%{postgres_dotless}-server
+BuildRequires:  postgresql%{postgres_version}-contrib
+BuildRequires:  postgresql%{postgres_version}-server
 BuildRequires:  rh-php73-php-cli
 BuildRequires:  rh-php73-php-intl
 BuildRequires:  rh-php73-php-mbstring
@@ -92,7 +92,7 @@ BuildRequires:  rh-php73-php-pgsql
 Requires:       %{name}-data = %{version}-%{release}
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 Requires:       osm2pgsql >= %{osm2pgsql_min_version}
-Requires:       postgresql%{postgres_dotless}
+Requires:       postgresql%{postgres_version}
 Requires:       python3-osmium
 Requires:       python3-psycopg2
 Requires:       python36-jinja2

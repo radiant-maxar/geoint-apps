@@ -4,8 +4,8 @@ ARG rpmbuild_image_prefix
 # hadolint ignore=DL3007
 FROM ${rpmbuild_image_prefix}${rpmbuild_image}:latest
 
-ARG gem_packages=""
-ARG packages=""
+ARG gem_packages
+ARG packages
 ARG postgres_version
 
 # Temporarily switch to root for package installation.
@@ -18,8 +18,8 @@ RUN --mount=type=cache,target=/var/cache/yum \
     /usr/local/bin/geoint-deps-repo.sh && \
     /usr/local/bin/pgdg-repo.sh ${postgres_version} && \
     /usr/local/bin/postgres-install.sh ${postgres_version} && \
-    if [ -n "${packages}" ]; then yum -q -y install ${packages}; fi && \
-    if [ -n "${gem_packages}" ]; then gem install ${gem_packages}; fi
+    if [ -n "${packages:-}" ]; then yum -q -y install ${packages}; fi && \
+    if [ -n "${gem_packages:-}" ]; then gem install ${gem_packages}; fi
 
 RUN chown -R "${RPMBUILD_USER}:${RPMBUILD_GROUP}" /var/run/postgresql
 
@@ -27,9 +27,7 @@ RUN chown -R "${RPMBUILD_USER}:${RPMBUILD_GROUP}" /var/run/postgresql
 USER ${RPMBUILD_USER}
 WORKDIR ${RPMBUILD_HOME}
 
-RUN echo "%postgres_version ${postgres_version}" >> "${RPMBUILD_HOME}/.rpmmacros" && \
-    echo "%postgres_dotless %(echo %{postgres_version} | awk '{ gsub(/\\\\./, \"\"); print substr(\$0, 1, 2) }')" >> "${RPMBUILD_HOME}/.rpmmacros" && \
-    echo "%postgres_instdir /usr/pgsql-%{postgres_version}" >> "${RPMBUILD_HOME}/.rpmmacros"
+RUN echo "%postgres_version ${postgres_version}" >> "${RPMBUILD_HOME}/.rpmmacros"
 
 # Install PHPUnit.
 ADD --chown=${RPMBUILD_USER}:${RPMBUILD_GROUP} https://phar.phpunit.de/phpunit-9.5.20.phar .local/bin/phpunit

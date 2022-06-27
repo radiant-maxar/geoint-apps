@@ -61,7 +61,7 @@ jobs:
 
       - name: Lint with shellcheck
         run: |
-          shellcheck scripts/*.sh
+          shellcheck -x scripts/*.sh
 
   yamllint:
     name: Lint - yamllint
