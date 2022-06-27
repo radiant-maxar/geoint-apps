@@ -65,6 +65,7 @@ x-rpmbuild:
     volumes: *service_volumes
 
 services:
+  # Base images
   rpmbuild:
     build:
       context: .
@@ -93,6 +94,7 @@ services:
         <<: *build_args_defaults
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
     image: ${IMAGE_PREFIX}rpmbuild-generic-nodejs
+  # RPM images
   rpmbuild-mod_tile:
     <<: *service_defaults
     build:

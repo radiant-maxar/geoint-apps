@@ -96,8 +96,6 @@ distclean: .env
 	echo RPMBUILD_TAGINFO_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/taginfo.spec) >> .env
 
 ## Image targets
-
-# Base images
 rpmbuild: .env
 	$(call pull_if_ci,$@)
 	$(call build_unless_image_exists,$@)
