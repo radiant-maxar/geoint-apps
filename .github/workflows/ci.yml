@@ -19,7 +19,7 @@ jobs:
       # max-parallel: 1
       matrix:
         image:
-          # - rpmbuild
+          - rpmbuild
           - rpmbuild-generic
           - rpmbuild-generic-nodejs
 
