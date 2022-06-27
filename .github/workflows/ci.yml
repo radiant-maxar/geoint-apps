@@ -21,7 +21,6 @@ jobs:
         image:
           # - rpmbuild
           # - rpmbuild-generic
-          - rpmbuild-generic-geoint-deps
           - rpmbuild-generic-nodejs
 
     steps:
