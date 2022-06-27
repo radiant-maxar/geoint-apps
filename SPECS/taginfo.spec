@@ -96,11 +96,7 @@ other OSM file.
 %{__mkdir_p} taginfo-tools
 %{__tar} -C taginfo-tools --strip-components 1 -xzf %{SOURCE1}
 %{__tar} -C taginfo-tools/abseil-cpp --strip-components 1 -xzf %{SOURCE2}
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
+%autopatch -p1
 
 
 %build
