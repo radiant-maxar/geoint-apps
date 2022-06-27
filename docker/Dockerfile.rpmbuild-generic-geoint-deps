@@ -11,10 +11,10 @@ USER root
 
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
-# hadolint ignore=DL3033
+# hadolint ignore=DL3032,DL3033
 RUN --mount=type=cache,target=/var/cache/yum \
     /usr/local/bin/geoint-deps-repo.sh && \
-    if [ -n "${packages}" ]; then yum -q -y install ${packages} && yum -q -y clean all; fi
+    if [ -n "${packages}" ]; then yum -q -y install ${packages}; fi
 
 # Use unprivileged RPM build user and work directory by default.
 USER ${RPMBUILD_USER}

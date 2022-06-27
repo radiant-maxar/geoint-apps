@@ -76,15 +76,15 @@ Brings together information about OpenStreetMap tags and makes it
 searchable and browsable.
 
 %package data
-Summary:	Taginfo data files
+Summary:        Taginfo data files
 BuildArch:      noarch
 
 %description data
 This package contains Taginfo data files.
 
 %package tools
-Summary:	Taginfo tools
-Provides:       bundled(abseil-cpp)
+Summary:        Taginfo tools
+Provides:       bundled(abseil-cpp) = %{abseil_cpp_version}
 
 %description tools
 These are some tools needed for creating statistics from a planet or
@@ -93,10 +93,10 @@ other OSM file.
 
 %prep
 %setup -q -n taginfo-%{git_ref}
-%patch -P0 -p1
-%patch -P1 -p1
-%patch -P2 -p1
-%patch -P3 -p1
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 
 %build

@@ -22,9 +22,9 @@
 %global __provides_exclude_from ^%{nominatim_base}/lib-python/.*$
 %global __python %{__python3}
 
-Name:		nominatim
-Version:	%{rpmbuild_version}
-Release:	%{rpmbuild_release}%{?dist}
+Name:           nominatim
+Version:        %{rpmbuild_version}
+Release:        %{rpmbuild_release}%{?dist}
 Summary:        Open Source search based on OpenStreetMap data
 License:        GPLv2
 URL:            https://nominatim.org/
@@ -104,10 +104,10 @@ Requires:       rh-php73-php-pgsql
 # These requirements are included in Nominatim's lib-python directory,
 # They are not available in any yum repositories.
 # Source: https://github.com/osm-search/Nominatim/blob/master/docs/admin/Installation.md#software
-Provides:       bundled(python3-datrie)
-Provides:       bundled(python3-dotenv)
-Provides:       bundled(python3-pyicu)
-Provides:       bundled(python3-PyYAML)
+Provides:       bundled(python3-datrie) = %{datrie_version}
+Provides:       bundled(python3-dotenv) = %{python_dotenv_version}
+Provides:       bundled(python3-pyicu) = %{pyicu_version}
+Provides:       bundled(python3-PyYAML) = %{pyyaml_version}
 
 
 %description
@@ -119,14 +119,14 @@ sources for the Search box on the OpenStreetMap home page.
 
 
 %package data
-Summary:	Nominatim data files
+Summary:        Nominatim data files
 BuildArch:      noarch
 
 %description data
 This package contains Nominatim data files.
 
 %package libs
-Summary:	Nominatim library
+Summary:        Nominatim library
 
 %description libs
 This package contains the Nominatim shared library.

@@ -1,20 +1,20 @@
 ---
-version: '3.7'
+version: "3.7"
 
 x-rpmbuild:
-  channel_name: &rpmbuild_channel stable
-  dist: &rpmbuild_dist .el7
-  email: &rpmbuild_email foundationgeoint-packaging@maxar.com
-  image_prefix: &rpmbuild_image_prefix ${IMAGE_PREFIX}
-  packager_name: &rpmbuild_name 'FoundationGEOINT Packaging'
-  postgres_version: &postgres_version '13'
-  vendor: &rpmbuild_vendor 'Maxar Technologies'
+  channel_name: &rpmbuild_channel "stable"
+  dist: &rpmbuild_dist ".el7"
+  email: &rpmbuild_email "foundationgeoint-packaging@maxar.com"
+  image_prefix: &rpmbuild_image_prefix "${IMAGE_PREFIX}"
+  packager_name: &rpmbuild_name "FoundationGEOINT Packaging"
+  postgres_version: &postgres_version "13"
+  vendor: &rpmbuild_vendor "Maxar Technologies"
   base_args: &rpmbuild_base_args
     rpmbuild_dist: *rpmbuild_dist
     rpmbuild_email: *rpmbuild_email
     rpmbuild_name: *rpmbuild_name
-    rpmbuild_uid: "${RPMBUILD_UID}"
-    rpmbuild_gid: "${RPMBUILD_GID}"
+    rpmbuild_uid: ${RPMBUILD_UID}
+    rpmbuild_gid: ${RPMBUILD_GID}
   build_defaults: &build_defaults
     context: .
     dockerfile: docker/Dockerfile.rpmbuild-generic
@@ -28,51 +28,51 @@ x-rpmbuild:
   # Use consistent values for minimum versions for RPM build
   # and runtime requirements.
   minimum_versions:
-    geos: &geos_min_version '3.9.0'
-    gdal: &gdal_min_version '3.2.0'
-    libosmium: &libosmium_min_version '2.16.0'
-    postgis_min_version: &postgis_min_version '3.1.0'
-    proj: &proj_min_version '7.2.0'
-    protobuf: &protobuf_min_version '3.0.0'
-    protobuf-c: &protobuf_c_min_version '1.3.0'
-    protozero: &protozero_min_version '1.7.0'
-    sqlite_min_version: &sqlite_min_version '3.11.0'
+    geos: &geos_min_version "3.9.0"
+    gdal: &gdal_min_version "3.2.0"
+    libosmium: &libosmium_min_version "2.16.0"
+    postgis_min_version: &postgis_min_version "3.1.0"
+    proj: &proj_min_version "7.2.0"
+    protobuf: &protobuf_min_version "3.0.0"
+    protobuf-c: &protobuf_c_min_version "1.3.0"
+    protozero: &protozero_min_version "1.7.0"
+    sqlite_min_version: &sqlite_min_version "3.11.0"
   # Configuration for building every application RPM.
   rpms:
     mod_tile:
       image: rpmbuild-mod_tile
-      version: &mod_tile_version '0.6.1-3'
+      version: &mod_tile_version "0.6.1-3"
     nominatim:
       image: rpmbuild-nominatim
-      version: &nominatim_version '4.0.1-2'
+      version: &nominatim_version "4.0.1-2"
     nominatim-ui:
       image: rpmbuild-nominatim-ui
-      version: &nominatim_ui_version '3.2.4-1'
+      version: &nominatim_ui_version "3.2.4-1"
     osrm-backend:
       image: rpmbuild-osrm-backend
-      version: &osrm_backend_version '5.26.0-1'
+      version: &osrm_backend_version "5.26.0-1"
     osrm-frontend:
       defines:
         git_ref: 4a9f214b4cdd35e7dff5c171e2bad549da6a2d8e
       image: rpmbuild-osrm-frontend
-      version: &osrm_frontend_version '2021.9.30-1'
+      version: &osrm_frontend_version "2021.9.30-1"
     overpass-api:
       image: rpmbuild-overpass-api
-      version: &overpass_api_version '0.7.56.9-2'
+      version: &overpass_api_version "0.7.56.9-2"
     taginfo:
       defines:
         abseil_git_ref: 384a25d5e19228ceb7641676aefd58c4ca7a9568
         git_ref: 39de5998cffca74ae6814e70f417b1eb580109a2
         tools_git_ref: 28264e63a2b3027cec69ae4906ef689029df627b
       image: rpmbuild-taginfo
-      version: &taginfo_version '2022.6.9-1'
+      version: &taginfo_version "2022.6.9-1"
   service_volumes: &service_volumes
-    - "./RPMS:/rpmbuild/RPMS:rw"
-    - "./SOURCES:/rpmbuild/SOURCES:rw"
-    - "./SPECS:/rpmbuild/SPECS:ro"
-    - "./scripts:/rpmbuild/scripts:ro"
+    - ./RPMS:/rpmbuild/RPMS:rw
+    - ./SOURCES:/rpmbuild/SOURCES:rw
+    - ./SPECS:/rpmbuild/SPECS:ro
+    - ./scripts:/rpmbuild/scripts:ro
   service_defaults: &service_defaults
-    command: 'tail -f /dev/null'
+    command: tail -f /dev/null
     init: true
     volumes: *service_volumes
 
@@ -86,7 +86,7 @@ services:
       labels:
         maintainer: *rpmbuild_email
         vendor: *rpmbuild_vendor
-    command: 'tail -f /dev/null'
+    command: tail -f /dev/null
     image: ${IMAGE_PREFIX}rpmbuild
     init: true
     user: nobody
@@ -121,7 +121,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_MOD_TILE_PACKAGES}"
+        packages: ${RPMBUILD_MOD_TILE_PACKAGES}
         rpmbuild_image: rpmbuild-generic-geoint-deps
       dockerfile: docker/Dockerfile.rpmbuild-generic-geoint-deps
   rpmbuild-nominatim:
@@ -130,7 +130,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_NOMINATIM_PACKAGES}"
+        packages: ${RPMBUILD_NOMINATIM_PACKAGES}
         postgres_version: *postgres_version
         rpmbuild_image: rpmbuild-generic-geoint-deps
       dockerfile: docker/Dockerfile.rpmbuild-nominatim
@@ -140,7 +140,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_NOMINATIM_UI_PACKAGES}"
+        packages: ${RPMBUILD_NOMINATIM_UI_PACKAGES}
         rpmbuild_image: rpmbuild-generic-nodejs
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-osrm-backend:
@@ -149,7 +149,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_OSRM_BACKEND_PACKAGES}"
+        packages: ${RPMBUILD_OSRM_BACKEND_PACKAGES}
         rpmbuild_image: rpmbuild-generic-geoint-deps
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-osrm-frontend:
@@ -158,7 +158,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_OSRM_FRONTEND_PACKAGES}"
+        packages: ${RPMBUILD_OSRM_FRONTEND_PACKAGES}
         rpmbuild_image: rpmbuild-generic-nodejs
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-overpass-api:
@@ -167,7 +167,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_OVERPASS_API_PACKAGES}"
+        packages: ${RPMBUILD_OVERPASS_API_PACKAGES}
         rpmbuild_image: rpmbuild
       dockerfile: docker/Dockerfile.rpmbuild-generic
   rpmbuild-taginfo:
@@ -176,6 +176,6 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        packages: "${RPMBUILD_TAGINFO_PACKAGES}"
+        packages: ${RPMBUILD_TAGINFO_PACKAGES}
         rpmbuild_image: rpmbuild-generic-geoint-deps
       dockerfile: docker/Dockerfile.rpmbuild-generic-geoint-deps
