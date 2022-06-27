@@ -11,7 +11,7 @@ inputs:
     description: Server
     required: false
   username:
-    default: '$'
+    default: $
     description: Username
     required: false
 

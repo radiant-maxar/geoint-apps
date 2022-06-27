@@ -19,9 +19,8 @@ jobs:
       # max-parallel: 1
       matrix:
         image:
-          # - rpmbuild
-          # - rpmbuild-generic
-          - rpmbuild-generic-geoint-deps
+          - rpmbuild
+          - rpmbuild-generic
           - rpmbuild-generic-nodejs
 
     steps:

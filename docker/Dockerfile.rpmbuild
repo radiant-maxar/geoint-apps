@@ -29,7 +29,7 @@ ENV LANG=${rpmbuild_lang} \
     RPMBUILD_USER=${rpmbuild_user}
 
 # Install basic development and RPM authoring tools.
-# hadolint ignore=DL3033
+# hadolint ignore=DL3032,DL3033
 RUN --mount=type=cache,target=/var/cache/yum \
     yum-config-manager --save \
         --setopt=keepcache=1 \
@@ -63,8 +63,7 @@ RUN --mount=type=cache,target=/var/cache/yum \
       unzip \
       vim \
       which \
-      zip && \
-    yum -q -y clean all
+      zip
 
 # Copy in necessary scripts.
 COPY scripts/geoint-deps-repo.sh \

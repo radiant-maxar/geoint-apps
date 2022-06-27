@@ -22,9 +22,9 @@
 %global __provides_exclude_from ^%{nominatim_base}/lib-python/.*$
 %global __python %{__python3}
 
-Name:		nominatim
-Version:	%{rpmbuild_version}
-Release:	%{rpmbuild_release}%{?dist}
+Name:           nominatim
+Version:        %{rpmbuild_version}
+Release:        %{rpmbuild_release}%{?dist}
 Summary:        Open Source search based on OpenStreetMap data
 License:        GPLv2
 URL:            https://nominatim.org/
@@ -55,7 +55,7 @@ BuildRequires:  libtool
 BuildRequires:  libxml2-devel
 BuildRequires:  make
 BuildRequires:  osm2pgsql >= %{osm2pgsql_min_version}
-BuildRequires:  postgresql%{postgres_dotless}-devel
+BuildRequires:  postgresql%{postgres_version}-devel
 BuildRequires:  proj-devel
 BuildRequires:  python3-devel
 BuildRequires:  python3-osmium
@@ -68,8 +68,8 @@ BuildRequires:  zlib-devel
 %if %{with tests}
 BuildRequires:  libtidy
 BuildRequires:  postgis
-BuildRequires:  postgresql%{postgres_dotless}-contrib
-BuildRequires:  postgresql%{postgres_dotless}-server
+BuildRequires:  postgresql%{postgres_version}-contrib
+BuildRequires:  postgresql%{postgres_version}-server
 BuildRequires:  rh-php73-php-cli
 BuildRequires:  rh-php73-php-intl
 BuildRequires:  rh-php73-php-mbstring
@@ -92,7 +92,7 @@ BuildRequires:  rh-php73-php-pgsql
 Requires:       %{name}-data = %{version}-%{release}
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 Requires:       osm2pgsql >= %{osm2pgsql_min_version}
-Requires:       postgresql%{postgres_dotless}
+Requires:       postgresql%{postgres_version}
 Requires:       python3-osmium
 Requires:       python3-psycopg2
 Requires:       python36-jinja2
@@ -104,10 +104,10 @@ Requires:       rh-php73-php-pgsql
 # These requirements are included in Nominatim's lib-python directory,
 # They are not available in any yum repositories.
 # Source: https://github.com/osm-search/Nominatim/blob/master/docs/admin/Installation.md#software
-Provides:       bundled(python3-datrie)
-Provides:       bundled(python3-dotenv)
-Provides:       bundled(python3-pyicu)
-Provides:       bundled(python3-PyYAML)
+Provides:       bundled(python3-datrie) = %{datrie_version}
+Provides:       bundled(python3-dotenv) = %{python_dotenv_version}
+Provides:       bundled(python3-pyicu) = %{pyicu_version}
+Provides:       bundled(python3-PyYAML) = %{pyyaml_version}
 
 
 %description
@@ -119,21 +119,21 @@ sources for the Search box on the OpenStreetMap home page.
 
 
 %package data
-Summary:	Nominatim data files
+Summary:        Nominatim data files
 BuildArch:      noarch
 
 %description data
 This package contains Nominatim data files.
 
 %package libs
-Summary:	Nominatim library
+Summary:        Nominatim library
 
 %description libs
 This package contains the Nominatim shared library.
 
 
 %prep
-%autosetup -n Nominatim-%{version} -p1
+%autosetup -p1 -n Nominatim-%{version}
 
 
 %build
@@ -152,8 +152,7 @@ scl enable rh-php73 '%{cmake3} \
         -DBUILD_IMPORTER:BOOL=ON \
         -DBUILD_OSM2PGSQL:BOOL=OFF \
         -DCMAKE_INSTALL_LIBDIR=%{_datadir} \
-        ..'
-%{cmake3_build}
+        ..; %{cmake3_build}'
 popd
 
 

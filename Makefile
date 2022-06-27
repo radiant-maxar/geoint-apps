@@ -8,7 +8,7 @@ IMAGE_PREFIX ?= $(COMPOSE_PROJECT_NAME)_
 
 ## Macro functions.
 
-build_unless_image_exists = $(shell $(DOCKER) image inspect $(IMAGE_PREFIX)$(1) >/dev/null 2>&1 || $(DOCKER_COMPOSE) build $(1))
+build_unless_image_exists = $(shell $(DOCKER) image inspect $(IMAGE_PREFIX)$(1) >/dev/null 2>&1 || DOCKER_BUILDKIT=1 $(DOCKER_COMPOSE) build $(1))
 pull_unless_ci = $(shell bash -c '[ "$(CI)" == "false" ] || $(DOCKER_COMPOSE) pull --quiet $(1)')
 
 # The `rpmbuild_util.py` utility script is used to pull out configured versions,
@@ -31,7 +31,7 @@ rpmbuild_version = $(call config_version,$(call rpm_package,$(1)))
 ## Variables
 DOCKER_VERSION := $(shell $(DOCKER) --version 2>/dev/null)
 DOCKER_COMPOSE_VERSION := $(shell $(DOCKER_COMPOSE) --version 2>/dev/null)
-POSTGRES_DOTLESS := $(shell echo $(call rpmbuild_util,postgres_version,--variable) | tr -d '.')
+POSTGRES_VERSION := $(shell echo $(call rpmbuild_util,postgres_version,--variable) | tr -d '.')
 RPMBUILD_CHANNEL := $(call rpmbuild_util,channel_name,--variable)
 RPMBUILD_UID := $(shell id -u)
 RPMBUILD_GID := $(shell id -g)
@@ -50,7 +50,6 @@ TAGINFO_RPM := $(call rpm_file,taginfo)
 RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
 	rpmbuild-generic \
-	rpmbuild-generic-geoint-deps \
 	rpmbuild-generic-nodejs
 RPMBUILD_RPM_IMAGES := \
 	rpmbuild-mod_tile \
@@ -98,7 +97,7 @@ distclean: .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env
 	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/mod_tile.spec) >> .env
-	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim.spec --define postgres_dotless=$(POSTGRES_DOTLESS)) >> .env
+	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
 	echo RPMBUILD_NOMINATIM_UI_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim-ui.spec) >> .env
 	echo RPMBUILD_OSRM_BACKEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/osrm-backend.spec) >> .env
 	echo RPMBUILD_OSRM_FRONTEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/osrm-frontend.spec) >> .env
@@ -113,11 +112,6 @@ rpmbuild: .env
 	$(call build_unless_image_exists,$@)
 
 rpmbuild-generic: rpmbuild
-	$(call pull_unless_ci,$?)
-	$(call pull_unless_ci,$@)
-	$(call build_unless_image_exists,$@)
-
-rpmbuild-generic-geoint-deps: rpmbuild-generic
 	$(call pull_unless_ci,$?)
 	$(call pull_unless_ci,$@)
 	$(call build_unless_image_exists,$@)

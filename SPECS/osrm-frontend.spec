@@ -27,7 +27,7 @@ Frontend for OSRM, a routing engine for OpenStreetMap data.
 
 
 %prep
-%autosetup -n osrm-frontend-%{git_ref} -p 1
+%autosetup -p1 -n osrm-frontend-%{git_ref}
 
 
 %build

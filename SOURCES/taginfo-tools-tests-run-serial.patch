@@ -1,7 +1,7 @@
-diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+diff --git a/taginfo-tools/test/CMakeLists.txt b/taginfo-tools/test/CMakeLists.txt
 index 0a1d5f2..83c68fc 100644
---- a/test/CMakeLists.txt
-+++ b/test/CMakeLists.txt
+--- a/taginfo-tools/test/CMakeLists.txt
++++ b/taginfo-tools/test/CMakeLists.txt
 @@ -25,5 +25,6 @@ foreach(file ${TEST_SCRIPTS})
      message(STATUS "Adding test: ${tid}")
      add_test(NAME test-${tid}
