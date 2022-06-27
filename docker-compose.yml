@@ -116,7 +116,7 @@ services:
       args:
         <<: *build_args_defaults
         packages: ${RPMBUILD_NOMINATIM_UI_PACKAGES}
-        rpmbuild_image: rpmbuild-generic-nodejs
+        rpmbuild_image: rpmbuild-generic
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-osrm-backend:
     <<: *service_defaults
@@ -133,7 +133,7 @@ services:
       args:
         <<: *build_args_defaults
         packages: ${RPMBUILD_OSRM_FRONTEND_PACKAGES}
-        rpmbuild_image: rpmbuild-generic-nodejs
+        rpmbuild_image: rpmbuild-generic
       dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-overpass-api:
     <<: *service_defaults
