@@ -152,8 +152,7 @@ scl enable rh-php73 '%{cmake3} \
         -DBUILD_IMPORTER:BOOL=ON \
         -DBUILD_OSM2PGSQL:BOOL=OFF \
         -DCMAKE_INSTALL_LIBDIR=%{_datadir} \
-        ..'
-%{cmake3_build}
+        ..; %{cmake3_build}'
 popd
 
 
