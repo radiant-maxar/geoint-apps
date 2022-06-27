@@ -6,6 +6,9 @@ FROM ${rpmbuild_image_prefix}${rpmbuild_image}:latest
 
 ARG packages
 
+# Temporarily switch to root for package installation.
+USER root
+
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # hadolint ignore=DL3032,DL3033
