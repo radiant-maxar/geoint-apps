@@ -24,7 +24,7 @@ x-rpmbuild:
   build_args_defaults: &build_args_defaults
     rpmbuild_channel: *rpmbuild_channel
     rpmbuild_image_prefix: *rpmbuild_image_prefix
-    rpmbuild_image: rpmbuild-generic
+    rpmbuild_image: rpmbuild
   # Configuration for building every application RPM.
   rpms:
     mod_tile:
@@ -84,7 +84,6 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-        rpmbuild_image: rpmbuild
     image: ${IMAGE_PREFIX}rpmbuild-generic
   rpmbuild-generic-nodejs:
     <<: *service_defaults
