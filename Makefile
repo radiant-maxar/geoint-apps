@@ -9,7 +9,7 @@ IMAGE_PREFIX ?= $(COMPOSE_PROJECT_NAME)_
 ## Macro functions.
 
 build_unless_image_exists = $(shell $(DOCKER) image inspect $(IMAGE_PREFIX)$(1) >/dev/null 2>&1 || DOCKER_BUILDKIT=1 $(DOCKER_COMPOSE) build $(1))
-pull_unless_ci = $(shell bash -c '[ "$(CI)" == "false" ] || $(DOCKER_COMPOSE) pull --quiet $(1)')
+pull_if_ci = $(shell bash -c '[ "$(CI)" == "false" ] || $(DOCKER_COMPOSE) pull --quiet $(1)')
 
 # The `rpmbuild_util.py` utility script is used to pull out configured versions,
 # Docker build images, and other build variables.
@@ -99,17 +99,17 @@ distclean: .env
 
 # Base images
 rpmbuild: .env
-	$(call pull_unless_ci,$@)
+	$(call pull_if_ci,$@)
 	$(call build_unless_image_exists,$@)
 
 rpmbuild-generic: rpmbuild
-	$(call pull_unless_ci,$?)
-	$(call pull_unless_ci,$@)
+	$(call pull_if_ci,$?)
+	$(call pull_if_ci,$@)
 	$(call build_unless_image_exists,$@)
 
 rpmbuild-generic-nodejs: rpmbuild-generic
-	$(call pull_unless_ci,$?)
-	$(call pull_unless_ci,$@)
+	$(call pull_if_ci,$?)
+	$(call pull_if_ci,$@)
 	$(call build_unless_image_exists,$@)
 
 
@@ -125,9 +125,9 @@ taginfo: $(TAGINFO_RPM)
 
 ## Build patterns
 RPMS/x86_64/%.rpm RPMS/noarch/%.rpm: .env
-	$(call pull_unless_ci,$(call rpmbuild_image_parent,$*))
+	$(call pull_if_ci,$(call rpmbuild_image_parent,$*))
 	$(call build_unless_image_exists,$(call rpmbuild_image_parent,$*))
-	$(call pull_unless_ci,$(call rpmbuild_image,$*))
+	$(call pull_if_ci,$(call rpmbuild_image,$*))
 	$(call build_unless_image_exists,$(call rpmbuild_image,$*))
 	$(DOCKER_COMPOSE) run --rm -T $(call rpmbuild_image,$*) \
 		$(shell ./scripts/rpmbuild_util.py $(call rpm_package,$*) --config-file $(COMPOSE_FILE))
