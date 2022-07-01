@@ -6,8 +6,8 @@ COMPOSE_FILE ?= docker-compose.yml
 COMPOSE_PROJECT_NAME ?= geoint-apps-$(RPMBUILD_CHANNEL)
 IMAGE_PREFIX ?= $(COMPOSE_PROJECT_NAME)_
 
-## Macro functions.
 
+## Macro functions.
 build_unless_image_exists = $(shell $(DOCKER) image inspect $(IMAGE_PREFIX)$(1) >/dev/null 2>&1 || DOCKER_BUILDKIT=1 $(DOCKER_COMPOSE) build $(1))
 pull_if_ci = $(shell bash -c '[ "$(CI)" == "false" ] || $(DOCKER_COMPOSE) pull --quiet $(1)')
 
@@ -28,6 +28,7 @@ rpmbuild_image_parent = $(call rpmbuild_util,$(call rpmbuild_image,$(1)).build.a
 rpmbuild_release = $(call config_release,$(call rpm_package,$(1)))
 rpmbuild_version = $(call config_version,$(call rpm_package,$(1)))
 
+
 ## Variables
 DOCKER_VERSION := $(shell $(DOCKER) --version 2>/dev/null)
 DOCKER_COMPOSE_VERSION := $(shell $(DOCKER_COMPOSE) --version 2>/dev/null)
@@ -45,7 +46,6 @@ OSRM_FRONTEND_RPM := $(call rpm_file,osrm-frontend)
 OVERPASS_API_RPM := $(call rpm_file,overpass-api)
 TAGINFO_RPM := $(call rpm_file,taginfo)
 
-
 # Build images and RPMs.
 RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
@@ -60,8 +60,8 @@ RPMBUILD_RPMS := \
 	overpass-api \
 	taginfo
 
-## General targets
 
+## General targets
 .PHONY: \
 	all \
 	distclean \
@@ -95,6 +95,7 @@ distclean: .env
 	echo RPMBUILD_OVERPASS_API_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/overpass-api.spec) >> .env
 	echo RPMBUILD_TAGINFO_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/taginfo.spec) >> .env
 
+
 ## Image targets
 rpmbuild: .env
 	$(call pull_if_ci,$@)
@@ -122,7 +123,7 @@ taginfo: $(TAGINFO_RPM)
 
 
 ## Build patterns
-RPMS/x86_64/%.rpm RPMS/noarch/%.rpm: .env
+RPMS/x86_64/%.rpm RPMS/noarch/%.rpm:
 	$(MAKE) $(call rpmbuild_image_parent,$*)
 	$(call pull_if_ci,$(call rpmbuild_image,$*))
 	$(call build_unless_image_exists,$(call rpmbuild_image,$*))
