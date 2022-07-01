@@ -123,7 +123,7 @@ taginfo: $(TAGINFO_RPM)
 
 
 ## Build patterns
-RPMS/x86_64/%.rpm RPMS/noarch/%.rpm:
+RPMS/x86_64/%.rpm RPMS/noarch/%.rpm: | .env
 	$(MAKE) $(call rpmbuild_image_parent,$*)
 	$(call pull_if_ci,$(call rpmbuild_image,$*))
 	$(call build_unless_image_exists,$(call rpmbuild_image,$*))
