@@ -12,9 +12,9 @@ x-rpmbuild:
   base_args: &rpmbuild_base_args
     rpmbuild_dist: *rpmbuild_dist
     rpmbuild_email: *rpmbuild_email
+    rpmbuild_gid: ${RPMBUILD_GID}
     rpmbuild_name: *rpmbuild_name
     rpmbuild_uid: ${RPMBUILD_UID}
-    rpmbuild_gid: ${RPMBUILD_GID}
   build_defaults: &build_defaults
     context: .
     dockerfile: docker/Dockerfile.rpmbuild-generic
