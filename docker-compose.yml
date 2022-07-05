@@ -117,6 +117,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
+        nodejs_version: 16
         packages: ${RPMBUILD_OSRM_BACKEND_PACKAGES}
   rpmbuild-osrm-frontend:
     <<: *service_defaults

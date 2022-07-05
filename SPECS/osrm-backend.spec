@@ -24,10 +24,10 @@ BuildRequires:  gcc-c++
 BuildRequires:  libosmium-devel
 BuildRequires:  libxml2-devel
 BuildRequires:  libzip-devel
-BuildRequires:  protozero-devel
 %if %{with tests}
 BuildRequires:  nodejs
 %endif
+BuildRequires:  protozero-devel
 BuildRequires:  tbb-devel
 
 %description
@@ -39,10 +39,10 @@ Summary:   Development files for OSRM
 Requires:  %{name}%{?_isa} = %{version}-%{release}
 Requires:  boost-devel
 Requires:  bzip2-devel
+Requires:  compat-lua-devel
 Requires:  expat-devel
 Requires:  libxml2-devel
 Requires:  libzip-devel
-Requires:  lua-devel
 
 %description devel
 This package contains OSRM header files for development purposes.
