@@ -14,7 +14,7 @@ USER root
 
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
-# hadolint ignore=DL3028,DL3032,DL3033
+# hadolint ignore=DL3028,DL3032,DL3033,DL3040,DL3041
 RUN --mount=type=cache,target=/var/cache/dnf \
     PGDG_TESTING=${pgdg_testing} /usr/local/bin/pgdg-repo.sh ${postgres_version} && \
     /usr/local/bin/postgres-install.sh ${postgres_version} && \

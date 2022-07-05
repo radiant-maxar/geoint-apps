@@ -8,7 +8,7 @@ ARG packages
 
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
-# hadolint ignore=DL3032,DL3033
+# hadolint ignore=DL3032,DL3033,DL3040,DL3041
 RUN --mount=type=cache,target=/var/cache/dnf \
     /usr/local/bin/geoint-deps-repo.sh && \
     /usr/local/bin/nodesource-repo.sh && \

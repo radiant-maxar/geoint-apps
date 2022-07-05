@@ -2,7 +2,6 @@
 set -euo pipefail
 
 REPO="${1:-}"
-REPODATA="${REPO}/repodata"
 
 if [ -z "${REPO}" ]; then
     echo 'repo-update.sh: must provide a repository directory argument.'
