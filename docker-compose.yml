@@ -3,11 +3,11 @@ version: "3.7"
 
 x-rpmbuild:
   channel_name: &rpmbuild_channel stable
-  dist: &rpmbuild_dist .el7
+  dist: &rpmbuild_dist .el9
   email: &rpmbuild_email foundationgeoint-packaging@maxar.com
   image_prefix: &rpmbuild_image_prefix ${IMAGE_PREFIX}
   packager_name: &rpmbuild_name FoundationGEOINT Packaging
-  postgres_version: &postgres_version "13"
+  postgres_version: &postgres_version "15"
   vendor: &rpmbuild_vendor Maxar Technologies
   base_args: &rpmbuild_base_args
     rpmbuild_dist: *rpmbuild_dist
@@ -32,7 +32,7 @@ x-rpmbuild:
       version: &mod_tile_version 0.6.1-3
     nominatim:
       image: rpmbuild-nominatim
-      version: &nominatim_version 4.0.1-2
+      version: &nominatim_version 4.0.1-1
     nominatim-ui:
       image: rpmbuild-nominatim-ui
       version: &nominatim_ui_version 3.2.4-1
@@ -46,7 +46,7 @@ x-rpmbuild:
       version: &osrm_frontend_version 2021.9.30-1
     overpass-api:
       image: rpmbuild-overpass-api
-      version: &overpass_api_version 0.7.56.9-2
+      version: &overpass_api_version 0.7.58.3-1
     taginfo:
       defines:
         abseil_git_ref: 384a25d5e19228ceb7641676aefd58c4ca7a9568
@@ -85,14 +85,6 @@ services:
       args:
         <<: *build_args_defaults
     image: ${IMAGE_PREFIX}rpmbuild-generic
-  rpmbuild-generic-nodejs:
-    <<: *service_defaults
-    build:
-      <<: *build_defaults
-      args:
-        <<: *build_args_defaults
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
-    image: ${IMAGE_PREFIX}rpmbuild-generic-nodejs
   rpmbuild-mod_tile:
     <<: *service_defaults
     build:
@@ -118,7 +110,7 @@ services:
         <<: *build_args_defaults
         packages: ${RPMBUILD_NOMINATIM_UI_PACKAGES}
         rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
+      dockerfile: docker/Dockerfile.rpmbuild-nominatim-ui
   rpmbuild-osrm-backend:
     <<: *service_defaults
     build:
@@ -126,8 +118,6 @@ services:
       args:
         <<: *build_args_defaults
         packages: ${RPMBUILD_OSRM_BACKEND_PACKAGES}
-        rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-osrm-frontend:
     <<: *service_defaults
     build:
@@ -135,8 +125,6 @@ services:
       args:
         <<: *build_args_defaults
         packages: ${RPMBUILD_OSRM_FRONTEND_PACKAGES}
-        rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-overpass-api:
     <<: *service_defaults
     build:

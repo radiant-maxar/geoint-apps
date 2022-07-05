@@ -3,7 +3,7 @@ DOCKER ?= docker
 DOCKER_COMPOSE ?= docker-compose
 CI ?= false
 COMPOSE_FILE ?= docker-compose.yml
-COMPOSE_PROJECT_NAME ?= geoint-apps-$(RPMBUILD_CHANNEL)
+COMPOSE_PROJECT_NAME ?= geoint-apps-$(RPMBUILD_CHANNEL)-el9
 IMAGE_PREFIX ?= $(COMPOSE_PROJECT_NAME)_
 
 ## Macro functions.
@@ -49,8 +49,7 @@ TAGINFO_RPM := $(call rpm_file,taginfo)
 # Build images and RPMs.
 RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
-	rpmbuild-generic \
-	rpmbuild-generic-nodejs
+	rpmbuild-generic
 RPMBUILD_RPM_IMAGES := \
 	rpmbuild-mod_tile \
 	rpmbuild-nominatim \
@@ -112,11 +111,6 @@ rpmbuild: .env
 	$(call build_unless_image_exists,$@)
 
 rpmbuild-generic: rpmbuild
-	$(call pull_unless_ci,$?)
-	$(call pull_unless_ci,$@)
-	$(call build_unless_image_exists,$@)
-
-rpmbuild-generic-nodejs: rpmbuild-generic
 	$(call pull_unless_ci,$?)
 	$(call pull_unless_ci,$@)
 	$(call build_unless_image_exists,$@)

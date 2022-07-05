@@ -1,7 +1,5 @@
-# The following macros are also required:
-%global libosmium_min_version 2.16.0
-%global nodejs_min_version 10.0.0
-%global protozero_min_version 1.3.0
+# Force CMake to use `build` for its directory, tests assume it.
+%global _vpath_builddir build
 
 # Enable tests by default.
 %bcond_without tests
@@ -15,21 +13,20 @@ License:        BSD
 URL:            https://map.project-osrm.org
 Source0:        https://github.com/Project-OSRM/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-# A newer C++ toolchain is required to compile.
-BuildRequires:  devtoolset-9-gcc
-BuildRequires:  devtoolset-9-gcc-c++
-BuildRequires:  boost169-devel
+BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
-BuildRequires:  cmake3
+BuildRequires:  ccache
+BuildRequires:  compat-lua-devel
+BuildRequires:  cmake
 BuildRequires:  expat-devel
+BuildRequires:  gcc
 BuildRequires:  gcc-c++
-BuildRequires:  libosmium-devel >= %{libosmium_min_version}
+BuildRequires:  libosmium-devel
 BuildRequires:  libxml2-devel
 BuildRequires:  libzip-devel
-BuildRequires:  lua-devel
-BuildRequires:  protozero-devel >= %{protozero_min_version}
+BuildRequires:  protozero-devel
 %if %{with tests}
-BuildRequires:  nodejs >= %{nodejs_min_version}
+BuildRequires:  nodejs
 %endif
 BuildRequires:  tbb-devel
 
@@ -40,7 +37,7 @@ High performance routing engine written in C++14 designed to run on OpenStreetMa
 %package devel
 Summary:   Development files for OSRM
 Requires:  %{name}%{?_isa} = %{version}-%{release}
-Requires:  boost169-devel
+Requires:  boost-devel
 Requires:  bzip2-devel
 Requires:  expat-devel
 Requires:  libxml2-devel
@@ -53,7 +50,6 @@ This package contains OSRM header files for development purposes.
 
 %prep
 %autosetup -p1
-%{__mkdir_p} build
 # Patch CMakeLists.txt:
 #  * Use proper library path (/usr/lib64)
 #  * Relax Lua requirement to 5.1
@@ -67,47 +63,44 @@ This package contains OSRM header files for development purposes.
 %build
 %if %{with tests}
 npm install
-export ENABLE_NODE_BINDINGS=On
+%{__rm} -f unit_tests/contractor/files.cpp
+%{__rm} -f unit_tests/util/connectivity_checksum.cpp
 %endif
-pushd build
-scl enable devtoolset-9 '%{cmake3} \
-        -DBOOST_INCLUDEDIR=%{_includedir}/boost169 \
-        -DBOOST_LIBRARYDIR=%{_libdir}/boost169 \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DENABLE_ASSERTIONS=Off \
-        -DENABLE_LTO=On \
-        -DENABLE_NODE_BINDINGS=${ENABLE_NODE_BINDINGS:-Off} \
-        -DOSMIUM_INCLUDE_DIR=%{_includedir} \
-        -DPROTOZERO_INCLUDE_DIR=%{_includedir} \
-        ..; %{cmake3_build}'
-popd
+%{cmake} \
+ -DCMAKE_BUILD_TYPE:STRING=Release \
+ -DENABLE_ASSERTIONS:BOOL=Off \
+ -DENABLE_CCACHE:BOOL=On \
+ -DENABLE_LTO:BOOL=On \
+ -DENABLE_NODE_BINDINGS:BOOL=On \
+ -DLUA_INCLUDE_DIR:PATH=%{_includedir}/lua-5.1 \
+ -DLUA_LIBRARY:FILEPATH=%{_libdir}/liblua-5.1.so
+%{cmake_build}
 
 
 %install
-pushd build
-%{cmake3_install}
-popd
+%{cmake_install}
 
 
 %check
 %if %{with tests}
 npm run nodejs-tests
-%{__mkdir_p} example/build
-pushd example/build
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:%{buildroot}%{_libdir}
-export PKG_CONFIG_PATH=%{buildroot}%{_libdir}/pkgconfig
+
+pushd example
 %{__sed} -i \
  -e 's#include_directories(SYSTEM \${LibOSRM_INCLUDE_DIRS})#include_directories(SYSTEM \${LibOSRM_INCLUDE_DIRS} %{buildroot}%{_includedir} %{buildroot}%{_includedir}/osrm)#' \
- ../CMakeLists.txt
-scl enable devtoolset-9 '%{cmake3} \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DLibOSRM_INCLUDE_DIR=%{buildroot}%{_includedir} \
-        -DLibOSRM_LIBRARY_DIRS=%{buildroot}%{_libdir} \
-        ..; %{cmake3_build}'
+ CMakeLists.txt
+export PKG_CONFIG_PATH=%{buildroot}%{_libdir}/pkgconfig
+cmake \
+ -B %{_vpath_builddir} \
+ -DCMAKE_BUILD_TYPE:STRING=Release \
+ -DLibOSRM_INCLUDE_DIR:PATH=%{buildroot}%{_includedir} \
+ -DLibOSRM_LIBRARY_DIRS:PATH=%{buildroot}%{_libdir}
+%{__make} -C %{_vpath_builddir} %{?_smp_mflags}
 popd
-example/build/osrm-example test/data/mld/monaco.osrm
-pushd build
-%{cmake3_build} --target tests
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:%{buildroot}%{_libdir}
+example/%{_vpath_builddir}/osrm-example test/data/mld/monaco.osrm
+%{cmake_build} --target tests
+pushd %{_vpath_builddir}
 for TEST_BIN in unit_tests/*-tests; do
   if [ "${TEST_BIN}" == "unit_tests/library-extract-tests" ] \
   || [ "${TEST_BIN}" == "unit_tests/updater-tests" ]; then

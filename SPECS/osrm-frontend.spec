@@ -1,5 +1,5 @@
 # The following macros are also required:
-%global nodejs_min_version 10.0.0
+%global nodejs_min_version 18.0.0
 
 %global __brp_mangle_shebangs /usr/bin/true
 
@@ -16,7 +16,7 @@ Source0:        https://github.com/Project-OSRM/osrm-frontend/archive/%{git_ref}
 BuildArch:      noarch
 BuildRequires:  nodejs-devel >= %{nodejs_min_version}
 
-Requires: nodejs >= %{nodejs_min_version}
+Requires:       nodejs >= %{nodejs_min_version}
 %if 0%{?rhel} >= 8
 Requires: npm
 %endif

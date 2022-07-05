@@ -3,8 +3,4 @@ datrie==0.8.2
 Cython==0.29.30
 pytidylib==0.3.2
 pylint==2.13.9
-pytest==6.2.5
-pytest-cov==3.0.0
-python-dotenv==0.20.0
 PyICU==2.9
-PyYAML==6.0

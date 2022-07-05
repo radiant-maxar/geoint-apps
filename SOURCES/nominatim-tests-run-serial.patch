@@ -2,12 +2,14 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 02c290cc..c46e1ecd 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -138,6 +138,8 @@ if (BUILD_TESTS)
+@@ -138,6 +138,10 @@ if (BUILD_TESTS)
              set_tests_properties(bdd_${test}
                  PROPERTIES ENVIRONMENT "NOMINATIM_DIR=${PROJECT_BINARY_DIR}")
          endforeach()
-+        # Do not run "bdd_db" in parallel with any other test.
-+        set_tests_properties(bdd_db PROPERTIES RUN_SERIAL TRUE)
++        # Do not run "bdd_{api,db,osm2pgsql}" in parallel with any other test.
++        set_tests_properties(bdd_api PROPERTIES RUN_SERIAL TRUE)
++        #set_tests_properties(bdd_db PROPERTIES RUN_SERIAL TRUE)
++        #set_tests_properties(bdd_osm2pgsql PROPERTIES RUN_SERIAL TRUE)
      else()
          message(WARNING "behave not found. BDD tests disabled." )
      endif()

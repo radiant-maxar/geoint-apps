@@ -9,8 +9,8 @@
 # Prerequisite versions
 %{!?abseil_cpp_version: %global abseil_cpp_version 20211102.0}
 %{!?libosmium_min_version: %global libosmium_min_version 2.14.0}
-%{!?ruby_max_version: %global ruby_max_version 2.8.0}
-%{!?ruby_min_version: %global ruby_min_version 2.7.0}
+%{!?ruby_max_version: %global ruby_max_version 3.1.0}
+%{!?ruby_min_version: %global ruby_min_version 3.0.0}
 %{!?sqlite_min_version: %global sqlite_min_version 3.36.0}
 
 # Don't provide for any libraries from the Rails application bundle
@@ -40,11 +40,11 @@ Patch3:         taginfo-sqlite-enable-loadextension.patch
 Patch4:         taginfo-tools-tests-run-serial.patch
 
 BuildRequires:  bzip2-devel
-BuildRequires:  cmake3
-BuildRequires:  curl
-BuildRequires:  devtoolset-9-gcc
-BuildRequires:  devtoolset-9-gcc-c++
+BuildRequires:  cmake
+BuildRequires:  curl-minimal
 BuildRequires:  expat-devel
+BuildRequires:  gcc
+BuildRequires:  gcc-c++
 BuildRequires:  gd-devel
 BuildRequires:  make
 BuildRequires:  libicu-devel
@@ -58,10 +58,11 @@ BuildRequires:  rubygem-test-unit
 BuildRequires:  rubygems-devel
 BuildRequires:  sqlite-devel
 BuildRequires:  sqlite-pcre
+BuildRequires:  systemd-rpm-macros
 BuildRequires:  zlib-devel
 
 Requires:       bzip2
-Requires:       curl
+Requires:       curl-minimal
 Requires:       ruby >= %{ruby_min_version}
 Requires:       ruby < %{ruby_max_version}
 Requires:       rubygem-bundler >= 2.1.0
@@ -104,11 +105,9 @@ other OSM file.
 %{_bindir}/bundle config set --local path vendor/bundle
 %{_bindir}/bundle install
 # taginfo-tools
-%{__mkdir_p} taginfo-tools/build
-pushd taginfo-tools/build
-scl enable devtoolset-9 '%{cmake3} \
-        -DCMAKE_BUILD_TYPE=Release \
-        ..; %{cmake3_build}'
+pushd taginfo-tools
+%{cmake} -DCMAKE_BUILD_TYPE=Release
+%{cmake_build}
 popd
 
 
@@ -132,9 +131,9 @@ popd
 %{__ln_s} %{taginfo_var}/download %{buildroot}%{taginfo_home}/download
 
 # Copy taginfo binaries and their absl shared libraries.
-%{__install} -m 0755 taginfo-tools/build/src/taginfo-* %{buildroot}%{_bindir}
-%{__install} -m 0755 taginfo-tools/build/src/osmstats %{buildroot}%{_bindir}
-%{_bindir}/find taginfo-tools/build/abseil-cpp \
+%{__install} -m 0755 taginfo-tools/%{_vpath_builddir}/src/taginfo-* %{buildroot}%{_bindir}
+%{__install} -m 0755 taginfo-tools/%{_vpath_builddir}/src/osmstats %{buildroot}%{_bindir}
+%{_bindir}/find taginfo-tools/%{_vpath_builddir}/abseil-cpp \
  -type f -name \*.so -exec %{__install} -m 0755 {} %{buildroot}%{_libdir} \;
 
 # Copy most web application files.
@@ -180,7 +179,7 @@ EOF
 
 
 %check
-pushd taginfo-tools/build
+pushd taginfo-tools
 %{ctest3}
 popd
 pushd web

@@ -21,7 +21,6 @@ jobs:
         image:
           - rpmbuild
           - rpmbuild-generic
-          - rpmbuild-generic-nodejs
 
     steps:
       - name: Checkout repository
@@ -98,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/${{ github.repository }}/rpmbuild:latest
+      image: ghcr.io/${{ github.repository }}/rpmbuild-generic:latest
 
     steps:
       - name: Checkout repository

@@ -1,5 +1,5 @@
 # The following macros are also required:
-%global nodejs_min_version 14.0.0
+%global nodejs_min_version 18.0.0
 
 # Variables for Nominatim UI paths
 %global nominatim_ui_base %{_datadir}/%{name}
@@ -14,19 +14,19 @@ Release:        %{rpmbuild_release}%{?dist}
 Summary:        Debug web interface for Nominatim
 License:        GPLv2
 URL:            https://github.com/osm-search/nominatim-ui
-
 Source0:        https://github.com/osm-search/nominatim-ui/archive/v%{version}/nominatim-ui-%{version}.tar.gz
-
 Patch0:         nominatim-ui-test-browser-no-sandbox.patch
 
 BuildArch:      noarch
 
+%if %{with tests}
+BuildRequires:  google-chrome-stable
+%endif
 BuildRequires:  nodejs >= %{nodejs_min_version}
 BuildRequires:  yarn
 
-%if %{with tests}
-BuildRequires:  chromium
-%endif
+Requires:       nodejs >= %{nodejs_min_version}
+
 
 %description
 %{summary}.

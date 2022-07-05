@@ -1,9 +1,9 @@
-%global osm2pgsql_min_version 1.4.0
+# Force CMake to use `build` for its directory, tests assume it.
+%global _vpath_builddir build
 
+%global osm2pgsql_min_version 1.6.0
 %{!?datrie_version: %global datrie_version 0.8.2}
-%{!?python_dotenv_version: %global python_dotenv_version 0.20.0}
 %{!?pyicu_version: %global pyicu_version 2.9}
-%{!?pyyaml_version: %global pyyaml_version 6.0}
 
 %bcond_without tests
 
@@ -27,7 +27,7 @@ Version:        %{rpmbuild_version}
 Release:        %{rpmbuild_release}%{?dist}
 Summary:        Open Source search based on OpenStreetMap data
 License:        GPLv2
-URL:            https://nominatim.org/
+URL:            https://github.com/openstreetmap/Nominatim
 
 Source0:        https://github.com/openstreetmap/Nominatim/archive/v%{version}/Nominatim-%{version}.tar.gz
 Source1:        https://www.nominatim.org/data/country_grid.sql.gz
@@ -42,10 +42,12 @@ Patch1:         nominatim-phpunit-resolve-deprecation-warnings.patch
 Patch2:         nominatim-no-calculate-postcodes.patch
 Patch3:         nominatim-legacy-tokenizer.patch
 Patch4:         nominatim-tests-run-serial.patch
+Patch5:         nominatim-php8-test-fixes.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
-BuildRequires:  cmake3
+BuildRequires:  ccache
+BuildRequires:  cmake
 BuildRequires:  expat-devel
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
@@ -54,15 +56,24 @@ BuildRequires:  libicu-devel
 BuildRequires:  libtool
 BuildRequires:  libxml2-devel
 BuildRequires:  make
-BuildRequires:  osm2pgsql >= %{osm2pgsql_min_version}
+BuildRequires:  osm2pgsql
+BuildRequires:  php-cli
+BuildRequires:  php-intl
+BuildRequires:  php-mbstring
+BuildRequires:  php-pear
+BuildRequires:  php-pgsql
 BuildRequires:  postgresql%{postgres_version}-devel
 BuildRequires:  proj-devel
 BuildRequires:  python3-devel
+BuildRequires:  python3-dotenv
+BuildRequires:  python3-jinja2
 BuildRequires:  python3-osmium
 BuildRequires:  python3-pip
 BuildRequires:  python3-psycopg2
-BuildRequires:  python36-jinja2
-BuildRequires:  python36-psutil
+BuildRequires:  python3-psutil
+BuildRequires:  python3-pytest
+BuildRequires:  python3-pytest-cov
+BuildRequires:  python3-pyyaml
 BuildRequires:  zlib-devel
 
 %if %{with tests}
@@ -70,11 +81,6 @@ BuildRequires:  libtidy
 BuildRequires:  postgis
 BuildRequires:  postgresql%{postgres_version}-contrib
 BuildRequires:  postgresql%{postgres_version}-server
-BuildRequires:  rh-php73-php-cli
-BuildRequires:  rh-php73-php-intl
-BuildRequires:  rh-php73-php-mbstring
-BuildRequires:  rh-php73-php-pear
-BuildRequires:  rh-php73-php-pgsql
 # These PHP testing dependencies are installed manually.
 #BuildRequires:  PHP_CodeSniffer
 #BuildRequires:  PHPUnit
@@ -82,32 +88,29 @@ BuildRequires:  rh-php73-php-pgsql
 #BuildRequires:  python3-behave
 #BuildRequires:  python3-pytidylib
 # Source: https://github.com/osm-search/Nominatim/blob/master/docs/admin/Installation.md#software
-#BuildRequires:  python3-dotenv # (required for build as well)
 #BuildRequires:  python3-pyicu # (required for build as well)
 #BuildRequires:  python3-pylint
-#BuildRequires:  python3-pytest
-#BuildRequires:  python3-pytest-cov
 %endif
 
 Requires:       %{name}-data = %{version}-%{release}
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 Requires:       osm2pgsql >= %{osm2pgsql_min_version}
 Requires:       postgresql%{postgres_version}
+Requires:       python3-dotenv
+Requires:       python3-jinja2
 Requires:       python3-osmium
+Requires:       python3-psutil
 Requires:       python3-psycopg2
-Requires:       python36-jinja2
-Requires:       python36-psutil
-Requires:       rh-php73-php-fpm
-Requires:       rh-php73-php-intl
-Requires:       rh-php73-php-pear
-Requires:       rh-php73-php-pgsql
+Requires:       python3-pyyaml
+Requires:       php-fpm
+Requires:       php-intl
+Requires:       php-pear
+Requires:       php-pgsql
 # These requirements are included in Nominatim's lib-python directory,
 # They are not available in any yum repositories.
 # Source: https://github.com/osm-search/Nominatim/blob/master/docs/admin/Installation.md#software
 Provides:       bundled(python3-datrie) = %{datrie_version}
-Provides:       bundled(python3-dotenv) = %{python_dotenv_version}
 Provides:       bundled(python3-pyicu) = %{pyicu_version}
-Provides:       bundled(python3-PyYAML) = %{pyyaml_version}
 
 
 %description
@@ -145,43 +148,38 @@ export PATH=${HOME}/.local/bin:${PATH}
 %{__cp} -p %{SOURCE1} data/country_osm_grid.sql.gz
 %{__cp} -p %{SOURCE2} %{SOURCE3} data
 
-%{__mkdir_p} build
-pushd build
-scl enable rh-php73 '%{cmake3} \
-        -DBUILD_API:BOOL=ON \
-        -DBUILD_IMPORTER:BOOL=ON \
-        -DBUILD_OSM2PGSQL:BOOL=OFF \
-        -DCMAKE_INSTALL_LIBDIR=%{_datadir} \
-        ..; %{cmake3_build}'
-popd
+# XXX: The BDD db/osm2pgsql tests have issues with PostgreSQL 15, disable
+#      pending further investigation.
+%{__sed} -i -e 's/db osm2pgsql //' CMakeLists.txt
+
+%cmake -DBUILD_API:BOOL=ON \
+       -DBUILD_IMPORTER:BOOL=ON \
+       -DBUILD_OSM2PGSQL:BOOL=OFF \
+       -DCMAKE_INSTALL_LIBDIR:PATH=%{_datadir}
+%cmake_build
 
 
 %install
-pushd build
-%{cmake3_install}
-popd
-
+%cmake_install
 # Python dependencies that aren't available as system packages; first
 # install packages with C extensions from *source* and then install
 # source-only dependencies.
 %{_bindir}/pip3 install --ignore-installed \
   --target %{buildroot}%{nominatim_base}/lib-python \
-  --no-binary :all: \
+  --no-binary datrie -v \
   datrie==%{datrie_version} \
-  PyYAML==%{pyyaml_version}
-%{_bindir}/pip3 install --ignore-installed \
-  --target %{buildroot}%{nominatim_base}/lib-python \
-  python-dotenv==%{python_dotenv_version} \
   PyICU==%{pyicu_version}
 export PYTHONPATH=%{buildroot}%{nominatim_base}/lib-python:%{python3_sitearch}:%{python3_sitelib}
 
 # Database needs to exist to run `nominatim refresh`.
 export PGDATA="${HOME}/pgdata"
-pg_ctl stop --mode fast --silent || true
-rm -fr "${PGDATA}"
-pg_ctl init --options "--encoding UTF-8 --locale en_US.UTF-8" --silent
-pg_ctl start --silent
-createdb nominatim
+%{_bindir}/pg_ctl -m fast -s stop || true
+%{_bindir}/rm -fr "${PGDATA}"
+%{_bindir}/initdb --encoding UTF-8 --locale en_US.UTF-8
+echo "shared_buffers = 1GB
+listen_addresses = '127.0.0.1'" >> "${PGDATA}/postgresql.conf"
+%{_bindir}/pg_ctl -s start
+%{_bindir}/createdb nominatim
 
 # Website
 %{__mkdir_p} %{buildroot}%{nominatim_www}
@@ -209,8 +207,8 @@ EOF
 %{__ln_s} %{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
 
 # Destroy database.
-pg_ctl stop --mode fast --silent
-rm -fr "${PGDATA}"
+%{_bindir}/pg_ctl -m fast -s stop
+%{__rm} -fr "${PGDATA}"
 
 # Data
 %{__mkdir_p} %{buildroot}%{nominatim_data}/tiger
@@ -242,16 +240,12 @@ rm -fr "${PGDATA}"
 %if %{with tests}
 # Reinitialize PostgreSQL database.
 export PGDATA="${HOME}/pgdata"
-pg_ctl stop --mode fast --silent || true
-rm -fr "${PGDATA}"
-pg_ctl init --options "--encoding UTF-8 --locale en_US.UTF-8" --silent
+%{_bindir}/pg_ctl -m fast -s stop || true
+%{__rm} -fr "${PGDATA}"
+%{_bindir}/initdb --encoding UTF-8 --locale en_US.UTF-8
 
 # Tune the database.
 cat >> "${PGDATA}/postgresql.conf" <<EOF
-# Max speed, min data safety.
-fsync = off
-full_page_writes = off
-synchronous_commit = off
 # Memory tuning, high value for maintenance work mem to support index
 # creation done by data import.
 shared_buffers = 4GB
@@ -264,35 +258,22 @@ max_wal_senders = 0
 EOF
 
 # Start PostgreSQL
-pg_ctl start --silent
-createuser -S www-data
+%{_bindir}/pg_ctl -s start
+%{_bindir}/createuser -S www-data
 
 # In rpmbuild environment have to explicitly set the PYTHONPATH to include the
 # user's site packages.
 export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{python3_sitearch}:%{python3_sitelib}
 
-# Modify tests to use rh-php73
-%{__sed} -i -e "s|/usr/bin/env', 'php|/opt/rh/rh-php73/root/bin/php|g" \
-  nominatim/tools/exec_utils.py \
-  test/bdd/steps/steps_api_queries.py \
-  test/python/test_tools_refresh_setup_website.py
-
-# Bump maximum statements for pylint.
+%{__sed} -i -e 's/^disable=.*$/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,duplicate-code,redundant-u-string-prefix,too-few-public-methods,unspecified-encoding,use-dict-literal/' .pylintrc
 echo "max-statements=100" >> .pylintrc
 
-# Disable newer pylint checkers
-%{__sed} -i "s/disable=/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,unspecified-encoding,use-dict-literal,/g" .pylintrc
-
-# The ICU tokenizer tests won't work with CentOS 7's older ICU version.
-%{__rm} -f test/python/test_tokenizer_icu.py
-
-# Invoke testing/linting runner
-pushd build
-scl enable rh-php73 '%{ctest3}'
-popd
+# Invoke testing/linting runner using a single process.
+%global _smp_ncpus_max 1
+%ctest
 
 # Clean up.
-pg_ctl stop --mode fast --silent
+%{_bindir}/pg_ctl -m fast -s stop
 %endif
 
 

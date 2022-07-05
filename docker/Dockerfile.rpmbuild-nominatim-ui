@@ -8,14 +8,15 @@ ARG packages
 
 # Temporarily switch to root for package installation.
 USER root
+COPY scripts/google-chrome-repo.sh /usr/local/bin
 
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
-# hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum \
-    /usr/local/bin/nodesource-repo.sh && \
-    /usr/local/bin/yarn-repo.sh && \
-    if [ -n "${packages:-}" ]; then yum -q -y install ${packages}; fi
+# hadolint ignore=DL3028,DL3032,DL3033
+RUN --mount=type=cache,target=/var/cache/dnf \
+    /usr/local/bin/google-chrome-repo.sh && \
+    if [ -n "${packages:-}" ]; then dnf -q -y install ${packages}; fi && \
+    ln -s /usr/bin/google-chrome-stable /usr/bin/chromium
 
 # Use unprivileged RPM build user and work directory by default.
 USER ${RPMBUILD_USER}

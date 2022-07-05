@@ -9,9 +9,11 @@ ARG packages
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum \
+RUN --mount=type=cache,target=/var/cache/dnf \
     /usr/local/bin/geoint-deps-repo.sh && \
-    if [ -n "${packages:-}" ]; then yum -q -y install ${packages}; fi && \
+    /usr/local/bin/nodesource-repo.sh && \
+    /usr/local/bin/yarn-repo.sh && \
+    if [ -n "${packages:-}" ]; then dnf -q -y install ${packages}; fi && \
     /usr/local/bin/rpmbuild-user.sh && \
     rm -f /usr/local/bin/rpmbuild-user.sh
 
