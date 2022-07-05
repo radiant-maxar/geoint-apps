@@ -29,7 +29,7 @@ ENV LANG=${rpmbuild_lang} \
     RPMBUILD_USER=${rpmbuild_user}
 
 # Install basic development and RPM authoring tools.
-# hadolint ignore=DL3033,DL3041
+# hadolint ignore=DL3033,DL3040,DL3041
 RUN --mount=type=cache,target=/var/cache/dnf \
     dnf -q -y install "dnf-command(config-manager)" glibc-langpack-en && \
     dnf config-manager --save \
