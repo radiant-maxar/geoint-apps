@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/${{ github.repository }}/rpmbuild-generic:latest
+      image: ghcr.io/${{ github.repository }}/rpmbuild:latest
 
     steps:
       - name: Checkout repository
