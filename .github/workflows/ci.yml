@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       # Uncomment the following lines in order to build & push base images
-      # max-parallel: 1
+      max-parallel: 1
       matrix:
         image:
           - rpmbuild
