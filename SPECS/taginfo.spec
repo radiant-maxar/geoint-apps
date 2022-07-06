@@ -103,6 +103,8 @@ other OSM file.
 # taginfo
 %{_bindir}/bundle config set --local path vendor/bundle
 %{_bindir}/bundle install
+# remove file with jruby shebang
+%{_bindir}/find vendor/bundle -name json-java.gemspec -delete
 # taginfo-tools
 pushd taginfo-tools
 %{cmake} -DCMAKE_BUILD_TYPE=Release
