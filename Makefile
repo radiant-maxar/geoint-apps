@@ -4,6 +4,8 @@ DOCKER_COMPOSE ?= docker-compose
 CI ?= false
 COMPOSE_FILE ?= docker-compose.yml
 COMPOSE_PROJECT_NAME ?= geoint-apps-$(RPMBUILD_CHANNEL)
+GEOINT_DEPS_CHANNEL ?= stable
+GEOINT_DEPS_GPGCHECK ?= 1
 IMAGE_PREFIX ?= $(COMPOSE_PROJECT_NAME)_
 
 
@@ -84,6 +86,8 @@ distclean: .env
 # are provided here.
 .env: SPECS/*.spec
 	echo COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) > .env
+	echo GEOINT_DEPS_CHANNEL=$(GEOINT_DEPS_CHANNEL) >> .env
+	echo GEOINT_DEPS_GPGCHECK=$(GEOINT_DEPS_GPGCHECK) >> .env
 	echo IMAGE_PREFIX=$(IMAGE_PREFIX) >> .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env

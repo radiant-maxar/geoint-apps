@@ -6,6 +6,8 @@ on:
 
 env:
   DOCKER_BUILDKIT: 1
+  GEOINT_DEPS_CHANNEL: autobuildtesting
+  GEOINT_DEPS_GPGCHECK: 0
   IMAGE_PREFIX: ghcr.io/${{ github.repository }}/
   IMAGE_REGISTRY: ghcr.io
 
