@@ -11,7 +11,6 @@
 %{!?libosmium_min_version: %global libosmium_min_version 2.14.0}
 %{!?ruby_max_version: %global ruby_max_version 3.1.0}
 %{!?ruby_min_version: %global ruby_min_version 3.0.0}
-%{!?sqlite_min_version: %global sqlite_min_version 3.36.0}
 
 # Don't provide for any libraries from the Rails application bundle
 # or for the abseil-cpp libraries needed for the tools.
@@ -66,7 +65,7 @@ Requires:       curl-minimal
 Requires:       ruby >= %{ruby_min_version}
 Requires:       ruby < %{ruby_max_version}
 Requires:       rubygem-bundler >= 2.1.0
-Requires:       sqlite >= %{sqlite_min_version}
+Requires:       sqlite
 Requires:       sqlite-pcre
 Requires:       which
 # Require the separate tools package.
