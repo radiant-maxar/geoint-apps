@@ -1,6 +1,6 @@
 # FoundationGEOINT Applications
 
-[![CI](https://github.com/radiant-maxar/geoint-apps/actions/workflows/ci.yml/badge.svg)](https://github.com/radiant-maxar/geoint-apps/actions/workflows/ci.yml)
+[![CI](https://github.com/radiant-maxar/geoint-apps/actions/workflows/ci.el9.yml/badge.svg)](https://github.com/radiant-maxar/geoint-apps/actions/workflows/ci.el9.yml)
 
 This repository provides a Docker-based build system for creating
 RPMs of the latest geospatial libraries on CentOS/RHEL 7 until the
