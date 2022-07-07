@@ -1,13 +1,13 @@
 ---
-name: CI
+name: CI (EL9)
 
 on:
   - push
 
 env:
   DOCKER_BUILDKIT: 1
-  IMAGE_PREFIX: ghcr.io/${{ github.repository }}/
-  IMAGE_REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository }}/el9/
+  PACKAGE_PREFIX: geoint-apps%2Fel9%2F
 
 jobs:
   build-images:
@@ -29,24 +29,17 @@ jobs:
       - name: Delete old images
         uses: ./.github/actions/github-api/delete-package
         with:
-          package_name: geoint-apps%2F${{ matrix.image }}
+          package_name: ${{ env.PACKAGE_PREFIX }}${{ matrix.image }}
           token: ${{ secrets.PKG_DELETE_TOKEN }}
           token_type: token
-
-      - name: Log in to GHCR
-        uses: ./.github/actions/docker/registry-login
-        with:
-          server: ${{ env.IMAGE_REGISTRY }}
 
       - name: Build `${{ matrix.image }}` Image
         uses: ./.github/actions/build
         with:
           image_prefix: ${{ env.IMAGE_PREFIX }}
           make_target: ${{ matrix.image }}
+          push_image: true
 
-      - name: Push `${{ matrix.image }}` to GHCR
-        run: |
-          docker-compose push ${{ matrix.image }}
 
   build-rpms:
     name: Build `${{ matrix.rpm }}` RPM(s)
@@ -69,23 +62,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to GHCR
-        uses: ./.github/actions/docker/registry-login
-        with:
-          server: ${{ env.IMAGE_REGISTRY }}
-
       - name: Build `${{ matrix.rpm }}` RPM(s)
         uses: ./.github/actions/build
         with:
           image_prefix: ${{ env.IMAGE_PREFIX }}
           make_target: ${{ matrix.rpm }}
 
-      - name: Upload RPMS directory
-        uses: actions/upload-artifact@v3
-        with:
-          name: RPMS
-          path: RPMS
-          retention-days: 1
 
   create-and-push-repo:
     name: Create & push repository
