@@ -1,0 +1,41 @@
+diff --git a/src/test-bin/run_unittests_attic.sh b/src/test-bin/run_unittests_attic.sh
+index 8d0fe6bb..3397dc59 100644
+--- a/src/test-bin/run_unittests_attic.sh
++++ b/src/test-bin/run_unittests_attic.sh
+@@ -26,7 +26,7 @@ if [[ -z $1  ]]; then
+ };
+ fi
+ 
+-BASEDIR="`pwd`/../"
++BASEDIR="$(cd `dirname $0` && pwd)/.."
+ INPUTDIR="../../input/attic_updater/"
+ 
+ mkdir -p run/attic_updater
+diff --git a/src/test-bin/run_unittests_implicit_areas.sh b/src/test-bin/run_unittests_implicit_areas.sh
+index 7536ae0b..43c8dad2 100644
+--- a/src/test-bin/run_unittests_implicit_areas.sh
++++ b/src/test-bin/run_unittests_implicit_areas.sh
+@@ -17,9 +17,7 @@
+ # You should have received a copy of the GNU Affero General Public License
+ # along with Overpass_API. If not, see <https://www.gnu.org/licenses/>.
+ 
+-pushd "$(dirname $0)"
+-BASEDIR="$(pwd)/.."
+-popd
++BASEDIR="$(cd `dirname $0` && pwd)/.."
+ pushd "$BASEDIR/osm-3s_testing/"
+ 
+ evaluate_test()
+diff --git a/src/test-bin/run_unittests_vlt.sh b/src/test-bin/run_unittests_vlt.sh
+index 6ad1d20f..a88e2ae4 100644
+--- a/src/test-bin/run_unittests_vlt.sh
++++ b/src/test-bin/run_unittests_vlt.sh
+@@ -26,7 +26,7 @@ if [[ -z $1  ]]; then
+ };
+ fi
+ 
+-BASEDIR="`pwd`/../"
++BASEDIR="$(cd `dirname $0` && pwd)/.."
+ INPUTDIR="../../input/vlt_model/"
+ 
+ mkdir -p run/vlt_model

@@ -5,6 +5,7 @@
 %{!?datrie_version: %global datrie_version 0.8.2}
 %{!?pyicu_version: %global pyicu_version 2.9}
 
+# Enable tests by default.
 %bcond_without tests
 
 # Variables for Nominatim paths and user/group.

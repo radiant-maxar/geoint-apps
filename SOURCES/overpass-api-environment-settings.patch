@@ -1,7 +1,7 @@
-diff --git a/overpass_api/core/settings.cc b/overpass_api/core/settings.cc
+diff --git a/src/overpass_api/core/settings.cc b/src/overpass_api/core/settings.cc
 index 3d53413..84320d7 100644
---- a/overpass_api/core/settings.cc
-+++ b/overpass_api/core/settings.cc
+--- a/src/overpass_api/core/settings.cc
++++ b/src/overpass_api/core/settings.cc
 @@ -24,6 +24,7 @@
  #include "../../template_db/random_file_index.h"
  
@@ -19,10 +19,10 @@ index 3d53413..84320d7 100644
  #ifdef HAVE_LZ4
    compression_method(File_Blocks_Index< Uint31_Index >::LZ4_COMPRESSION),
  #else
-diff --git a/overpass_api/core/settings.h b/overpass_api/core/settings.h
+diff --git a/src/overpass_api/core/settings.h b/src/overpass_api/core/settings.h
 index 4a2af04..53ebb61 100644
---- a/overpass_api/core/settings.h
-+++ b/overpass_api/core/settings.h
+--- a/src/overpass_api/core/settings.h
++++ b/src/overpass_api/core/settings.h
 @@ -38,6 +38,8 @@ struct Basic_Settings
  
    std::string version;
@@ -32,10 +32,10 @@ index 4a2af04..53ebb61 100644
  
    uint32 compression_method;
    uint32 map_compression_method;
-diff --git a/overpass_api/output_formats/output_json.cc b/overpass_api/output_formats/output_json.cc
+diff --git a/src/overpass_api/output_formats/output_json.cc b/src/overpass_api/output_formats/output_json.cc
 index 64a1afa..9113aa3 100644
---- a/overpass_api/output_formats/output_json.cc
-+++ b/overpass_api/output_formats/output_json.cc
+--- a/src/overpass_api/output_formats/output_json.cc
++++ b/src/overpass_api/output_formats/output_json.cc
 @@ -43,8 +43,8 @@ void Output_JSON::write_payload_header
  	"    \"timestamp_osm_base\": \""<<timestamp<<"\",\n";
    if (area_timestamp != "")
@@ -47,10 +47,10 @@ index 64a1afa..9113aa3 100644
          "  },\n";
    std::cout<< "  \"elements\": [\n\n";
  }
-diff --git a/overpass_api/output_formats/output_xml.cc b/overpass_api/output_formats/output_xml.cc
+diff --git a/src/overpass_api/output_formats/output_xml.cc b/src/overpass_api/output_formats/output_xml.cc
 index 6b8784c..0f57fc6 100644
---- a/overpass_api/output_formats/output_xml.cc
-+++ b/overpass_api/output_formats/output_xml.cc
+--- a/src/overpass_api/output_formats/output_xml.cc
++++ b/src/overpass_api/output_formats/output_xml.cc
 @@ -35,8 +35,8 @@ void Output_XML::write_payload_header
    std::cout<<
    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<osm version=\"0.6\""

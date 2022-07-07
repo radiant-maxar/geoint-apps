@@ -6,6 +6,7 @@
 %global nominatim_ui_conf %{_sysconfdir}/%{name}
 %global nominatim_ui_www %{_var}/www/%{name}
 
+# Enable tests by default.
 %bcond_without tests
 
 Name:           nominatim-ui
