@@ -1,0 +1,12 @@
+diff --git a/web/lib/sql.rb b/web/lib/sql.rb
+index 40e4b81..b72eaf5 100644
+--- a/web/lib/sql.rb
++++ b/web/lib/sql.rb
+@@ -30,6 +30,7 @@ module SQL
+ 
+             pcre_extension = TaginfoConfig.get('paths.sqlite3_pcre_extension')
+             if pcre_extension
++                @db.enable_load_extension(1)
+                 @db.load_extension(pcre_extension)
+             end
+             @db.execute('PRAGMA journal_mode = OFF')

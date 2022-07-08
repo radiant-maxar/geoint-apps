@@ -1,0 +1,24 @@
+diff --git a/nominatim/tokenizer/legacy_tokenizer.py b/nominatim/tokenizer/legacy_tokenizer.py
+index 0edcdcca..fa73bab2 100644
+--- a/nominatim/tokenizer/legacy_tokenizer.py
++++ b/nominatim/tokenizer/legacy_tokenizer.py
+@@ -3,6 +3,7 @@ Tokenizer implementing normalisation as used before Nominatim 4.
+ """
+ from collections import OrderedDict
+ import logging
++import os
+ import re
+ import shutil
+ from textwrap import dedent
+@@ -53,8 +54,9 @@ def _install_module(config_module_path, src_dir, module_dir):
+         module_dir.mkdir()
+ 
+     destfile = module_dir / 'nominatim.so'
+-    shutil.copy(str(src_dir / 'nominatim.so'), str(destfile))
+-    destfile.chmod(0o755)
++    if not os.path.isfile(destfile):
++        shutil.copy(str(src_dir / 'nominatim.so'), str(destfile))
++        destfile.chmod(0o755)
+ 
+     LOG.info('Database module installed at %s', str(destfile))
+ 

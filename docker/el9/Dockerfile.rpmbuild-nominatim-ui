@@ -1,0 +1,23 @@
+ARG rpmbuild_channel
+ARG rpmbuild_image=rpmbuild-generic
+ARG rpmbuild_image_prefix
+# hadolint ignore=DL3007
+FROM ${rpmbuild_image_prefix}${rpmbuild_image}:latest
+
+ARG packages
+
+# Temporarily switch to root for package installation.
+USER root
+COPY scripts/google-chrome-repo.sh /usr/local/bin
+
+# If any package dependencies are needed, install them.
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+# hadolint ignore=DL3028,DL3032,DL3033,DL3040,DL3041
+RUN --mount=type=cache,target=/var/cache/dnf \
+    /usr/local/bin/google-chrome-repo.sh && \
+    if [ -n "${packages:-}" ]; then dnf -q -y install ${packages}; fi && \
+    ln -s /usr/bin/google-chrome-stable /usr/bin/chromium
+
+# Use unprivileged RPM build user and work directory by default.
+USER ${RPMBUILD_USER}
+WORKDIR ${RPMBUILD_HOME}

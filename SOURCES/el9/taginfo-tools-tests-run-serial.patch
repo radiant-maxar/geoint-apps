@@ -1,0 +1,11 @@
+diff --git a/taginfo-tools/test/CMakeLists.txt b/taginfo-tools/test/CMakeLists.txt
+index 0a1d5f2..83c68fc 100644
+--- a/taginfo-tools/test/CMakeLists.txt
++++ b/taginfo-tools/test/CMakeLists.txt
+@@ -25,5 +25,6 @@ foreach(file ${TEST_SCRIPTS})
+     message(STATUS "Adding test: ${tid}")
+     add_test(NAME test-${tid}
+              COMMAND ${file} ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${tid})
++    set_tests_properties(test-${tid} PROPERTIES RUN_SERIAL TRUE)
+ endforeach()
+ 

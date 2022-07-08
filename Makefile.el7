@@ -1,15 +1,16 @@
 ## Conditional variables.
 DOCKER ?= docker
 DOCKER_COMPOSE ?= docker-compose
+EL_VERSION ?= el7
 CI ?= false
-COMPOSE_FILE ?= docker-compose.yml
-COMPOSE_PROJECT_NAME ?= geoint-apps-$(RPMBUILD_CHANNEL)
+COMPOSE_FILE ?= docker-compose.$(EL_VERSION).yml
+COMPOSE_PROJECT_NAME ?= geoint-apps-$(RPMBUILD_CHANNEL)-$(EL_VERSION)
 IMAGE_PREFIX ?= $(COMPOSE_PROJECT_NAME)_
 
 
 ## Macro functions.
-build_unless_image_exists = $(shell $(DOCKER) image inspect $(IMAGE_PREFIX)$(1) >/dev/null 2>&1 || DOCKER_BUILDKIT=1 $(DOCKER_COMPOSE) build $(1))
-pull_if_ci = $(shell bash -c '[ "$(CI)" == "false" ] || $(DOCKER_COMPOSE) pull --quiet $(1)')
+build_unless_image_exists = $(shell $(DOCKER) image inspect $(IMAGE_PREFIX)$(1) >/dev/null 2>&1 || COMPOSE_FILE=$(COMPOSE_FILE) DOCKER_BUILDKIT=1 $(DOCKER_COMPOSE) build $(1))
+pull_if_ci = $(shell bash -c '[ "$(CI)" == "false" ] || COMPOSE_FILE=$(COMPOSE_FILE) $(DOCKER_COMPOSE) pull --quiet $(1)')
 
 # The `rpmbuild_util.py` utility script is used to pull out configured versions,
 # Docker build images, and other build variables.
@@ -64,36 +65,41 @@ RPMBUILD_RPMS := \
 ## General targets
 .PHONY: \
 	all \
+	all-rpms \
 	distclean \
 	$(RPMBUILD_BASE_IMAGES) \
 	$(RPMBUILD_RPMS)
 
 all:
 ifndef DOCKER_VERSION
-    $(error "command docker is not available, please install Docker")
+	$(error "command docker is not available, please install Docker")
 endif
 ifndef DOCKER_COMPOSE_VERSION
-    $(error "command docker-compose is not available, please install Docker")
+	$(error "command docker-compose is not available, please install Docker")
 endif
 
+all-rpms: $(RPMBUILD_RPMS)
+
 distclean: .env
-	$(DOCKER_COMPOSE) down --volumes --rmi all
-	rm -fr .env RPMS/noarch RPMS/x86_64 SOURCES/*.asc SOURCES/*.sha256 SOURCES/*.tgz SOURCES/*.tar.gz SOURCES/*.tar.xz SOURCES/*.zip
+	COMPOSE_FILE=$(COMPOSE_FILE) $(DOCKER_COMPOSE) down --volumes --rmi all
+	rm -fr .env RPMS/noarch RPMS/x86_64 \
+	  SOURCES/$(EL_VERSION)/*.asc SOURCES/$(EL_VERSION)/*.sha256 SOURCES/$(EL_VERSION)/*.tgz \
+	  SOURCES/$(EL_VERSION)/*.tar.gz SOURCES/$(EL_VERSION)/*.tar.xz SOURCES/$(EL_VERSION)/*.zip
 
 # Environment file for docker-compose; required packages for build containers
 # are provided here.
-.env: SPECS/*.spec
+.env: SPECS/$(EL_VERSION)/*.spec
 	echo COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) > .env
 	echo IMAGE_PREFIX=$(IMAGE_PREFIX) >> .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env
-	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/mod_tile.spec) >> .env
-	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
-	echo RPMBUILD_NOMINATIM_UI_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/nominatim-ui.spec) >> .env
-	echo RPMBUILD_OSRM_BACKEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/osrm-backend.spec) >> .env
-	echo RPMBUILD_OSRM_FRONTEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/osrm-frontend.spec) >> .env
-	echo RPMBUILD_OVERPASS_API_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/overpass-api.spec) >> .env
-	echo RPMBUILD_TAGINFO_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/taginfo.spec) >> .env
+	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mod_tile.spec) >> .env
+	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/nominatim.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
+	echo RPMBUILD_NOMINATIM_UI_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/nominatim-ui.spec) >> .env
+	echo RPMBUILD_OSRM_BACKEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/osrm-backend.spec) >> .env
+	echo RPMBUILD_OSRM_FRONTEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/osrm-frontend.spec) >> .env
+	echo RPMBUILD_OVERPASS_API_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/overpass-api.spec) >> .env
+	echo RPMBUILD_TAGINFO_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/taginfo.spec) >> .env
 
 
 ## Image targets
@@ -127,5 +133,5 @@ RPMS/x86_64/%.rpm RPMS/noarch/%.rpm: | .env
 	$(MAKE) $(call rpmbuild_image_parent,$*)
 	$(call pull_if_ci,$(call rpmbuild_image,$*))
 	$(call build_unless_image_exists,$(call rpmbuild_image,$*))
-	$(DOCKER_COMPOSE) run --rm -T $(call rpmbuild_image,$*) \
-		$(shell ./scripts/rpmbuild_util.py $(call rpm_package,$*) --config-file $(COMPOSE_FILE))
+	COMPOSE_FILE=$(COMPOSE_FILE) $(DOCKER_COMPOSE) run --rm -T $(call rpmbuild_image,$*) \
+	  $(shell ./scripts/rpmbuild_util.py $(call rpm_package,$*) --config-file $(COMPOSE_FILE))

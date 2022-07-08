@@ -1,12 +1,12 @@
 ---
-name: Build & Push (EL7)
+name: Build & Push (EL9)
 
 on:
   - push
 
 env:
   DOCKER_BUILDKIT: 1
-  EL_VERSION: el7
+  EL_VERSION: el9
 
 jobs:
   build-images:
@@ -20,7 +20,6 @@ jobs:
         image:
           - rpmbuild
           - rpmbuild-generic
-          - rpmbuild-generic-nodejs
 
     steps:
       - name: Checkout repository

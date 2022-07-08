@@ -17,7 +17,7 @@ x-rpmbuild:
     rpmbuild_uid: ${RPMBUILD_UID}
   build_defaults: &build_defaults
     context: .
-    dockerfile: docker/Dockerfile.rpmbuild-generic
+    dockerfile: docker/el7/Dockerfile.rpmbuild-generic
     labels:
       maintainer: *rpmbuild_email
       vendor: *rpmbuild_vendor
@@ -56,8 +56,8 @@ x-rpmbuild:
       version: &taginfo_version 2022.6.9-1
   service_volumes: &service_volumes
     - ./RPMS:/rpmbuild/RPMS:rw
-    - ./SOURCES:/rpmbuild/SOURCES:rw
-    - ./SPECS:/rpmbuild/SPECS:ro
+    - ./SOURCES/el7:/rpmbuild/SOURCES:rw
+    - ./SPECS/el7:/rpmbuild/SPECS:ro
     - ./scripts:/rpmbuild/scripts:ro
   service_defaults: &service_defaults
     command: tail -f /dev/null
@@ -69,7 +69,7 @@ services:
   rpmbuild:
     build:
       context: .
-      dockerfile: docker/Dockerfile.rpmbuild
+      dockerfile: docker/el7/Dockerfile.rpmbuild
       args:
         <<: *rpmbuild_base_args
       labels:
@@ -92,7 +92,7 @@ services:
       <<: *build_defaults
       args:
         <<: *build_args_defaults
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
+      dockerfile: docker/el7/Dockerfile.rpmbuild-generic-nodejs
     image: ${IMAGE_PREFIX}rpmbuild-generic-nodejs
   # RPM images
   rpmbuild-mod_tile:
@@ -111,7 +111,7 @@ services:
         packages: ${RPMBUILD_NOMINATIM_PACKAGES}
         postgres_version: *postgres_version
         rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-nominatim
+      dockerfile: docker/el7/Dockerfile.rpmbuild-nominatim
   rpmbuild-nominatim-ui:
     <<: *service_defaults
     build:
@@ -120,7 +120,7 @@ services:
         <<: *build_args_defaults
         packages: ${RPMBUILD_NOMINATIM_UI_PACKAGES}
         rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
+      dockerfile: docker/el7/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-osrm-backend:
     <<: *service_defaults
     build:
@@ -129,7 +129,7 @@ services:
         <<: *build_args_defaults
         packages: ${RPMBUILD_OSRM_BACKEND_PACKAGES}
         rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
+      dockerfile: docker/el7/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-osrm-frontend:
     <<: *service_defaults
     build:
@@ -138,7 +138,7 @@ services:
         <<: *build_args_defaults
         packages: ${RPMBUILD_OSRM_FRONTEND_PACKAGES}
         rpmbuild_image: rpmbuild-generic
-      dockerfile: docker/Dockerfile.rpmbuild-generic-nodejs
+      dockerfile: docker/el7/Dockerfile.rpmbuild-generic-nodejs
   rpmbuild-overpass-api:
     <<: *service_defaults
     build:

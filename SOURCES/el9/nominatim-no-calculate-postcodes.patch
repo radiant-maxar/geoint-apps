@@ -1,0 +1,34 @@
+diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
+index 9a2a73de..990ea6dc 100644
+--- a/nominatim/clicmd/setup.py
++++ b/nominatim/clicmd/setup.py
+@@ -101,9 +101,12 @@ class SetupAll:
+         tokenizer = SetupAll._get_tokenizer(args.continue_at, args.config)
+ 
+         if args.continue_at is None or args.continue_at == 'load-data':
+-            LOG.warning('Calculate postcodes')
+-            postcodes.update_postcodes(args.config.get_libpq_dsn(),
+-                                       args.project_dir, tokenizer)
++            if args.config.get_bool('NO_CALCULATE_POSTCODES'):
++                LOG.warning('Ignoring postcodes')
++            else:
++                LOG.warning('Calculate postcodes')
++                postcodes.update_postcodes(args.config.get_libpq_dsn(),
++                                           args.project_dir, tokenizer)
+ 
+         if args.continue_at is None or args.continue_at in ('load-data', 'indexing'):
+             if args.continue_at is not None and args.continue_at != 'load-data':
+diff --git a/settings/env.defaults b/settings/env.defaults
+index 00f5569a..3cb4d670 100644
+--- a/settings/env.defaults
++++ b/settings/env.defaults
+@@ -33,6 +33,9 @@ NOMINATIM_MAX_WORD_FREQUENCY=50000
+ # If true, admin level changes on places with many contained children are blocked.
+ NOMINATIM_LIMIT_REINDEXING=yes
+ 
++# If true, then postcodes won't be calculated on initial import.
++NOMINATIM_NO_CALCULATE_POSTCODES=no
++
+ # Restrict search languages.
+ # Normally Nominatim will include all language variants of name:XX
+ # in the search index. Set this to a comma separated list of language
