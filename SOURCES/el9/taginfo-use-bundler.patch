@@ -1,0 +1,13 @@
+diff --git a/sources/util.sh b/sources/util.sh
+index e65add2..1da82e2 100755
+--- a/sources/util.sh
++++ b/sources/util.sh
+@@ -43,7 +43,7 @@ print_message() {
+ }
+ 
+ ruby_command_line() {
+-    echo -n -E "env - ${TAGINFO_RUBY:-ruby} -E utf-8 -w -I $SRCDIR/lib"
++    echo -n -E "env - ${TAGINFO_RUBY:-ruby} -E utf-8 -w -rbundler/setup -I $SRCDIR/lib"
+ }
+ 
+ get_config() {

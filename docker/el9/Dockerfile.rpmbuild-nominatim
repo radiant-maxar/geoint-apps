@@ -1,0 +1,44 @@
+ARG rpmbuild_channel
+ARG rpmbuild_image=rpmbuild-generic
+ARG rpmbuild_image_prefix
+# hadolint ignore=DL3007
+FROM ${rpmbuild_image_prefix}${rpmbuild_image}:latest
+
+ARG gem_packages
+ARG packages
+ARG pgdg_testing=1
+ARG postgres_version
+
+# Temporarily switch to root for package installation.
+USER root
+
+# If any package dependencies are needed, install them.
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+# hadolint ignore=DL3028,DL3032,DL3033,DL3040,DL3041
+RUN --mount=type=cache,target=/var/cache/dnf \
+    PGDG_TESTING=${pgdg_testing} /usr/local/bin/pgdg-repo.sh ${postgres_version} && \
+    /usr/local/bin/postgres-install.sh ${postgres_version} && \
+    if [ -n "${packages:-}" ]; then dnf -q -y install ${packages}; fi && \
+    if [ -n "${gem_packages:-}" ]; then gem install ${gem_packages}; fi
+
+RUN chown -R "${RPMBUILD_USER}:${RPMBUILD_GROUP}" /var/run/postgresql
+
+# Use unprivileged RPM build user and work directory by default.
+USER ${RPMBUILD_USER}
+WORKDIR ${RPMBUILD_HOME}
+
+RUN echo "%postgres_version ${postgres_version}" >> "${RPMBUILD_HOME}/.rpmmacros"
+
+# Install PHPUnit.
+ADD --chown=${RPMBUILD_USER}:${RPMBUILD_GROUP} https://phar.phpunit.de/phpunit-9.5.20.phar .local/bin/phpunit
+RUN chmod +x .local/bin/phpunit
+
+# Install PHP_CodeSniffer.
+ADD --chown=${RPMBUILD_USER}:${RPMBUILD_GROUP} https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar .local/bin/phpcs
+ADD --chown=${RPMBUILD_USER}:${RPMBUILD_GROUP} https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar .local/bin/phpcbf
+RUN chmod +x .local/bin/phpcs .local/bin/phpcbf
+
+# Install Python packages.
+# hadolint ignore=DL3042
+COPY SPECS/el9/nominatim-requirements.txt /tmp/
+RUN pip3 install --disable-pip-version-check --no-cache-dir --quiet --requirement /tmp/nominatim-requirements.txt --user

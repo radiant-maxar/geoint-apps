@@ -40,5 +40,5 @@ RUN chmod +x .local/bin/phpcs .local/bin/phpcbf
 
 # Install Python packages.
 # hadolint ignore=DL3042
-COPY SPECS/nominatim-requirements.txt /tmp/
+COPY SPECS/el7/nominatim-requirements.txt /tmp/
 RUN pip3 install --disable-pip-version-check --no-cache-dir --quiet --requirement /tmp/nominatim-requirements.txt --user
