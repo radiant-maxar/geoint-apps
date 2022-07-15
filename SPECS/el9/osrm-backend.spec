@@ -1,3 +1,7 @@
+%global osrm_backend_home %{_sharedstatedir}/osrm-backend
+%global osrm_backend_uid 547
+%global osrm_backend_user osrm-backend
+
 # Force CMake to use `build` for its directory, tests assume it.
 %global _vpath_builddir build
 
@@ -79,6 +83,7 @@ npm install
 
 %install
 %{cmake_install}
+%{__install} -d -m 0750 %{buildroot}%{osrm_backend_home}
 
 
 %check
@@ -115,18 +120,38 @@ popd
 
 
 %files
+%doc README.md CHANGELOG.md
+%license LICENSE.TXT
 %{_bindir}/osrm-*
 %{_libdir}/*.so
 %{_datadir}/osrm/profiles
-%doc README.md CHANGELOG.md
-%license LICENSE.TXT
-
+%defattr(-, %{osrm_backend_user}, %{osrm_backend_user}, -)
+%dir %{osrm_backend_home}
 
 %files devel
 %{_includedir}/flatbuffers
 %{_includedir}/mapbox
 %{_includedir}/osrm
 %{_libdir}/pkgconfig/libosrm.pc
+
+
+%pre
+%{_bindir}/getent group %{osrm_backend_user} >/dev/null || \
+    %{_sbindir}/groupadd \
+        --force \
+        --gid %{osrm_backend_uid} \
+        --system \
+        %{osrm_backend_user}
+
+%{_bindir}/getent passwd %{osrm_backend_user} >/dev/null || \
+    %{_sbindir}/useradd \
+        --uid %{osrm_backend_uid} \
+        --gid %{osrm_backend_user} \
+        --comment "OSRM Backend User" \
+        --shell /sbin/nologin \
+        --home-dir %{osrm_backend_home} \
+        --system \
+        %{osrm_backend_user}
 
 
 %changelog
