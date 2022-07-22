@@ -29,11 +29,50 @@ make --makefile=Makefile.el9 all-rpms
 
 This will consume a lot of CPU and I/O!
 
+## Pushing up stable RPMs
+
+You will need to have `~/.gnupg-geoint` populated with the files from the `gnupg.tar.gz` archive sent out on 2021.03.05 as well as the associated passphrase.
+
+#### EL7
+
+1. Download the RPMS artifact from the [most recent EL7 GitHub Actions workflow run](https://github.com/radiant-maxar/geoint-apps/actions/workflows/ci.el7.yml?query=branch%3Astable).
+
+1. Export variables for `AWS_PROFILE` & `EL_VERSION`
+    ```shell
+    export AWS_PROFILE=geoint-apps
+    export EL_VERSION=el7
+    ```
+
+1. Run the [`push_stable_rpms_from_zip.sh`](./scripts/push_stable_rpms_from_zip.sh) script with the RPMS artifact zip file path as the first argument
+    ```shell
+    scripts/push_stable_rpms_from_zip.sh  ~/Downloads/RPMS.zip
+    ```
+
+1. Execute the provided command if everything appears to be correct
+
+#### EL9
+
+1. Download the RPMS artifact from the [most recent EL9 GitHub Actions workflow run](https://github.com/radiant-maxar/geoint-apps/actions/workflows/ci.el9.yml?query=branch%3Astable).
+
+1. Export variables for `AWS_PROFILE` & `EL_VERSION`
+    ```shell
+    export AWS_PROFILE=geoint-apps
+    export EL_VERSION=el9
+    ```
+
+1. Run the [`push_stable_rpms_from_zip.sh`](./scripts/push_stable_rpms_from_zip.sh) script with the RPMS artifact zip file path as the first argument
+    ```shell
+    scripts/push_stable_rpms_from_zip.sh  ~/Downloads/RPMS.zip
+    ```
+
+1. Execute the provided command if everything appears to be correct
+
+
 ## Requirements
 
 * Linux host and some basics:
   * Python 3 for `docker-compose` and some of the [scripts](./scripts/).
-  * GNU `make` for the [`Makefile`](./Makefile).
+  * GNU `make` for [`Makefile.el7`](./Makefile.el7)/[`Makefile.el9`](./Makefile.el9).
 
 * Docker >= 18.09
   * Recent version recommended to take advantage of [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/).
