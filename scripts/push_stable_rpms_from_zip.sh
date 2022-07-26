@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu
+set -euo pipefail
 
 RPMS_ZIP_FILE=${1:-"RPMS.zip"}
 RPMS_ZIP_FILE_NAME=$(basename "${RPMS_ZIP_FILE}")
@@ -31,34 +31,37 @@ DOCKER_RUN_CMD="docker-compose run \
                 rpmbuild-generic"
 
 
-# Ensure we are in the expected directory
-cd ${GIT_ROOT_DIR}
+# Ensure we are in the git repository's top-level directory
+cd "${GIT_ROOT_DIR}"
 
 # Ensure the .env file does not exist
 rm .env
 
 # Build the rpmbuild-generic image
-make --file Makefile.${EL_VERSION} rpmbuild-generic
+make --file "Makefile.${EL_VERSION}" rpmbuild-generic
 
-# Make sure extracted rpms & local repo directories are empty
-rm -rf "${EXTRACTED_RPMS_PATH}" "${LOCAL_REPO_PATH}"
+# Ensure extracted RPMs directory is empty
+rm -rf "${EXTRACTED_RPMS_PATH}"
 
-# Create extracted rpms & local repo directories
+# Create extracted RPMs directory & local repo directory (if needed)
 mkdir --parents "${EXTRACTED_RPMS_PATH}" "${LOCAL_REPO_PATH}"
 
 # Extract RPMS_ZIP_FILE to EXTRACTED_RPMS_PATH
 unzip "${RPMS_ZIP_FILE}" -d "${EXTRACTED_RPMS_PATH}"
 
+# Sync the S3 repo to the local repo copy
+${AWS_SYNC_CMD} --delete \
+  "${AWS_S3_REPO_URL}"/ "${LOCAL_REPO_PATH}"/
 
 # Export COMPOSE_FILE variable
 export COMPOSE_FILE
 
-# Sign the local RPMs
+# Sign the extracted RPMs
 ${DOCKER_RUN_CMD} \
-  bash -c "ls -al EXTRACTED_RPMS; rpm --addsign EXTRACTED_RPMS/*/*.rpm"
-# Copy the local RPMs into the local repo copy
+  bash -c "rpm --addsign EXTRACTED_RPMS/*/*.rpm"
+# Sync only the new (based on filename) extracted RPMs into the local repo copy
 ${DOCKER_RUN_CMD} \
-  bash -c "cp -av EXTRACTED_RPMS/*/*.rpm ${REPO_PREFIX}"
+  bash -c "rsync --archive --ignore-existing --verbose EXTRACTED_RPMS/*/*.rpm ${REPO_PREFIX}"
 # Update the local repo copy
 ${DOCKER_RUN_CMD} \
   bash -c "./scripts/repo-update.sh ${REPO_PREFIX}"
