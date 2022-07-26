@@ -31,7 +31,7 @@ This will consume a lot of CPU and I/O!
 
 ## Pushing up stable RPMs
 
-You will need to have `~/.gnupg-geoint` populated with the files from the `gnupg.tar.gz` archive sent out on 2021.03.05 as well as the associated passphrase.
+You will need to have `~/.gnupg-geoint` populated using the `.gpg` file and provided instructions as well as the decrypted passphrase from an email originally sent on `2021.03.05` (ask Justin or David if you require these).
 
 #### EL7
 
