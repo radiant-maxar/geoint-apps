@@ -46,6 +46,7 @@ OSRM_BACKEND_RPM := $(call rpm_file,osrm-backend)
 OSRM_FRONTEND_RPM := $(call rpm_file,osrm-frontend)
 OVERPASS_API_RPM := $(call rpm_file,overpass-api)
 TAGINFO_RPM := $(call rpm_file,taginfo)
+UNDERPASS_RPM := $(call rpm_file,underpass)
 
 # Build images and RPMs.
 RPMBUILD_BASE_IMAGES := \
@@ -58,7 +59,8 @@ RPMBUILD_RPMS := \
 	osrm-backend \
 	osrm-frontend \
 	overpass-api \
-	taginfo
+	taginfo \
+	underpass
 
 
 ## General targets
@@ -99,6 +101,7 @@ distclean: .env
 	echo RPMBUILD_OSRM_FRONTEND_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/osrm-frontend.spec) >> .env
 	echo RPMBUILD_OVERPASS_API_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/overpass-api.spec) >> .env
 	echo RPMBUILD_TAGINFO_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/taginfo.spec) >> .env
+	echo RPMBUILD_UNDERPASS_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/underpass.spec) >> .env
 
 
 ## Image targets
@@ -120,6 +123,7 @@ osrm-backend: $(OSRM_BACKEND_RPM)
 osrm-frontend: $(OSRM_FRONTEND_RPM)
 overpass-api: $(OVERPASS_API_RPM)
 taginfo: $(TAGINFO_RPM)
+underpass: $(UNDERPASS_RPM)
 
 
 ## Build patterns

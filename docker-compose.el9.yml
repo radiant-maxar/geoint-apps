@@ -54,6 +54,11 @@ x-rpmbuild:
         tools_git_ref: 28264e63a2b3027cec69ae4906ef689029df627b
       image: rpmbuild-taginfo
       version: &taginfo_version 2022.6.9-1
+    underpass:
+      defines:
+        git_ref: 87f857b73a4307833ee8aee774bc1352075c5bd0
+      image: rpmbuild-underpass
+      version: &underpass_version 2022.7.20-1
   service_volumes: &service_volumes
     - ./RPMS:/rpmbuild/RPMS:rw
     - ./SOURCES/el9:/rpmbuild/SOURCES:rw
@@ -142,3 +147,11 @@ services:
       args:
         <<: *build_args_defaults
         packages: ${RPMBUILD_TAGINFO_PACKAGES}
+  rpmbuild-underpass:
+    <<: *service_defaults
+    build:
+      <<: *build_defaults
+      args:
+        <<: *build_args_defaults
+        packages: ${RPMBUILD_UNDERPASS_PACKAGES}
+      dockerfile: docker/el9/Dockerfile.rpmbuild-underpass
