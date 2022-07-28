@@ -57,6 +57,7 @@ jobs:
           - osrm-frontend
           - overpass-api
           - taginfo
+          - underpass
 
     steps:
       - name: Checkout repository
