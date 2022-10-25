@@ -16,7 +16,6 @@ License:        GPLv2
 URL:            https://github.com/osm-search/nominatim-ui
 Source0:        https://github.com/osm-search/nominatim-ui/archive/v%{version}/nominatim-ui-%{version}.tar.gz
 Patch0:         nominatim-ui-test-browser-no-sandbox.patch
-Patch1:         nominatim-ui-test-vaduz-name-keyword.patch
 
 BuildArch:      noarch
 
