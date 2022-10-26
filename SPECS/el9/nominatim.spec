@@ -148,10 +148,6 @@ export PATH=${HOME}/.local/bin:${PATH}
 %{__cp} -p %{SOURCE1} data/country_osm_grid.sql.gz
 %{__cp} -p %{SOURCE2} %{SOURCE3} data
 
-# XXX: The BDD db/osm2pgsql tests have issues with PostgreSQL 15, disable
-#      pending further investigation.
-%{__sed} -i -e 's/db osm2pgsql //' CMakeLists.txt
-
 %cmake -DBUILD_API:BOOL=ON \
        -DBUILD_IMPORTER:BOOL=ON \
        -DBUILD_OSM2PGSQL:BOOL=OFF \
@@ -268,8 +264,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 %{__sed} -i -e 's/^disable=.*$/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,duplicate-code,redundant-u-string-prefix,too-few-public-methods,unspecified-encoding,use-dict-literal/' .pylintrc
 echo "max-statements=100" >> .pylintrc
 
-# Invoke testing/linting runner using a single process.
-%global _smp_ncpus_max 1
+# Invoke testing/linting runner
 %ctest
 
 # Clean up.
