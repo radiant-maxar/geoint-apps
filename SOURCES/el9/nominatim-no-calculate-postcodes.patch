@@ -1,9 +1,9 @@
 diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
-index 9a2a73de..990ea6dc 100644
+index 6ffa7afb..2212e6b4 100644
 --- a/nominatim/clicmd/setup.py
 +++ b/nominatim/clicmd/setup.py
-@@ -101,9 +101,12 @@ class SetupAll:
-         tokenizer = SetupAll._get_tokenizer(args.continue_at, args.config)
+@@ -116,9 +116,12 @@ class SetupAll:
+         tokenizer = self._get_tokenizer(args.continue_at, args.config)
  
          if args.continue_at is None or args.continue_at == 'load-data':
 -            LOG.warning('Calculate postcodes')
@@ -19,7 +19,7 @@ index 9a2a73de..990ea6dc 100644
          if args.continue_at is None or args.continue_at in ('load-data', 'indexing'):
              if args.continue_at is not None and args.continue_at != 'load-data':
 diff --git a/settings/env.defaults b/settings/env.defaults
-index 00f5569a..3cb4d670 100644
+index 3115f438..0a1a7803 100644
 --- a/settings/env.defaults
 +++ b/settings/env.defaults
 @@ -33,6 +33,9 @@ NOMINATIM_MAX_WORD_FREQUENCY=50000

@@ -1,9 +1,9 @@
 diff --git a/cmake/tool.tmpl b/cmake/tool.tmpl
-index a6022402..dc4f054c 100755
+index c1ecd3f0..6dfcbcef 100755
 --- a/cmake/tool.tmpl
 +++ b/cmake/tool.tmpl
-@@ -9,7 +9,7 @@ os.environ['NOMINATIM_NOMINATIM_TOOL'] = os.path.abspath(__file__)
- from nominatim import cli
+@@ -12,7 +12,7 @@ from nominatim import version
+ version.GIT_COMMIT_HASH = '@GIT_HASH@'
  
  exit(cli.nominatim(module_dir='@CMAKE_BINARY_DIR@/module',
 -                   osm2pgsql_path='@CMAKE_BINARY_DIR@/osm2pgsql/osm2pgsql',
