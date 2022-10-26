@@ -1,5 +1,5 @@
 diff --git a/overpass_api/core/settings.cc b/overpass_api/core/settings.cc
-index 3d53413..84320d7 100644
+index 81a1d2a2..320c5d59 100644
 --- a/overpass_api/core/settings.cc
 +++ b/overpass_api/core/settings.cc
 @@ -24,6 +24,7 @@
@@ -10,17 +10,17 @@ index 3d53413..84320d7 100644
  #include <fstream>
  #include <map>
  #include <sstream>
-@@ -98,6 +99,8 @@ Basic_Settings::Basic_Settings()
+@@ -101,6 +102,8 @@ Basic_Settings::Basic_Settings()
    shared_name_base("/osm3s_v0.7.58"),
-   version("0.7.58.5"),
-   source_hash("b0c4acbb1aca720244f95d62ad14fc85fb12467e"),
+   version("0.7.59"),
+   source_hash("e21c39febb0606a38d7fead087456ff6c3a0dba4"),
 +  enclave(getenv("OVERPASS_API_ENCLAVE") ? getenv("OVERPASS_API_ENCLAVE") : "www.openstreetmap.org"),
 +  generator_note(getenv("OVERPASS_API_GENERATOR_NOTE") ? getenv("OVERPASS_API_GENERATOR_NOTE") : ""),
  #ifdef HAVE_LZ4
-   compression_method(File_Blocks_Index< Uint31_Index >::LZ4_COMPRESSION),
+   compression_method(File_Blocks_Index_Base::LZ4_COMPRESSION),
  #else
 diff --git a/overpass_api/core/settings.h b/overpass_api/core/settings.h
-index 4a2af04..53ebb61 100644
+index 4a2af044..53ebb619 100644
 --- a/overpass_api/core/settings.h
 +++ b/overpass_api/core/settings.h
 @@ -38,6 +38,8 @@ struct Basic_Settings
@@ -33,7 +33,7 @@ index 4a2af04..53ebb61 100644
    uint32 compression_method;
    uint32 map_compression_method;
 diff --git a/overpass_api/output_formats/output_json.cc b/overpass_api/output_formats/output_json.cc
-index 64a1afa..9113aa3 100644
+index 64a1afa3..602826ed 100644
 --- a/overpass_api/output_formats/output_json.cc
 +++ b/overpass_api/output_formats/output_json.cc
 @@ -43,8 +43,8 @@ void Output_JSON::write_payload_header
@@ -42,13 +42,13 @@ index 64a1afa..9113aa3 100644
      std::cout<<"    \"timestamp_areas_base\": \""<<area_timestamp<<"\",\n";
 -  std::cout<<"    \"copyright\": \"The data included in this document is from www.openstreetmap.org."
 -	" The data is made available under ODbL.\"\n"
-+  std::cout<<"    \"copyright\": \"The data included in this document is from "<<basic_settings().enclave<<
-+       ". The data is made available under ODbL."<<basic_settings().generator_note<<"\"\n"
++  std::cout<<"    \"copyright\": \"The data included in this document is from "<<basic_settings().enclave<<"."
++       " The data is made available under ODbL. "<<basic_settings().generator_note<<"\"\n"
          "  },\n";
    std::cout<< "  \"elements\": [\n\n";
  }
 diff --git a/overpass_api/output_formats/output_xml.cc b/overpass_api/output_formats/output_xml.cc
-index 6b8784c..0f57fc6 100644
+index 6b8784cc..81d00151 100644
 --- a/overpass_api/output_formats/output_xml.cc
 +++ b/overpass_api/output_formats/output_xml.cc
 @@ -35,8 +35,8 @@ void Output_XML::write_payload_header
@@ -57,8 +57,8 @@ index 6b8784c..0f57fc6 100644
    " generator=\"Overpass API "<<basic_settings().version<<" "<<basic_settings().source_hash.substr(0, 8)<<"\">\n"
 -  "<note>The data included in this document is from www.openstreetmap.org. "
 -  "The data is made available under ODbL.</note>\n";
-+  "<note>The data included in this document is from "<<basic_settings().enclave<<
-+  ". The data is made available under ODbL."<<basic_settings().generator_note<<"</note>\n";
++  "<note>The data included in this document is from "<<basic_settings().enclave<<". "
++  "The data is made available under ODbL. "<<basic_settings().generator_note<<"</note>\n";
    std::cout<<"<meta osm_base=\""<<timestamp<<'\"';
    if (area_timestamp != "")
      std::cout<<" areas=\""<<area_timestamp<<"\"";
