@@ -45,7 +45,7 @@ jobs:
 
       - name: Lint with rpmlint
         run: |
-          rpmlint --rpmlintrc .rpmlintrc SPECS/el?/*.spec
+          rpmlint --ignore-unused-rpmlintrc --rpmlintrc .rpmlintrc SPECS/el?/*.spec
 
   shellcheck:
     name: Lint - shellcheck

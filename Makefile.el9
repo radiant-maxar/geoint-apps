@@ -33,7 +33,7 @@ rpmbuild_version = $(call config_version,$(call rpm_package,$(1)))
 ## Variables
 DOCKER_VERSION := $(shell $(DOCKER) --version 2>/dev/null)
 DOCKER_COMPOSE_VERSION := $(shell $(DOCKER_COMPOSE) --version 2>/dev/null)
-POSTGRES_VERSION := $(shell echo $(call rpmbuild_util,postgres_version,--variable) | tr -d '.')
+POSTGRES_VERSION := $(call rpmbuild_util,postgres_version,--variable)
 RPMBUILD_CHANNEL := $(call rpmbuild_util,channel_name,--variable)
 RPMBUILD_UID := $(shell id -u)
 RPMBUILD_GID := $(shell id -g)
