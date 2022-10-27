@@ -3,7 +3,7 @@
 
 %global osm2pgsql_min_version 1.6.0
 %{!?datrie_version: %global datrie_version 0.8.2}
-%{!?pyicu_version: %global pyicu_version 2.9}
+%{!?pyicu_version: %global pyicu_version 2.10.2}
 
 %bcond_without tests
 
@@ -38,11 +38,10 @@ Source4:        https://download.geofabrik.de/europe/monaco-latest.osm.pbf
 %endif
 
 Patch0:         nominatim-external-osm2pgsql.patch
-Patch1:         nominatim-phpunit-resolve-deprecation-warnings.patch
-Patch2:         nominatim-no-calculate-postcodes.patch
-Patch3:         nominatim-legacy-tokenizer.patch
-Patch4:         nominatim-tests-run-serial.patch
-Patch5:         nominatim-php8-test-fixes.patch
+Patch1:         nominatim-no-calculate-postcodes.patch
+Patch2:         nominatim-legacy-tokenizer.patch
+Patch3:         nominatim-tests-run-serial.patch
+Patch4:         nominatim-setup-no-create-db.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
@@ -81,15 +80,15 @@ BuildRequires:  libtidy
 BuildRequires:  postgis
 BuildRequires:  postgresql%{postgres_version}-contrib
 BuildRequires:  postgresql%{postgres_version}-server
-# These PHP testing dependencies are installed manually.
-#BuildRequires:  PHP_CodeSniffer
-#BuildRequires:  PHPUnit
-# These testing dependencies are installed by pip3 manually.
-#BuildRequires:  python3-behave
-#BuildRequires:  python3-pytidylib
-# Source: https://github.com/osm-search/Nominatim/blob/master/docs/admin/Installation.md#software
-#BuildRequires:  python3-pyicu # (required for build as well)
-#BuildRequires:  python3-pylint
+# These testing dependencies are installed via Dockerfile.
+## PHP:
+## BuildRequires:  PHP_CodeSniffer
+## BuildRequires:  PHPUnit
+## Python:
+## BuildRequires:  python3-behave
+## BuildRequires:  python3-pyicu
+## BuildRequires:  python3-pylint
+## BuildRequires:  python3-pytidylib
 %endif
 
 Requires:       %{name}-data = %{version}-%{release}
@@ -141,7 +140,7 @@ This package contains the Nominatim shared library.
 
 %build
 %if %{with tests}
-# CMake needs to find the `pip3 --user` installed binaries
+# CMake needs to find the Dockerfile-installed binaries
 export PATH=${HOME}/.local/bin:${PATH}
 %endif
 
@@ -151,6 +150,7 @@ export PATH=${HOME}/.local/bin:${PATH}
 %cmake -DBUILD_API:BOOL=ON \
        -DBUILD_IMPORTER:BOOL=ON \
        -DBUILD_OSM2PGSQL:BOOL=OFF \
+       -DBUILD_MODULE:BOOL=ON \
        -DCMAKE_INSTALL_LIBDIR:PATH=%{_datadir}
 %cmake_build
 
@@ -178,48 +178,51 @@ listen_addresses = '127.0.0.1'" >> "${PGDATA}/postgresql.conf"
 %{_bindir}/createdb nominatim
 
 # Website
+## Set up temporary environment.
+### Set up `nominatim_properties` table & `tokenizer` row for `nominatim refresh --website`. This is usually done on import.
+%{_bindir}/psql --dbname="nominatim" --command="CREATE TABLE nominatim_properties (property TEXT NOT NULL, value TEXT)"
+%{_bindir}/psql --dbname="nominatim" --command="INSERT INTO nominatim_properties (property, value) VALUES ('tokenizer', 'icu')"
+### This is also usually done on import.
 %{__mkdir_p} %{buildroot}%{nominatim_www}
+%{__cp} -r %{buildroot}%{nominatim_conf}/country-names %{buildroot}%{nominatim_www}
+%{__cp} -r %{buildroot}%{nominatim_conf}/icu-rules %{buildroot}%{nominatim_www}
+%{__cp} %{buildroot}%{nominatim_conf}/country_settings.yaml %{buildroot}%{nominatim_www}
+%{__cp} %{buildroot}%{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
+%{__cp} %{buildroot}%{nominatim_conf}/icu_tokenizer.yaml %{buildroot}%{nominatim_www}
 
 ## Install 'website' .php files with `nominatim refresh`, database must be running.
-%{__cp} %{buildroot}%{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
 %{buildroot}%{_bindir}/nominatim refresh \
  --website \
  --project-dir %{buildroot}%{nominatim_www}
 
-# Clean out buildroot from any paths in generated PHP.
+## Clean out buildroot from any paths in generated PHP.
 %{__sed} -i -e "s|%{buildroot}||g" %{buildroot}%{nominatim_www}/website/*.php
 
-# Tokenizer setup is done on import, make sure a default file exists.
-%{__mkdir_p} %{buildroot}%{nominatim_www}/tokenizer
-cat >> %{buildroot}%{nominatim_www}/tokenizer/tokenizer.php <<EOF
-<?php
-@define('CONST_Max_Word_Frequency', 50000);
-@define('CONST_Term_Normalization_Rules', ":: NFD (); [[:Nonspacing Mark:] [:Cf:]] >;  :: lower (); [[:Punctuation:][:Space:]]+ > ' '; :: NFC ();");
-require_once('%{nominatim_base}/lib-php/tokenizer/legacy_tokenizer.php');
-EOF
-
-# Clean up temporary environment, and add /etc link.
+## Clean up temporary environment, and add /etc links.
 %{__rm} %{buildroot}%{nominatim_www}/.env
 %{__ln_s} %{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
 
-# Destroy database.
-%{_bindir}/pg_ctl -m fast -s stop
-%{__rm} -fr "${PGDATA}"
+%{__rm} %{buildroot}%{nominatim_www}/country_settings.yaml %{buildroot}%{nominatim_www}/icu_tokenizer.yaml
+%{__ln_s} %{nominatim_conf}/country_settings.yaml %{buildroot}%{nominatim_www}
+%{__ln_s} %{nominatim_conf}/icu_tokenizer.yaml %{buildroot}%{nominatim_www}
+
+%{__rm} -fr %{buildroot}%{nominatim_www}/country-names
+%{__ln_s} %{nominatim_conf}/country-names %{buildroot}%{nominatim_www}
+
+%{__rm} -fr %{buildroot}%{nominatim_www}/icu-rules
+%{__ln_s} %{nominatim_conf}/icu-rules %{buildroot}%{nominatim_www}
 
 # Data
 %{__mkdir_p} %{buildroot}%{nominatim_data}/tiger
 %{__cp} -rp data/* %{buildroot}%{nominatim_data}/
-%{__rm} %{buildroot}%{nominatim_base}/country_name.sql \
-  %{buildroot}%{nominatim_base}/country_osm_grid.sql.gz \
+%{__rm} %{buildroot}%{nominatim_base}/country_osm_grid.sql.gz \
   %{buildroot}%{nominatim_base}/words.sql
-%{__ln_s} %{nominatim_data}/country_name.sql \
-  %{nominatim_data}/country_osm_grid.sql.gz \
+%{__ln_s} %{nominatim_data}/country_osm_grid.sql.gz \
   %{nominatim_data}/gb_postcode_data.sql.gz \
   %{nominatim_data}/us_postcode_data.sql.gz \
   %{nominatim_data}/words.sql \
   %{buildroot}%{nominatim_base}/
-%{__ln_s} %{nominatim_data}/country_name.sql \
-  %{nominatim_data}/country_osm_grid.sql.gz \
+%{__ln_s} %{nominatim_data}/country_osm_grid.sql.gz \
   %{nominatim_data}/gb_postcode_data.sql.gz \
   %{nominatim_data}/us_postcode_data.sql.gz \
   %{nominatim_data}/words.sql \
@@ -230,6 +233,10 @@ EOF
 %{__mv} %{buildroot}%{nominatim_base}/module/%{name}.so  %{buildroot}%{_libdir}
 %{__ln_s} %{_libdir}/%{name}.so %{buildroot}%{nominatim_base}/module
 %{__ln_s} %{_libdir}/%{name}.so %{buildroot}%{nominatim_www}/module
+
+# Destroy database.
+%{_bindir}/pg_ctl -m fast -s stop
+%{__rm} -fr "${PGDATA}"
 
 
 %check
@@ -251,18 +258,20 @@ work_mem = 50MB
 wal_level = minimal
 archive_mode = off
 max_wal_senders = 0
+# Speed tuning
+fsync = off
+full_page_writes = off
+synchronous_commit = off
 EOF
 
 # Start PostgreSQL
 %{_bindir}/pg_ctl -s start
+%{_bindir}/createuser -S postgres
 %{_bindir}/createuser -S www-data
 
 # In rpmbuild environment have to explicitly set the PYTHONPATH to include the
 # user's site packages.
 export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{python3_sitearch}:%{python3_sitelib}
-
-%{__sed} -i -e 's/^disable=.*$/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,duplicate-code,redundant-u-string-prefix,too-few-public-methods,unspecified-encoding,use-dict-literal/' .pylintrc
-echo "max-statements=100" >> .pylintrc
 
 # Invoke testing/linting runner
 %ctest
@@ -282,6 +291,7 @@ echo "max-statements=100" >> .pylintrc
 %exclude %{nominatim_base}/*.sql*
 %exclude %{_datadir}/munin
 %config(noreplace) %{nominatim_conf}/env.defaults
+%config %{nominatim_conf}/country-names
 %config %{nominatim_conf}/icu-rules
 %config %{nominatim_conf}/*.json
 %config %{nominatim_conf}/*.style
@@ -309,7 +319,7 @@ echo "max-statements=100" >> .pylintrc
 %{nominatim_www}/module
 
 
-%pre
+%pre data
 %{_bindir}/getent group %{nominatim_group} >/dev/null || \
     %{_sbindir}/groupadd \
         --force \

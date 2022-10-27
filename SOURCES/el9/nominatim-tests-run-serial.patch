@@ -8,7 +8,7 @@ index 02c290cc..c46e1ecd 100644
          endforeach()
 +        # Do not run "bdd_{api,db,osm2pgsql}" in parallel with any other test.
 +        set_tests_properties(bdd_api PROPERTIES RUN_SERIAL TRUE)
-+        set_tests_properties(bdd_db PROPERTIES RUN_SERIAL TRUE)
++        set_tests_properties(bdd_db PROPERTIES RUN_SERIAL TRUE TIMEOUT 2400)
 +        set_tests_properties(bdd_osm2pgsql PROPERTIES RUN_SERIAL TRUE)
      else()
          message(WARNING "behave not found. BDD tests disabled." )

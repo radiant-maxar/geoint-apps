@@ -1,0 +1,29 @@
+diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
+index 6ffa7afb..792ab774 100644
+--- a/nominatim/clicmd/setup.py
++++ b/nominatim/clicmd/setup.py
+@@ -52,6 +52,8 @@ class SetupAll:
+                            help='Size of cache to be used by osm2pgsql (in MB)')
+         group2.add_argument('--reverse-only', action='store_true',
+                            help='Do not create tables and indexes for searching')
++        group2.add_argument('--no-create-db', action='store_true',
++                            help="Do not create the database, assume it's created.")
+         group2.add_argument('--no-partitions', action='store_true',
+                            help=("Do not partition search indices "
+                                  "(speeds up import of single country extracts)"))
+@@ -79,9 +81,12 @@ class SetupAll:
+             if not files:
+                 raise UsageError("No input files (use --osm-file).")
+ 
+-            LOG.warning('Creating database')
+-            database_import.setup_database_skeleton(args.config.get_libpq_dsn(),
+-                                                    rouser=args.config.DATABASE_WEBUSER)
++            if args.no_create_db:
++                LOG.warning('Skipping database creation')
++            else:
++                LOG.warning('Creating database')
++                database_import.setup_database_skeleton(args.config.get_libpq_dsn(),
++                                                        rouser=args.config.DATABASE_WEBUSER)
+ 
+             LOG.warning('Setting up country tables')
+             country_info.setup_country_tables(args.config.get_libpq_dsn(),
