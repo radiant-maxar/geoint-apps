@@ -41,6 +41,7 @@ Patch0:         nominatim-external-osm2pgsql.patch
 Patch1:         nominatim-no-calculate-postcodes.patch
 Patch2:         nominatim-legacy-tokenizer.patch
 Patch3:         nominatim-tests-run-serial.patch
+Patch4:         nominatim-setup-no-create-db.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
