@@ -177,40 +177,39 @@ listen_addresses = '127.0.0.1'" >> "${PGDATA}/postgresql.conf"
 %{_bindir}/createdb nominatim
 
 # Website
-%{__mkdir_p} %{buildroot}%{nominatim_www}
-
-## Set up
-### Database Properties
+## Set up temporary environment.
+### Set up `nominatim_properties` table & `tokenizer` row for `nominatim refresh --website`. This is usually done on import.
 %{_bindir}/psql --dbname="nominatim" --command="CREATE TABLE nominatim_properties (property TEXT NOT NULL, value TEXT)"
-%{_bindir}/psql --dbname="nominatim" --command="INSERT INTO nominatim_properties (property, value) VALUES ('tokenizer', 'legacy')"
-
-### .env file
+%{_bindir}/psql --dbname="nominatim" --command="INSERT INTO nominatim_properties (property, value) VALUES ('tokenizer', 'icu')"
+### This is also usually done on import.
+%{__mkdir_p} %{buildroot}%{nominatim_www}
+%{__cp} -r %{buildroot}%{nominatim_conf}/country-names %{buildroot}%{nominatim_www}
+%{__cp} -r %{buildroot}%{nominatim_conf}/icu-rules %{buildroot}%{nominatim_www}
+%{__cp} %{buildroot}%{nominatim_conf}/country_settings.yaml %{buildroot}%{nominatim_www}
 %{__cp} %{buildroot}%{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
+%{__cp} %{buildroot}%{nominatim_conf}/icu_tokenizer.yaml %{buildroot}%{nominatim_www}
 
 ## Install 'website' .php files with `nominatim refresh`, database must be running.
 %{buildroot}%{_bindir}/nominatim refresh \
  --website \
  --project-dir %{buildroot}%{nominatim_www}
 
-# Clean out buildroot from any paths in generated PHP.
+## Clean out buildroot from any paths in generated PHP.
 %{__sed} -i -e "s|%{buildroot}||g" %{buildroot}%{nominatim_www}/website/*.php
 
-# Tokenizer setup is done on import, make sure a default file exists.
-%{__mkdir_p} %{buildroot}%{nominatim_www}/tokenizer
-cat >> %{buildroot}%{nominatim_www}/tokenizer/tokenizer.php <<EOF
-<?php
-@define('CONST_Max_Word_Frequency', 50000);
-@define('CONST_Term_Normalization_Rules', ":: NFD (); [[:Nonspacing Mark:] [:Cf:]] >;  :: lower (); [[:Punctuation:][:Space:]]+ > ' '; :: NFC ();");
-require_once('%{nominatim_base}/lib-php/tokenizer/legacy_tokenizer.php');
-EOF
-
-# Clean up temporary environment, and add /etc link.
+## Clean up temporary environment, and add /etc links.
 %{__rm} %{buildroot}%{nominatim_www}/.env
 %{__ln_s} %{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
 
-# Destroy database.
-%{_bindir}/pg_ctl -m fast -s stop
-%{__rm} -fr "${PGDATA}"
+%{__rm} %{buildroot}%{nominatim_www}/country_settings.yaml %{buildroot}%{nominatim_www}/icu_tokenizer.yaml
+%{__ln_s} %{nominatim_conf}/country_settings.yaml %{buildroot}%{nominatim_www}
+%{__ln_s} %{nominatim_conf}/icu_tokenizer.yaml %{buildroot}%{nominatim_www}
+
+%{__rm} -fr %{buildroot}%{nominatim_www}/country-names
+%{__ln_s} %{nominatim_conf}/country-names %{buildroot}%{nominatim_www}
+
+%{__rm} -fr %{buildroot}%{nominatim_www}/icu-rules
+%{__ln_s} %{nominatim_conf}/icu-rules %{buildroot}%{nominatim_www}
 
 # Data
 %{__mkdir_p} %{buildroot}%{nominatim_data}/tiger
@@ -233,6 +232,10 @@ EOF
 %{__mv} %{buildroot}%{nominatim_base}/module/%{name}.so  %{buildroot}%{_libdir}
 %{__ln_s} %{_libdir}/%{name}.so %{buildroot}%{nominatim_base}/module
 %{__ln_s} %{_libdir}/%{name}.so %{buildroot}%{nominatim_www}/module
+
+# Destroy database.
+%{_bindir}/pg_ctl -m fast -s stop
+%{__rm} -fr "${PGDATA}"
 
 
 %check
