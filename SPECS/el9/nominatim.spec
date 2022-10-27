@@ -315,7 +315,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 %{nominatim_www}/module
 
 
-%pre
+%pre data
 %{_bindir}/getent group %{nominatim_group} >/dev/null || \
     %{_sbindir}/groupadd \
         --force \
