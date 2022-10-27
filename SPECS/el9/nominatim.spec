@@ -187,7 +187,6 @@ listen_addresses = '127.0.0.1'" >> "${PGDATA}/postgresql.conf"
 ### .env file
 %{__cp} %{buildroot}%{nominatim_conf}/env.defaults %{buildroot}%{nominatim_www}/.env
 %{__sed} -i \
- -e 's|NOMINATIM_TOKENIZER="icu"|NOMINATIM_TOKENIZER="legacy"|g' \
  -e 's|NOMINATIM_DATABASE_MODULE_PATH=|NOMINATIM_DATABASE_MODULE_PATH="%{buildroot}%{nominatim_base}/module/%{name}.so"|g' \
  %{buildroot}%{nominatim_www}/.env
 
