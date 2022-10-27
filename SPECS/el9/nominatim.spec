@@ -257,6 +257,10 @@ work_mem = 50MB
 wal_level = minimal
 archive_mode = off
 max_wal_senders = 0
+# Speed tuning
+fsync = off
+full_page_writes = off
+synchronous_commit = off
 EOF
 
 # Start PostgreSQL
