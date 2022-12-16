@@ -1,5 +1,5 @@
 diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
-index 6ffa7afb..792ab774 100644
+index 344167bb..5aee3e9d 100644
 --- a/nominatim/clicmd/setup.py
 +++ b/nominatim/clicmd/setup.py
 @@ -52,6 +52,8 @@ class SetupAll:
@@ -11,7 +11,7 @@ index 6ffa7afb..792ab774 100644
          group2.add_argument('--no-partitions', action='store_true',
                             help=("Do not partition search indices "
                                   "(speeds up import of single country extracts)"))
-@@ -79,9 +81,12 @@ class SetupAll:
+@@ -81,9 +83,12 @@ class SetupAll:
              if not files:
                  raise UsageError("No input files (use --osm-file).")
  

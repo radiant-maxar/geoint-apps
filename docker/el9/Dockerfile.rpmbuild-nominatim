@@ -29,7 +29,7 @@ WORKDIR ${RPMBUILD_HOME}
 RUN echo "%postgres_version ${postgres_version}" >> "${RPMBUILD_HOME}/.rpmmacros"
 
 # Install PHPUnit. (https://github.com/sebastianbergmann/phpunit/tags)
-ADD --chown=${RPMBUILD_USER}:${RPMBUILD_GROUP} https://phar.phpunit.de/phpunit-9.5.25.phar .local/bin/phpunit
+ADD --chown=${RPMBUILD_USER}:${RPMBUILD_GROUP} https://phar.phpunit.de/phpunit-9.5.27.phar .local/bin/phpunit
 RUN chmod +x .local/bin/phpunit
 
 # Install PHP_CodeSniffer. (https://github.com/squizlabs/PHP_CodeSniffer/releases)
