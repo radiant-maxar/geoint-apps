@@ -1,8 +1,8 @@
 diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
-index 6ffa7afb..2212e6b4 100644
+index 344167bb..56256178 100644
 --- a/nominatim/clicmd/setup.py
 +++ b/nominatim/clicmd/setup.py
-@@ -116,9 +116,12 @@ class SetupAll:
+@@ -124,9 +124,12 @@ class SetupAll:
          tokenizer = self._get_tokenizer(args.continue_at, args.config)
  
          if args.continue_at is None or args.continue_at == 'load-data':
@@ -17,14 +17,14 @@ index 6ffa7afb..2212e6b4 100644
 +                                           args.project_dir, tokenizer)
  
          if args.continue_at is None or args.continue_at in ('load-data', 'indexing'):
-             if args.continue_at is not None and args.continue_at != 'load-data':
+             LOG.warning('Indexing places')
 diff --git a/settings/env.defaults b/settings/env.defaults
-index 3115f438..0a1a7803 100644
+index 8378d7b0..e6c45177 100644
 --- a/settings/env.defaults
 +++ b/settings/env.defaults
-@@ -33,6 +33,9 @@ NOMINATIM_MAX_WORD_FREQUENCY=50000
- # If true, admin level changes on places with many contained children are blocked.
- NOMINATIM_LIMIT_REINDEXING=yes
+@@ -42,6 +42,9 @@ NOMINATIM_LIMIT_REINDEXING=yes
+ # The default is to not propagate these changes.
+ NOMINATIM_UPDATE_FORWARD_DEPENDENCIES=no
  
 +# If true, then postcodes won't be calculated on initial import.
 +NOMINATIM_NO_CALCULATE_POSTCODES=no

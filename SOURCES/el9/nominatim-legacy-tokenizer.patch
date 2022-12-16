@@ -1,5 +1,5 @@
 diff --git a/nominatim/tokenizer/legacy_tokenizer.py b/nominatim/tokenizer/legacy_tokenizer.py
-index f52eaada..9171a6b5 100644
+index 1b0b2980..1776006f 100644
 --- a/nominatim/tokenizer/legacy_tokenizer.py
 +++ b/nominatim/tokenizer/legacy_tokenizer.py
 @@ -64,8 +64,9 @@ def _install_module(config_module_path: str, src_dir: Path, module_dir: Path) ->
