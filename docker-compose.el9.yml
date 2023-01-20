@@ -40,7 +40,7 @@ x-rpmbuild:
       version: &nominatim_ui_version 3.2.9-1
     osrm-backend:
       image: rpmbuild-osrm-backend
-      version: &osrm_backend_version 5.26.0-1
+      version: &osrm_backend_version 5.27.1-1
     osrm-frontend:
       defines:
         git_ref: 4a9f214b4cdd35e7dff5c171e2bad549da6a2d8e

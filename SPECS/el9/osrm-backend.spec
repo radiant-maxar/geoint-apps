@@ -17,6 +17,10 @@ License:        BSD
 URL:            https://map.project-osrm.org
 Source0:        https://github.com/Project-OSRM/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
 
+# OSRM >= v5.27.0 requires TBB > 2020
+# https://github.com/Project-OSRM/osrm-backend/pull/6493
+Patch0:         osrm-backend-5.27.1-tbb2020-support.patch
+
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
 BuildRequires:  ccache
