@@ -30,9 +30,11 @@ License:        GPLv2
 URL:            https://nominatim.org/
 
 Source0:        https://github.com/openstreetmap/Nominatim/archive/v%{version}/Nominatim-%{version}.tar.gz
-Source1:        https://www.nominatim.org/data/country_grid.sql.gz
-Source2:        https://www.nominatim.org/data/gb_postcode_data.sql.gz
-Source3:        https://www.nominatim.org/data/us_postcode_data.sql.gz
+# Archive.org is used since data downloads now require a custom user agent
+# https://github.com/osm-search/Nominatim/issues/2929
+Source1:        https://web.archive.org/web/%{data_archive_snapshot}/https://nominatim.org/data/country_grid.sql.gz
+Source2:        https://web.archive.org/web/%{data_archive_snapshot}/https://nominatim.org/data/gb_postcode_data.sql.gz
+Source3:        https://web.archive.org/web/%{data_archive_snapshot}/https://nominatim.org/data/us_postcode_data.sql.gz
 %if %{with tests}
 Source4:        https://download.geofabrik.de/europe/monaco-latest.osm.pbf
 %endif

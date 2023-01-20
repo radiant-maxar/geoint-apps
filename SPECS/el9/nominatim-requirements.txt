@@ -1,6 +1,4 @@
-behave==1.2.6
 datrie==0.8.2
 Cython==0.29.32
 pytidylib==0.3.2
-pylint==2.15.5
 PyICU==2.10.2

@@ -30,9 +30,11 @@ License:        GPLv2
 URL:            https://github.com/openstreetmap/Nominatim
 
 Source0:        https://github.com/openstreetmap/Nominatim/archive/v%{version}/Nominatim-%{version}.tar.gz
-Source1:        https://www.nominatim.org/data/country_grid.sql.gz
-Source2:        https://www.nominatim.org/data/gb_postcode_data.sql.gz
-Source3:        https://www.nominatim.org/data/us_postcode_data.sql.gz
+# Archive.org is used since data downloads now require a custom user agent
+# https://github.com/osm-search/Nominatim/issues/2929
+Source1:        https://web.archive.org/web/%{data_archive_snapshot}/https://nominatim.org/data/country_grid.sql.gz
+Source2:        https://web.archive.org/web/%{data_archive_snapshot}/https://nominatim.org/data/gb_postcode_data.sql.gz
+Source3:        https://web.archive.org/web/%{data_archive_snapshot}/https://nominatim.org/data/us_postcode_data.sql.gz
 %if %{with tests}
 Source4:        https://download.geofabrik.de/europe/monaco-latest.osm.pbf
 %endif
@@ -63,13 +65,15 @@ BuildRequires:  php-pear
 BuildRequires:  php-pgsql
 BuildRequires:  postgresql%{postgres_version}-devel
 BuildRequires:  proj-devel
+BuildRequires:  pylint
+BuildRequires:  python3-behave
 BuildRequires:  python3-devel
 BuildRequires:  python3-dotenv
 BuildRequires:  python3-jinja2
 BuildRequires:  python3-osmium
 BuildRequires:  python3-pip
-BuildRequires:  python3-psycopg2
 BuildRequires:  python3-psutil
+BuildRequires:  python3-psycopg2
 BuildRequires:  python3-pytest
 BuildRequires:  python3-pytest-cov
 BuildRequires:  python3-pyyaml
@@ -85,9 +89,7 @@ BuildRequires:  postgresql%{postgres_version}-server
 ## BuildRequires:  PHP_CodeSniffer
 ## BuildRequires:  PHPUnit
 ## Python:
-## BuildRequires:  python3-behave
 ## BuildRequires:  python3-pyicu
-## BuildRequires:  python3-pylint
 ## BuildRequires:  python3-pytidylib
 %endif
 

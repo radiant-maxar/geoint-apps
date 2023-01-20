@@ -13,6 +13,8 @@ License:        Affero GPL v3
 URL:            https://overpass-api.de/
 Source0:        https://dev.overpass-api.de/releases/osm-3s_v%{rpmbuild_version}.tar.gz
 
+Patch0:         overpass-api-environment-settings.patch
+
 BuildRequires:  autoconf
 BuildRequires:  autoconf-archive
 BuildRequires:  automake
@@ -21,8 +23,6 @@ BuildRequires:  expat-devel
 BuildRequires:  lz4-devel
 BuildRequires:  make
 BuildRequires:  zlib-devel
-
-Patch0:         overpass-api-environment-settings.patch
 
 # Replication scripts use wget to retrieve URLs.
 Requires:       wget
