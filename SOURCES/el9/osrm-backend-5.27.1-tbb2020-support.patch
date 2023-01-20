@@ -1,0 +1,239 @@
+diff --git a/src/extractor/edge_based_graph_factory.cpp b/src/extractor/edge_based_graph_factory.cpp
+index a0a8561b7..70e8b5a6f 100644
+--- a/src/extractor/edge_based_graph_factory.cpp
++++ b/src/extractor/edge_based_graph_factory.cpp
+@@ -32,7 +32,11 @@
+ 
+ #include <tbb/blocked_range.h>
+ #include <tbb/parallel_for.h>
++#if TBB_VERSION_MAJOR == 2020
++#include <tbb/pipeline.h>
++#else
+ #include <tbb/parallel_pipeline.h>
++#endif
+ 
+ namespace std
+ {
+@@ -582,8 +586,13 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
+         const constexpr unsigned GRAINSIZE = 100;
+ 
+         // First part of the pipeline generates iterator ranges of IDs in sets of GRAINSIZE
++#if TBB_VERSION_MAJOR == 2020
++        tbb::filter_t<void, tbb::blocked_range<NodeID>> generator_stage(
++            tbb::filter::serial_in_order, [&](tbb::flow_control &fc) {
++#else
+         tbb::filter<void, tbb::blocked_range<NodeID>> generator_stage(
+             tbb::filter_mode::serial_in_order, [&](tbb::flow_control &fc) {
++#endif
+                 if (current_node < node_count)
+                 {
+                     auto next_node = std::min(current_node + GRAINSIZE, node_count);
+@@ -721,8 +730,13 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
+         //
+         // Edge-based-graph stage
+         //
++#if TBB_VERSION_MAJOR == 2020
++        tbb::filter_t<tbb::blocked_range<NodeID>, EdgesPipelineBufferPtr> processor_stage(
++            tbb::filter::parallel,
++#else
+         tbb::filter<tbb::blocked_range<NodeID>, EdgesPipelineBufferPtr> processor_stage(
+             tbb::filter_mode::parallel,
++#endif
+             [&](const tbb::blocked_range<NodeID> &intersection_node_range) {
+                 auto buffer = std::make_shared<EdgesPipelineBuffer>();
+                 buffer->nodes_processed = intersection_node_range.size();
+@@ -1132,8 +1146,13 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
+         util::UnbufferedLog log;
+         util::Percent routing_progress(log, node_count);
+         std::vector<EdgeWithData> delayed_data;
++#if TBB_VERSION_MAJOR == 2020
++        tbb::filter_t<EdgesPipelineBufferPtr, void> output_stage(
++            tbb::filter::serial_in_order, [&](auto buffer) {
++#else
+         tbb::filter<EdgesPipelineBufferPtr, void> output_stage(
+             tbb::filter_mode::serial_in_order, [&](auto buffer) {
++#endif
+                 routing_progress.PrintAddition(buffer->nodes_processed);
+ 
+                 m_connectivity_checksum = buffer->checksum.update_checksum(m_connectivity_checksum);
+diff --git a/src/extractor/extractor.cpp b/src/extractor/extractor.cpp
+index 687b35b53..822864fdf 100644
+--- a/src/extractor/extractor.cpp
++++ b/src/extractor/extractor.cpp
+@@ -44,7 +44,11 @@
+ #include <osmium/thread/pool.hpp>
+ #include <osmium/visitor.hpp>
+ #include <tbb/global_control.h>
++#if TBB_VERSION_MAJOR == 2020
++#include <tbb/pipeline.h>
++#else
+ #include <tbb/parallel_pipeline.h>
++#endif
+ 
+ #include <algorithm>
+ #include <atomic>
+@@ -445,8 +449,13 @@ Extractor::ParsedOSMData Extractor::ParseOSMData(ScriptingEnvironment &scripting
+     ExtractionRelationContainer relations;
+ 
+     const auto buffer_reader = [](osmium::io::Reader &reader) {
++#if TBB_VERSION_MAJOR == 2020
++        return tbb::filter_t<void, SharedBuffer>(
++            tbb::filter::serial_in_order, [&reader](tbb::flow_control &fc) {
++#else
+         return tbb::filter<void, SharedBuffer>(
+             tbb::filter_mode::serial_in_order, [&reader](tbb::flow_control &fc) {
++#endif
+                 if (auto buffer = reader.read())
+                 {
+                     return std::make_shared<osmium::memory::Buffer>(std::move(buffer));
+@@ -467,15 +476,25 @@ Extractor::ParsedOSMData Extractor::ParseOSMData(ScriptingEnvironment &scripting
+     osmium_index_type location_cache;
+     osmium_location_handler_type location_handler(location_cache);
+ 
++#if TBB_VERSION_MAJOR == 2020
++    tbb::filter_t<SharedBuffer, SharedBuffer> location_cacher(
++        tbb::filter::serial_in_order, [&location_handler](SharedBuffer buffer) {
++#else
+     tbb::filter<SharedBuffer, SharedBuffer> location_cacher(
+         tbb::filter_mode::serial_in_order, [&location_handler](SharedBuffer buffer) {
++#endif
+             osmium::apply(buffer->begin(), buffer->end(), location_handler);
+             return buffer;
+         });
+ 
+     // OSM elements Lua parser
++#if TBB_VERSION_MAJOR == 2020
++    tbb::filter_t<SharedBuffer, ParsedBuffer> buffer_transformer(
++        tbb::filter::parallel,
++#else
+     tbb::filter<SharedBuffer, ParsedBuffer> buffer_transformer(
+         tbb::filter_mode::parallel,
++#endif
+         // NOLINTNEXTLINE(performance-unnecessary-value-param)
+         [&](const SharedBuffer buffer) {
+             ParsedBuffer parsed_buffer;
+@@ -496,8 +515,13 @@ Extractor::ParsedOSMData Extractor::ParseOSMData(ScriptingEnvironment &scripting
+     unsigned number_of_ways = 0;
+     unsigned number_of_restrictions = 0;
+     unsigned number_of_maneuver_overrides = 0;
++#if TBB_VERSION_MAJOR == 2020
++    tbb::filter_t<ParsedBuffer, void> buffer_storage(
++        tbb::filter::serial_in_order, [&](const ParsedBuffer &parsed_buffer) {
++#else
+     tbb::filter<ParsedBuffer, void> buffer_storage(
+         tbb::filter_mode::serial_in_order, [&](const ParsedBuffer &parsed_buffer) {
++#endif
+             number_of_nodes += parsed_buffer.resulting_nodes.size();
+             // put parsed objects thru extractor callbacks
+             for (const auto &result : parsed_buffer.resulting_nodes)
+@@ -523,8 +547,13 @@ Extractor::ParsedOSMData Extractor::ParseOSMData(ScriptingEnvironment &scripting
+             }
+         });
+ 
++#if TBB_VERSION_MAJOR == 2020
++    tbb::filter_t<SharedBuffer, std::shared_ptr<ExtractionRelationContainer>> buffer_relation_cache(
++        tbb::filter::parallel,
++#else
+     tbb::filter<SharedBuffer, std::shared_ptr<ExtractionRelationContainer>> buffer_relation_cache(
+         tbb::filter_mode::parallel,
++#endif
+         // NOLINTNEXTLINE(performance-unnecessary-value-param)
+         [&](const SharedBuffer buffer) {
+             if (!buffer)
+@@ -561,8 +590,13 @@ Extractor::ParsedOSMData Extractor::ParseOSMData(ScriptingEnvironment &scripting
+         });
+ 
+     unsigned number_of_relations = 0;
++#if TBB_VERSION_MAJOR == 2020
++    tbb::filter_t<std::shared_ptr<ExtractionRelationContainer>, void> buffer_storage_relation(
++        tbb::filter::serial_in_order,
++#else
+     tbb::filter<std::shared_ptr<ExtractionRelationContainer>, void> buffer_storage_relation(
+         tbb::filter_mode::serial_in_order,
++#endif
+         // NOLINTNEXTLINE(performance-unnecessary-value-param)
+         [&](const std::shared_ptr<ExtractionRelationContainer> parsed_relations) {
+             number_of_relations += parsed_relations->GetRelationsNum();
+diff --git a/src/guidance/guidance_processing.cpp b/src/guidance/guidance_processing.cpp
+index cd24dabf0..f59ee9a6b 100644
+--- a/src/guidance/guidance_processing.cpp
++++ b/src/guidance/guidance_processing.cpp
+@@ -9,7 +9,11 @@
+ #include "util/percent.hpp"
+ 
+ #include <tbb/blocked_range.h>
++#if TBB_VERSION_MAJOR == 2020
++#include <tbb/pipeline.h>
++#else
+ #include <tbb/parallel_pipeline.h>
++#endif
+ 
+ #include <thread>
+ 
+@@ -97,8 +101,13 @@ void annotateTurns(const util::NodeBasedDynamicGraph &node_based_graph,
+         const constexpr unsigned GRAINSIZE = 100;
+ 
+         // First part of the pipeline generates iterator ranges of IDs in sets of GRAINSIZE
++#if TBB_VERSION_MAJOR == 2020
++        tbb::filter_t<void, tbb::blocked_range<NodeID>> generator_stage(
++            tbb::filter::serial_in_order, [&](tbb::flow_control &fc) {
++#else
+         tbb::filter<void, tbb::blocked_range<NodeID>> generator_stage(
+             tbb::filter_mode::serial_in_order, [&](tbb::flow_control &fc) {
++#endif
+                 if (current_node < node_count)
+                 {
+                     auto next_node = std::min(current_node + GRAINSIZE, node_count);
+@@ -116,8 +125,13 @@ void annotateTurns(const util::NodeBasedDynamicGraph &node_based_graph,
+         //
+         // Guidance stage
+         //
++#if TBB_VERSION_MAJOR == 2020
++        tbb::filter_t<tbb::blocked_range<NodeID>, TurnsPipelineBufferPtr> guidance_stage(
++            tbb::filter::parallel,
++#else
+         tbb::filter<tbb::blocked_range<NodeID>, TurnsPipelineBufferPtr> guidance_stage(
+             tbb::filter_mode::parallel,
++#endif
+             [&](const tbb::blocked_range<NodeID> &intersection_node_range) {
+                 auto buffer = std::make_shared<TurnsPipelineBuffer>();
+                 buffer->nodes_processed = intersection_node_range.size();
+@@ -308,8 +322,13 @@ void annotateTurns(const util::NodeBasedDynamicGraph &node_based_graph,
+         util::Percent guidance_progress(log, node_count);
+         std::vector<guidance::TurnData> delayed_turn_data;
+ 
++#if TBB_VERSION_MAJOR == 2020
++        tbb::filter_t<TurnsPipelineBufferPtr, void> guidance_output_stage(
++            tbb::filter::serial_in_order, [&](auto buffer) {
++#else
+         tbb::filter<TurnsPipelineBufferPtr, void> guidance_output_stage(
+             tbb::filter_mode::serial_in_order, [&](auto buffer) {
++#endif
+                 guidance_progress.PrintAddition(buffer->nodes_processed);
+ 
+                 connectivity_checksum = buffer->checksum.update_checksum(connectivity_checksum);
+diff --git a/src/partitioner/recursive_bisection.cpp b/src/partitioner/recursive_bisection.cpp
+index 27a8f70ac..89f9777c2 100644
+--- a/src/partitioner/recursive_bisection.cpp
++++ b/src/partitioner/recursive_bisection.cpp
+@@ -64,12 +64,20 @@ RecursiveBisection::RecursiveBisection(BisectionGraph &bisection_graph_,
+         return TreeNode{std::move(graph), internal_state.SCCDepth()};
+     });
+ 
++#if TBB_VERSION_MAJOR == 2020
++    using Feeder = tbb::parallel_do_feeder<TreeNode>;
++#else
+     using Feeder = tbb::feeder<TreeNode>;
++#endif
+ 
+     TIMER_START(bisection);
+ 
+     // Bisect graph into two parts. Get partition point and recurse left and right in parallel.
++#if TBB_VERSION_MAJOR == 2020
++    tbb::parallel_do(begin(forest), end(forest), [&](const TreeNode &node, Feeder &feeder) {
++#else
+     tbb::parallel_for_each(begin(forest), end(forest), [&](const TreeNode &node, Feeder &feeder) {
++#endif
+         const auto cut =
+             computeInertialFlowCut(node.graph, num_optimizing_cuts, balance, boundary_factor);
+         const auto center = internal_state.ApplyBisection(
