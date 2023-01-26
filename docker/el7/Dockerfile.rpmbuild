@@ -52,14 +52,15 @@ RUN --mount=type=cache,target=/var/cache/yum \
       git-core \
       less \
       libtool \
-      make \
       m4 \
+      make \
       redhat-lsb-core \
       redhat-rpm-config \
       rpm-build \
       rpm-sign \
       rpmdevtools \
       rpmlint \
+      rsync \
       unzip \
       vim \
       which \
