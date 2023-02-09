@@ -67,6 +67,7 @@ BuildRequires:  postgresql%{postgres_version}-devel
 BuildRequires:  proj-devel
 BuildRequires:  pylint
 BuildRequires:  python3-behave
+BuildRequires:  python3-Cython
 BuildRequires:  python3-devel
 BuildRequires:  python3-dotenv
 BuildRequires:  python3-jinja2

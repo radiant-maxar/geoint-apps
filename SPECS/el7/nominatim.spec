@@ -147,7 +147,7 @@ export PATH=${HOME}/.local/bin:${PATH}
 %{__cp} -p %{SOURCE1} data/country_osm_grid.sql.gz
 %{__cp} -p %{SOURCE2} %{SOURCE3} data
 
-%{__mkdir_p} build
+%{__mkdir} build
 pushd build
 scl enable rh-php73 '%{cmake3} \
         -DBUILD_API:BOOL=ON \
