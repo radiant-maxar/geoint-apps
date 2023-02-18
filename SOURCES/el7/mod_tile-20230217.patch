@@ -1,0 +1,2762 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..5d4ec95
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,184 @@
++#-----------------------------------------------------------------------------
++#
++#  CMake Config
++#
++#-----------------------------------------------------------------------------
++
++cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
++list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
++
++#-----------------------------------------------------------------------------
++#
++#  Project version
++#
++#-----------------------------------------------------------------------------
++
++project(mod_tile VERSION 0.6.1)
++
++set(CMAKE_C_STANDARD 99)
++set(CMAKE_C_STANDARD_REQUIRED ON)
++set(CMAKE_CXX_STANDARD 11)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++set(THREADS_PREFER_PTHREAD_FLAG ON)
++
++set(ENABLE_MAN ON CACHE BOOL "Build man pages")
++set(ENABLE_TESTS OFF CACHE BOOL "Build test suite")
++
++#-----------------------------------------------------------------------------
++#
++#  Find external dependencies
++#
++#-----------------------------------------------------------------------------
++
++include(GNUInstallDirs)
++
++# Packages
++find_package(CURL)
++find_package(ICU REQUIRED uc)
++find_package(Threads REQUIRED)
++
++find_package(APR REQUIRED)
++find_package(Cairo REQUIRED)
++find_package(GLib REQUIRED)
++find_package(HTTPD REQUIRED)
++find_package(IniParser REQUIRED)
++find_package(LibMemcached)
++find_package(LibRados)
++find_package(Mapnik REQUIRED)
++
++# Programs
++find_program(APXS_EXECUTABLE apxs REQUIRED)
++
++# Functions
++include(CheckFunctionExists)
++# check_function_exists(bzero HAVE_BZERO)
++check_function_exists(daemon HAVE_DAEMON)
++# check_function_exists(gethostbyname HAVE_GETHOSTBYNAME)
++check_function_exists(getloadavg HAVE_GETLOADAVG)
++# check_function_exists(gettimeofday HAVE_GETTIMEOFDAY)
++# check_function_exists(inet_ntoa HAVE_INET_NTOA)
++# check_function_exists(memset HAVE_MEMSET)
++# check_function_exists(mkdir HAVE_MKDIR)
++# check_function_exists(pow HAVE_POW)
++# check_function_exists(select HAVE_SELECT)
++# check_function_exists(socket HAVE_SOCKET)
++# check_function_exists(strchr HAVE_STRCHR)
++# check_function_exists(strdup HAVE_STRDUP)
++# check_function_exists(strerror HAVE_STRERROR)
++# check_function_exists(strrchr HAVE_STRRCHR)
++# check_function_exists(strstr HAVE_STRSTR)
++# check_function_exists(strtol HAVE_STRTOL)
++# check_function_exists(strtoul HAVE_STRTOUL)
++# check_function_exists(utime HAVE_UTIME)
++
++# Include files
++include(CheckIncludeFile)
++# check_include_file(arpa/inet.h HAVE_ARPA_INET_H)
++# check_include_file(fcntl.h HAVE_FCNTL_H)
++# check_include_file(limits.h HAVE_LIMITS_H)
++# check_include_file(netdb.h HAVE_NETDB_H)
++# check_include_file(netinet/in.h HAVE_NETINET_IN_H)
++check_include_file(paths.h HAVE_PATHS_H)
++# check_include_file(stdint.h HAVE_STDINT_H)
++# check_include_file(stdlib.h HAVE_STDLIB_H)
++# check_include_file(string.h HAVE_STRING_H)
++check_include_file(sys/cdefs.h HAVE_SYS_CDEFS_H)
++check_include_file(sys/loadavg.h HAVE_SYS_LOADAVG_H)
++# check_include_file(sys/socket.h HAVE_SYS_SOCKET_H)
++# check_include_file(sys/time.h HAVE_SYS_TIME_H)
++# check_include_file(syslog.h HAVE_SYSLOG_H)
++# check_include_file(unistd.h HAVE_UNISTD_H)
++# check_include_file(utime.h HAVE_UTIME_H)
++
++#-----------------------------------------------------------------------------
++#
++#  Set variables
++#
++#-----------------------------------------------------------------------------
++
++execute_process(COMMAND ${APXS_EXECUTABLE} -q exp_libexecdir
++  OUTPUT_VARIABLE HTTPD_MODULES_DIR
++  OUTPUT_STRIP_TRAILING_WHITESPACE
++)
++
++if(Cairo_FOUND)
++  set(HAVE_CAIRO 1)
++endif()
++
++if(CURL_FOUND)
++  set(HAVE_LIBCURL 1)
++endif()
++
++if(LibMemcached_FOUND)
++  set(HAVE_LIBMEMCACHED 1)
++endif()
++
++if(LibRados_FOUND)
++  set(HAVE_LIBRADOS 1)
++endif()
++
++if(CMAKE_HAVE_PTHREAD_H)
++  set(HAVE_PTHREAD 1)
++endif()
++
++set(VERSION ${PROJECT_VERSION})
++
++#-----------------------------------------------------------------------------
++#
++#  config.h
++#
++#-----------------------------------------------------------------------------
++
++configure_file(
++    ${PROJECT_SOURCE_DIR}/includes/config.h.in
++    ${PROJECT_SOURCE_DIR}/includes/config.h
++)
++
++#-----------------------------------------------------------------------------
++#
++#  Build
++#
++#-----------------------------------------------------------------------------
++
++add_subdirectory(src)
++
++#-----------------------------------------------------------------------------
++#
++#  Install
++#
++#-----------------------------------------------------------------------------
++
++install(
++  TARGETS
++    mod_tile
++    render_expired
++    render_list
++    render_old
++    render_speedtest
++    renderd
++  LIBRARY DESTINATION ${HTTPD_MODULES_DIR}
++  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++)
++
++if (ENABLE_MAN)
++install(
++  FILES
++    docs/man/render_expired.1
++    docs/man/render_list.1
++    docs/man/render_old.1
++    docs/man/render_speedtest.1
++    docs/man/renderd.1
++  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
++)
++endif()
++
++#-----------------------------------------------------------------------------
++#
++#  Test
++#
++#-----------------------------------------------------------------------------
++
++if (ENABLE_TESTS)
++enable_testing()
++add_subdirectory(tests)
++endif()
+diff --git a/Makefile.am b/Makefile.am
+index 9285c25..db72433 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -47,7 +47,7 @@ renderd_SOURCES = \
+ 	src/protocol_helper.c \
+ 	$(STORE_SOURCES)
+ renderd_CXXFLAGS = $(MAPNIK_CFLAGS)
+-renderd_LDADD = $(PTHREAD_CFLAGS) $(MAPNIK_LDFLAGS) $(STORE_LDFLAGS) -liniparser
++renderd_LDADD = $(PTHREAD_CFLAGS) $(MAPNIK_LDFLAGS) $(STORE_LDFLAGS) $(INIPARSER_LDFLAGS)
+ renderd_DATA = etc/renderd/renderd.conf
+ 
+ render_speedtest_SOURCES = \
+@@ -99,7 +99,7 @@ gen_tile_test_SOURCES = \
+ 	$(STORE_SOURCES)
+ gen_tile_test_CFLAGS = -DMAIN_ALREADY_DEFINED $(PTHREAD_CFLAGS) $(GLIB_CFLAGS)
+ gen_tile_test_CXXFLAGS = $(MAPNIK_CFLAGS)
+-gen_tile_test_LDADD = $(PTHREAD_CFLAGS) $(MAPNIK_LDFLAGS) $(STORE_LDFLAGS) -liniparser
++gen_tile_test_LDADD = $(PTHREAD_CFLAGS) $(MAPNIK_LDFLAGS) $(STORE_LDFLAGS) $(INIPARSER_LDFLAGS)
+ 
+ CLEANFILES=*.slo mod_tile.la stderr.out src/*.slo src/*.lo src/.libs/* src/*.la
+ 
+diff --git a/README.rst b/README.rst
+index e93f552..4d92260 100644
+--- a/README.rst
++++ b/README.rst
+@@ -28,6 +28,8 @@ Dependencies
+ * `Curl library (SSL variant) <https://curl.haxx.se/>`__
+ * `Iniparser library <https://github.com/ndevilla/iniparser>`__
+ * `GLib library <https://gitlab.gnome.org/GNOME/glib>`__
++* `Memcached library (optional) <https://libmemcached.org/>`__
++* `RADOS library (optional) <https://docs.ceph.com/en/latest/rados/api/librados/>`__
+ 
+ Installation
+ ------------
+@@ -63,7 +65,7 @@ distributions:
+ Configuration
+ -------------
+ 
+-After you either installed the software packages or copiled the software
++After you either installed the software packages or compiled the software
+ yourself, you can continue with the configuration. For your convenience
+ example configuration files are distributed with the software packages and
+ located in the ``etc`` directory of this repository.
+@@ -163,7 +165,7 @@ special hashed directory structure. These combine 8x8 actual tiles into a
+ single metatile file. This is a more efficient use of disk space and inodes.
+ 
+ The metatiles are then stored in the following directory structure:
+-``/[base_dir]/[TileSetName]/[Z]/[xxxxyyyy]/[xxxxyyyy]/[xxxxyyyy]/[xxxxyyyy]/[xxxxyyyy].png``
++``/[base_dir]/[TileSetName]/[Z]/[xxxxyyyy]/[xxxxyyyy]/[xxxxyyyy]/[xxxxyyyy]/[xxxxyyyy].meta``
+ 
+ Where ``base_dir`` is a configurable base path for all tiles. ``TileSetName``
+ is the name of the style sheet rendered. ``Z`` is the zoom level.
+@@ -190,7 +192,7 @@ also provides built-in features to scale to multi server rendering set-ups.
+ Copyright and copyleft
+ ----------------------
+ 
+-Copyright (c) 2007 - 2021 by mod_tile contributors (see `AUTHORS <./AUTHORS>`__)
++Copyright (c) 2007 - 2022 by mod_tile contributors (see `AUTHORS <./AUTHORS>`__)
+ 
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+diff --git a/cmake/FindAPR.cmake b/cmake/FindAPR.cmake
+new file mode 100644
+index 0000000..3ea371c
+--- /dev/null
++++ b/cmake/FindAPR.cmake
+@@ -0,0 +1,49 @@
++# - Find APR
++# Find the APR includes and libraries.
++# This module defines:
++#  APR_FOUND
++#  APR_INCLUDE_DIRS
++#  APR_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(APR QUIET apr-1)
++
++find_path(APR_INCLUDE_DIR
++  NAMES apr.h
++  PATHS ${APR_INCLUDE_DIRS}
++  PATH_SUFFIXES apr-1
++)
++
++if((NOT APR_INCLUDE_DIRS) AND (APR_INCLUDE_DIR))
++  set(APR_INCLUDE_DIRS ${APR_INCLUDE_DIR})
++elseif(APR_INCLUDE_DIRS AND APR_INCLUDE_DIR)
++  list(APPEND APR_INCLUDE_DIRS ${APR_INCLUDE_DIR})
++endif()
++
++find_library(APR_LIBRARY
++  NAMES ${APR_LIBRARIES} apr-1
++)
++
++if((NOT APR_LIBRARIES) AND (APR_LIBRARY))
++  set(APR_LIBRARIES ${APR_LIBRARY})
++elseif(APR_LIBRARIES AND APR_LIBRARY)
++  list(APPEND APR_LIBRARIES ${APR_LIBRARY})
++endif()
++
++message(VERBOSE "APR_INCLUDE_DIRS=${APR_INCLUDE_DIRS}")
++message(VERBOSE "APR_INCLUDE_DIR=${APR_INCLUDE_DIR}")
++message(VERBOSE "APR_LIBRARIES=${APR_LIBRARIES}")
++message(VERBOSE "APR_LIBRARY=${APR_LIBRARY}")
++
++if((NOT APR_FOUND) AND (APR_INCLUDE_DIRS) AND (APR_LIBRARIES))
++  set(APR_FOUND True)
++endif()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(APR
++  FOUND_VAR APR_FOUND
++  REQUIRED_VARS APR_FOUND APR_INCLUDE_DIRS APR_LIBRARIES
++  VERSION_VAR APR_VERSION
++)
++
++mark_as_advanced(APR_INCLUDE_DIR APR_LIBRARY)
+diff --git a/cmake/FindCairo.cmake b/cmake/FindCairo.cmake
+new file mode 100644
+index 0000000..30b2e2e
+--- /dev/null
++++ b/cmake/FindCairo.cmake
+@@ -0,0 +1,49 @@
++# - Find Cairo
++# Find the Cairo includes and libraries.
++# This module defines:
++#  Cairo_FOUND
++#  Cairo_INCLUDE_DIRS
++#  Cairo_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(Cairo QUIET cairo)
++
++find_path(Cairo_INCLUDE_DIR
++  NAMES cairo.h
++  PATHS ${Cairo_INCLUDE_DIRS}
++  PATH_SUFFIXES cairo
++)
++
++if((NOT Cairo_INCLUDE_DIRS) AND (Cairo_INCLUDE_DIR))
++  set(Cairo_INCLUDE_DIRS ${Cairo_INCLUDE_DIR})
++elseif(Cairo_INCLUDE_DIRS AND Cairo_INCLUDE_DIR)
++  list(APPEND Cairo_INCLUDE_DIRS ${Cairo_INCLUDE_DIR})
++endif()
++
++find_library(Cairo_LIBRARY
++  NAMES ${Cairo_LIBRARIES} cairo
++)
++
++if((NOT Cairo_LIBRARIES) AND (Cairo_LIBRARY))
++  set(Cairo_LIBRARIES ${Cairo_LIBRARY})
++elseif(Cairo_LIBRARIES AND Cairo_LIBRARY)
++  list(APPEND Cairo_LIBRARIES ${Cairo_LIBRARY})
++endif()
++
++message(VERBOSE "Cairo_INCLUDE_DIRS=${Cairo_INCLUDE_DIRS}")
++message(VERBOSE "Cairo_INCLUDE_DIR=${Cairo_INCLUDE_DIR}")
++message(VERBOSE "Cairo_LIBRARIES=${Cairo_LIBRARIES}")
++message(VERBOSE "Cairo_LIBRARY=${Cairo_LIBRARY}")
++
++if((NOT Cairo_FOUND) AND (Cairo_INCLUDE_DIRS) AND (Cairo_LIBRARIES))
++  set(Cairo_FOUND True)
++endif()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(Cairo
++  FOUND_VAR Cairo_FOUND
++  REQUIRED_VARS Cairo_FOUND Cairo_INCLUDE_DIRS Cairo_LIBRARIES
++  VERSION_VAR Cairo_VERSION
++)
++
++mark_as_advanced(Cairo_INCLUDE_DIR Cairo_LIBRARY)
+diff --git a/cmake/FindGLib.cmake b/cmake/FindGLib.cmake
+new file mode 100644
+index 0000000..2338d6b
+--- /dev/null
++++ b/cmake/FindGLib.cmake
+@@ -0,0 +1,49 @@
++# - Find GLib
++# Find the GLib includes and libraries.
++# This module defines:
++#  GLib_FOUND
++#  GLib_INCLUDE_DIRS
++#  GLib_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(GLib QUIET glib-2.0)
++
++find_path(GLib_INCLUDE_DIR
++  NAMES glib.h
++  PATHS ${GLib_INCLUDE_DIRS}
++  PATH_SUFFIXES glib-2.0
++)
++
++if((NOT GLib_INCLUDE_DIRS) AND (GLib_INCLUDE_DIR))
++  set(GLib_INCLUDE_DIRS ${GLib_INCLUDE_DIR})
++elseif(GLib_INCLUDE_DIRS AND GLib_INCLUDE_DIR)
++  list(APPEND GLib_INCLUDE_DIRS ${GLib_INCLUDE_DIR})
++endif()
++
++find_library(GLib_LIBRARY
++  NAMES ${GLib_LIBRARIES} glib-2.0
++)
++
++if((NOT GLib_LIBRARIES) AND (GLib_LIBRARY))
++  set(GLib_LIBRARIES ${GLib_LIBRARY})
++elseif(GLib_LIBRARIES AND GLib_LIBRARY)
++  list(APPEND GLib_LIBRARIES ${GLib_LIBRARY})
++endif()
++
++message(VERBOSE "GLib_INCLUDE_DIRS=${GLib_INCLUDE_DIRS}")
++message(VERBOSE "GLib_INCLUDE_DIR=${GLib_INCLUDE_DIR}")
++message(VERBOSE "GLib_LIBRARIES=${GLib_LIBRARIES}")
++message(VERBOSE "GLib_LIBRARY=${GLib_LIBRARY}")
++
++if((NOT GLib_FOUND) AND (GLib_INCLUDE_DIRS) AND (GLib_LIBRARIES))
++  set(GLib_FOUND True)
++endif()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(GLib
++  FOUND_VAR GLib_FOUND
++  REQUIRED_VARS GLib_FOUND GLib_INCLUDE_DIRS GLib_LIBRARIES
++  VERSION_VAR GLib_VERSION
++)
++
++mark_as_advanced(GLib_INCLUDE_DIR GLib_LIBRARY)
+diff --git a/cmake/FindHTTPD.cmake b/cmake/FindHTTPD.cmake
+new file mode 100644
+index 0000000..8875c97
+--- /dev/null
++++ b/cmake/FindHTTPD.cmake
+@@ -0,0 +1,47 @@
++# - Find HTTPD
++# Find the HTTPD includes and libraries.
++# This module defines:
++#  HTTPD_FOUND
++#  HTTPD_INCLUDE_DIRS
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(HTTPD QUIET httpd)
++
++find_path(HTTPD_INCLUDE_DIR
++  NAMES httpd.h
++  PATHS ${HTTPD_INCLUDE_DIRS}
++  PATH_SUFFIXES apache2 apache24 httpd
++)
++
++if((NOT HTTPD_INCLUDE_DIRS) AND (HTTPD_INCLUDE_DIR))
++  set(HTTPD_INCLUDE_DIRS ${HTTPD_INCLUDE_DIR})
++elseif(HTTPD_INCLUDE_DIRS AND HTTPD_INCLUDE_DIR)
++  list(APPEND HTTPD_INCLUDE_DIRS ${HTTPD_INCLUDE_DIR})
++endif()
++
++message(VERBOSE "HTTPD_INCLUDE_DIRS=${HTTPD_INCLUDE_DIRS}")
++message(VERBOSE "HTTPD_INCLUDE_DIR=${HTTPD_INCLUDE_DIR}")
++
++if((NOT HTTPD_FOUND) AND (HTTPD_INCLUDE_DIRS))
++  set(HTTPD_FOUND True)
++endif()
++
++if((NOT HTTPD_VERSION) AND (HTTPD_FOUND))
++	file(STRINGS "${HTTPD_INCLUDE_DIR}/ap_release.h" _contents REGEX "#define AP_SERVER_[A-Z]+_NUMBER[ \t]+")
++	if (_contents)
++		string(REGEX REPLACE ".*#define AP_SERVER_MAJORVERSION_NUMBER[ \t]+([0-9]+).*" "\\1" HTTPD_MAJOR_VERSION "${_contents}")
++		string(REGEX REPLACE ".*#define AP_SERVER_MINORVERSION_NUMBER[ \t]+([0-9]+).*" "\\1" HTTPD_MINOR_VERSION "${_contents}")
++		string(REGEX REPLACE ".*#define AP_SERVER_PATCHLEVEL_NUMBER[ \t]+([0-9]+).*" "\\1" HTTPD_PATCH_VERSION "${_contents}")
++
++		set(HTTPD_VERSION ${HTTPD_MAJOR_VERSION}.${HTTPD_MINOR_VERSION}.${HTTPD_PATCH_VERSION})
++	endif ()
++endif ()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(HTTPD
++  FOUND_VAR HTTPD_FOUND
++  REQUIRED_VARS HTTPD_FOUND HTTPD_INCLUDE_DIRS
++  VERSION_VAR HTTPD_VERSION
++)
++
++mark_as_advanced(HTTPD_INCLUDE_DIR)
+diff --git a/cmake/FindIniParser.cmake b/cmake/FindIniParser.cmake
+new file mode 100644
+index 0000000..ee719c7
+--- /dev/null
++++ b/cmake/FindIniParser.cmake
+@@ -0,0 +1,48 @@
++# - Find IniParser
++# Find the IniParser includes and libraries.
++# This module defines:
++#  IniParser_FOUND
++#  IniParser_INCLUDE_DIRS
++#  IniParser_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(IniParser QUIET iniparser)
++
++find_path(IniParser_INCLUDE_DIR
++  NAMES iniparser.h
++  PATHS ${IniParser_INCLUDE_DIRS}
++  PATH_SUFFIXES iniparser
++)
++
++if((NOT IniParser_INCLUDE_DIRS) AND (IniParser_INCLUDE_DIR))
++  set(IniParser_INCLUDE_DIRS ${IniParser_INCLUDE_DIR})
++elseif(IniParser_INCLUDE_DIRS AND IniParser_INCLUDE_DIR)
++  list(APPEND IniParser_INCLUDE_DIRS ${IniParser_INCLUDE_DIR})
++endif()
++
++find_library(IniParser_LIBRARY
++  NAMES ${IniParser_LIBRARIES} iniparser
++)
++
++if((NOT IniParser_LIBRARIES) AND (IniParser_LIBRARY))
++  set(IniParser_LIBRARIES ${IniParser_LIBRARY})
++elseif(IniParser_LIBRARIES AND IniParser_LIBRARY)
++  list(APPEND IniParser_LIBRARIES ${IniParser_LIBRARY})
++endif()
++
++message(VERBOSE "IniParser_INCLUDE_DIRS=${IniParser_INCLUDE_DIRS}")
++message(VERBOSE "IniParser_INCLUDE_DIR=${IniParser_INCLUDE_DIR}")
++message(VERBOSE "IniParser_LIBRARIES=${IniParser_LIBRARIES}")
++message(VERBOSE "IniParser_LIBRARY=${IniParser_LIBRARY}")
++
++if((NOT IniParser_FOUND) AND (IniParser_INCLUDE_DIRS) AND (IniParser_LIBRARIES))
++  set(IniParser_FOUND True)
++endif()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(IniParser
++  FOUND_VAR IniParser_FOUND
++  REQUIRED_VARS IniParser_FOUND IniParser_INCLUDE_DIRS IniParser_LIBRARIES
++)
++
++mark_as_advanced(IniParser_INCLUDE_DIR IniParser_LIBRARY)
+diff --git a/cmake/FindLibMemcached.cmake b/cmake/FindLibMemcached.cmake
+new file mode 100644
+index 0000000..0be4c73
+--- /dev/null
++++ b/cmake/FindLibMemcached.cmake
+@@ -0,0 +1,49 @@
++# - Find LibMemcached
++# Find the LibMemcached includes and libraries.
++# This module defines:
++#  LibMemcached_FOUND
++#  LibMemcached_INCLUDE_DIRS
++#  LibMemcached_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(LibMemcached QUIET libmemcached)
++
++find_path(LibMemcached_INCLUDE_DIR
++  NAMES memcached.h
++  PATHS ${LibMemcached_INCLUDE_DIRS}
++  PATH_SUFFIXES libmemcached
++)
++
++if((NOT LibMemcached_INCLUDE_DIRS) AND (LibMemcached_INCLUDE_DIR))
++  set(LibMemcached_INCLUDE_DIRS ${LibMemcached_INCLUDE_DIR})
++elseif(LibMemcached_INCLUDE_DIRS AND LibMemcached_INCLUDE_DIR)
++  list(APPEND LibMemcached_INCLUDE_DIRS ${LibMemcached_INCLUDE_DIR})
++endif()
++
++find_library(LibMemcached_LIBRARY
++  NAMES ${LibMemcached_LIBRARIES} memcached
++)
++
++if((NOT LibMemcached_LIBRARIES) AND (LibMemcached_LIBRARY))
++  set(LibMemcached_LIBRARIES ${LibMemcached_LIBRARY})
++elseif(LibMemcached_LIBRARIES AND LibMemcached_LIBRARY)
++  list(APPEND LibMemcached_LIBRARIES ${LibMemcached_LIBRARY})
++endif()
++
++message(VERBOSE "LibMemcached_INCLUDE_DIRS=${LibMemcached_INCLUDE_DIRS}")
++message(VERBOSE "LibMemcached_INCLUDE_DIR=${LibMemcached_INCLUDE_DIR}")
++message(VERBOSE "LibMemcached_LIBRARIES=${LibMemcached_LIBRARIES}")
++message(VERBOSE "LibMemcached_LIBRARY=${LibMemcached_LIBRARY}")
++
++if((NOT LibMemcached_FOUND) AND (LibMemcached_INCLUDE_DIRS) AND (LibMemcached_LIBRARIES))
++  set(LibMemcached_FOUND True)
++endif()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(LibMemcached
++  FOUND_VAR LibMemcached_FOUND
++  REQUIRED_VARS LibMemcached_FOUND LibMemcached_INCLUDE_DIRS LibMemcached_LIBRARIES
++  VERSION_VAR LibMemcached_VERSION
++)
++
++mark_as_advanced(LibMemcached_INCLUDE_DIR LibMemcached_LIBRARY)
+diff --git a/cmake/FindLibRados.cmake b/cmake/FindLibRados.cmake
+new file mode 100644
+index 0000000..1cacf6f
+--- /dev/null
++++ b/cmake/FindLibRados.cmake
+@@ -0,0 +1,60 @@
++# - Find LibRados
++# Find the LibRados includes and libraries.
++# This module defines:
++#  LibRados_FOUND
++#  LibRados_INCLUDE_DIRS
++#  LibRados_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(LibRados QUIET rados)
++
++find_path(LibRados_INCLUDE_DIR
++  NAMES librados.h
++  PATHS ${LibRados_INCLUDE_DIRS}
++  PATH_SUFFIXES rados
++)
++
++if((NOT LibRados_INCLUDE_DIRS) AND (LibRados_INCLUDE_DIR))
++  set(LibRados_INCLUDE_DIRS ${LibRados_INCLUDE_DIR})
++elseif(LibRados_INCLUDE_DIRS AND LibRados_INCLUDE_DIR)
++  list(APPEND LibRados_INCLUDE_DIRS ${LibRados_INCLUDE_DIR})
++endif()
++
++find_library(LibRados_LIBRARY
++  NAMES ${LibRados_LIBRARIES} rados
++)
++
++if((NOT LibRados_LIBRARIES) AND (LibRados_LIBRARY))
++  set(LibRados_LIBRARIES ${LibRados_LIBRARY})
++elseif(LibRados_LIBRARIES AND LibRados_LIBRARY)
++  list(APPEND LibRados_LIBRARIES ${LibRados_LIBRARY})
++endif()
++
++message(VERBOSE "LibRados_INCLUDE_DIRS=${LibRados_INCLUDE_DIRS}")
++message(VERBOSE "LibRados_INCLUDE_DIR=${LibRados_INCLUDE_DIR}")
++message(VERBOSE "LibRados_LIBRARIES=${LibRados_LIBRARIES}")
++message(VERBOSE "LibRados_LIBRARY=${LibRados_LIBRARY}")
++
++if((NOT LibRados_FOUND) AND (LibRados_INCLUDE_DIRS) AND (LibRados_LIBRARIES))
++  set(LibRados_FOUND True)
++endif()
++
++if((NOT LibRados_VERSION) AND (LibRados_FOUND))
++	file(STRINGS "${LibRados_INCLUDE_DIR}/librados.h" _contents REGEX "#define LIBRADOS_VER_[A-Z]+[ \t]+")
++	if (_contents)
++		string(REGEX REPLACE ".*#define LIBRADOS_VER_MAJOR[ \t]+([0-9]+).*" "\\1" LibRados_MAJOR_VERSION "${_contents}")
++		string(REGEX REPLACE ".*#define LIBRADOS_VER_MINOR[ \t]+([0-9]+).*" "\\1" LibRados_MINOR_VERSION "${_contents}")
++		string(REGEX REPLACE ".*#define LIBRADOS_VER_EXTRA[ \t]+([0-9]+).*" "\\1" LibRados_EXTRA_VERSION "${_contents}")
++
++		set(LibRados_VERSION ${LibRados_MAJOR_VERSION}.${LibRados_MINOR_VERSION}.${LibRados_EXTRA_VERSION})
++	endif ()
++endif ()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(LibRados
++  FOUND_VAR LibRados_FOUND
++  REQUIRED_VARS LibRados_FOUND LibRados_INCLUDE_DIRS LibRados_LIBRARIES
++  VERSION_VAR LibRados_VERSION
++)
++
++mark_as_advanced(LibRados_INCLUDE_DIR LibRados_LIBRARY)
+diff --git a/cmake/FindMapnik.cmake b/cmake/FindMapnik.cmake
+new file mode 100644
+index 0000000..295b5db
+--- /dev/null
++++ b/cmake/FindMapnik.cmake
+@@ -0,0 +1,60 @@
++# - Find Mapnik
++# Find the Mapnik includes and libraries.
++# This module defines:
++#  Mapnik_FOUND
++#  Mapnik_INCLUDE_DIRS
++#  Mapnik_LIBRARIES
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(Mapnik QUIET mapnik)
++
++find_path(Mapnik_INCLUDE_DIR
++  NAMES version.hpp
++  PATHS ${Mapnik_INCLUDE_DIRS}
++  PATH_SUFFIXES mapnik
++)
++
++if((NOT Mapnik_INCLUDE_DIRS) AND (Mapnik_INCLUDE_DIR))
++  set(Mapnik_INCLUDE_DIRS ${Mapnik_INCLUDE_DIR})
++elseif(Mapnik_INCLUDE_DIRS AND Mapnik_INCLUDE_DIR)
++  list(APPEND Mapnik_INCLUDE_DIRS ${Mapnik_INCLUDE_DIR})
++endif()
++
++find_library(Mapnik_LIBRARY
++  NAMES ${Mapnik_LIBRARIES} mapnik
++)
++
++if((NOT Mapnik_LIBRARIES) AND (Mapnik_LIBRARY))
++  set(Mapnik_LIBRARIES ${Mapnik_LIBRARY})
++elseif(Mapnik_LIBRARIES AND Mapnik_LIBRARY)
++  list(APPEND Mapnik_LIBRARIES ${Mapnik_LIBRARY})
++endif()
++
++message(VERBOSE "Mapnik_INCLUDE_DIRS=${Mapnik_INCLUDE_DIRS}")
++message(VERBOSE "Mapnik_INCLUDE_DIR=${Mapnik_INCLUDE_DIR}")
++message(VERBOSE "Mapnik_LIBRARIES=${Mapnik_LIBRARIES}")
++message(VERBOSE "Mapnik_LIBRARY=${Mapnik_LIBRARY}")
++
++if((NOT Mapnik_FOUND) AND (Mapnik_INCLUDE_DIRS) AND (Mapnik_LIBRARIES))
++  set(Mapnik_FOUND True)
++endif()
++
++if((NOT Mapnik_VERSION) AND (Mapnik_FOUND))
++	file(STRINGS "${Mapnik_INCLUDE_DIR}/version.hpp" _contents REGEX "#define MAPNIK_[A-Z]+_VERSION[ \t]+")
++	if (_contents)
++		string(REGEX REPLACE ".*#define MAPNIK_MAJOR_VERSION[ \t]+([0-9]+).*" "\\1" Mapnik_MAJOR_VERSION "${_contents}")
++		string(REGEX REPLACE ".*#define MAPNIK_MINOR_VERSION[ \t]+([0-9]+).*" "\\1" Mapnik_MINOR_VERSION "${_contents}")
++		string(REGEX REPLACE ".*#define MAPNIK_PATCH_VERSION[ \t]+([0-9]+).*" "\\1" Mapnik_PATCH_VERSION "${_contents}")
++
++		set(Mapnik_VERSION ${Mapnik_MAJOR_VERSION}.${Mapnik_MINOR_VERSION}.${Mapnik_PATCH_VERSION})
++	endif ()
++endif ()
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(Mapnik
++  FOUND_VAR Mapnik_FOUND
++  REQUIRED_VARS Mapnik_FOUND Mapnik_INCLUDE_DIRS Mapnik_LIBRARIES
++  VERSION_VAR Mapnik_VERSION
++)
++
++mark_as_advanced(Mapnik_INCLUDE_DIR Mapnik_LIBRARY)
+diff --git a/configure.ac b/configure.ac
+index 7d173c2..ea2d3e9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,9 +1,14 @@
+ #                                               -*- Autoconf -*-
+ # Process this file with autoconf to produce a configure script.
+ 
++# Define mod_tile version number
++m4_define([mod_tile_version], [0.6.1])
++
+ AC_PREREQ([2.61])
+ AX_CONFIG_NICE
+-AC_INIT(mod_tile, 0.1, http://trac.openstreetmap.org)
++AC_INIT([mod_tile],
++        [mod_tile_version],
++        [http://trac.openstreetmap.org])
+ AM_INIT_AUTOMAKE([subdir-objects])
+ LT_INIT
+ AC_CONFIG_SRCDIR([src/convert_meta.c])
+@@ -26,7 +31,7 @@ fi
+ PKG_CHECK_MODULES([GLIB], [glib-2.0])
+ 
+ # Checks for header files.
+-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h utime.h paths.h sys/cdefs.h sys/loadavg.h])
++AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h utime.h paths.h sys/cdefs.h sys/loadavg.h iniparser.h iniparser/iniparser.h])
+ 
+ # Checks for typedefs, structures, and compiler characteristics.
+ AC_C_INLINE
+@@ -54,6 +59,10 @@ AC_CHECK_LIB(rados, rados_version, [
+     LIBRADOS_LDFLAGS='-lrados'
+     AC_SUBST(LIBRADOS_LDFLAGS)
+ ][])
++AC_CHECK_LIB(iniparser, iniparser_load, [
++    INIPARSER_LDFLAGS='-liniparser'
++    AC_SUBST(INIPARSER_LDFLAGS)
++], [AC_MSG_ERROR([Unable to find libiniparser])])
+ 
+ AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa memset mkdir pow select socket strchr strdup strerror strrchr strstr strtol strtoul utime],[],[AC_MSG_ERROR([One of the required functions was not found])])
+ AC_CHECK_FUNCS([daemon getloadavg],[],[])
+diff --git a/docs/man/render_expired.1 b/docs/man/render_expired.1
+index d39d5ed..04cea13 100644
+--- a/docs/man/render_expired.1
++++ b/docs/man/render_expired.1
+@@ -1,4 +1,4 @@
+-.TH RENDER_EXPIRED 1 "Jan 27, 2012"
++.TH RENDER_EXPIRED 1 "May 21, 2022"
+ .\" Please adjust this date whenever revising the manpage.
+ .SH NAME
+ render_expired \- expires a list of map tiles so that they get re-rendered.
+@@ -43,14 +43,14 @@ A summary of options is included below.
+ \fB\-m\fR|\-\-map=MAP
+ Specify the style-sheet for which to expire tiles. The default is "default".
+ .TP
+-\fB\-s\fR|\-\-socket=SOCKET
+-Specify the location of the renderd socket.
++\fB\-s\fR|\-\-socket=SOCKET|HOSTNAME:PORT
++Specify the location of the renderd socket or hostname and port to connect to.
+ .TP
+ \fB\-n\fR|\-\-num-threads=N
+ Specify the number of parallel requests to renderd. Should renderd have less threads active, requests will be queued. The default is 1.
+ default if \fB\-\-append\fR is not specified.
+ .TP
+-\fB\-t\fR|\-\-tiledir=DIR
++\fB\-t\fR|\-\-tile-dir=DIR
+ Specify the base directory where the rendered tiles are. The default is '/var/cache/renderd/tiles'
+ .TP
+ \fB\-z\fR|\-\-min-zoom=ZOOM
+@@ -64,6 +64,12 @@ When expiring tiles of ZOOM or higher, delete them instead of re-rendering (defa
+ .TP
+ \fB\-T\fR|\-\-touch-from=ZOOM
+ when expiring tiles of ZOOM or higher, touch them instead of re-rendering (default is off)
++.TP
++\fB\-h\fR|\-\-help
++Print out a help text for render_expired
++.TP
++\fB\-V\fR|\-\-version
++Print out the version number for render_expired
+ .PP
+ .SH SEE ALSO
+ .BR renderd (1),
+diff --git a/docs/man/render_list.1 b/docs/man/render_list.1
+index bf5d2ce..2d790f4 100644
+--- a/docs/man/render_list.1
++++ b/docs/man/render_list.1
+@@ -1,4 +1,4 @@
+-.TH RENDER_LIST 1 "Apr 25, 2013"
++.TH RENDER_LIST 1 "May 21, 2022"
+ .\" Please adjust this date whenever revising the manpage.
+ .SH NAME
+ render_list \- renders a list of map tiles by sending requests to a rendering daemon.
+@@ -31,8 +31,8 @@ Render tiles in this map (defaults to 'default').
+ \fB\-l\fR|\-\-max-load=LOAD
+ Sleep if load is this high (defaults to 16).
+ .TP
+-\fB\-s\fR|\-\-socket=SOCKET
+-Unix domain socket name for contacting renderd.
++\fB\-s\fR|\-\-socket=SOCKET|HOSTNAME:PORT
++Unix domain socket name or hostname and port for contacting renderd.
+ .TP
+ \fB\-n\fR|\-\-num-threads=N
+ The number of parallel request threads (default 1).
+@@ -71,6 +71,13 @@ e.g.
+   1 1 1
+ .br
+ The above would cause all 4 tiles at zoom 1 to be rendered
++.TP
++\fB\-h\fR|\-\-help
++Print out a help text for render_list
++.TP
++\fB\-V\fR|\-\-version
++Print out the version number for render_list
++.PP
+ .SH SEE ALSO
+ .BR renderd (8),
+ .BR mod_tile (1).
+diff --git a/docs/man/render_speedtest.1 b/docs/man/render_speedtest.1
+index 32d99b9..c55eb36 100644
+--- a/docs/man/render_speedtest.1
++++ b/docs/man/render_speedtest.1
+@@ -1,16 +1,16 @@
+-.TH SPEEDTEST 1 "Jan 25, 2012"
++.TH RENDER_SPEEDTEST 1 "Jun 03, 2022"
+ .\" Please adjust this date whenever revising the manpage.
+ .SH NAME
+-speedtest \- Benchmapr tile rendering with renderd.
++render_speedtest \- Benchmark tile rendering with renderd.
+ .SH SYNOPSIS
+-.B speedtest
++.B render_speedtest
+ .RI [ options ]
+ .SH DESCRIPTION
+ This manual page documents briefly the
+-.B speedtest
++.B render_speedtest
+ command.
+ .PP
+-.B speedtest
++.B render_speedtest
+ renders a bunch of tiles at various zoom levels to benchmark the speed of the rendering.
+ .PP
+ .SH OPTIONS
+@@ -18,17 +18,32 @@ These programs follow the usual GNU command line syntax, with long
+ options starting with two dashes (`-').
+ A summary of options is included below.
+ .TP
+-\fB\-s\fR|\-\-socket=SOCKET
+-Specify the location of the renderd socket to connect to.
++\fB\-s\fR|\-\-socket=SOCKET|HOSTNAME:PORT
++Specify the location of the renderd socket or hostname and port to connect to.
+ .TP
+ \fB\-m\fR|\-\-map=MAP
+ Specify the rendering style to test. The default is "default"
++.TP
++\fB\-n\fR|\-\-num-threads=N
++The number of parallel request threads (default 1).
++.TP
++\fB\-z\fR|\-\-min-zoom=ZOOM
++Only render tiles greater or equal to this zoom level (default is 0).
++.TP
++\fB\-Z\fR|\-\-max-zoom=ZOOM
++Only render tiles less than or equal to this zoom level (default is 20).
++.TP
++\fB\-h\fR|\-\-help
++Print out a help text for render_speedtest
++.TP
++\fB\-V\fR|\-\-version
++Print out the version number for render_speedtest
+ .PP
+ .SH SEE ALSO
+ .BR renderd (1),
+ .br
+ .SH AUTHOR
+-speedtest was written by Jon Burgess and other
++render_speedtest was written by Jon Burgess and other
+ OpenStreetMap project members.
+ .PP
+ This manual page was written by OpenStreetMap authors.
+diff --git a/docs/man/renderd.1 b/docs/man/renderd.1
+index 60104f2..a40b377 100644
+--- a/docs/man/renderd.1
++++ b/docs/man/renderd.1
+@@ -1,4 +1,4 @@
+-.TH RENDERD 1 "Jan 25, 2012"
++.TH RENDERD 1 "May 21, 2022"
+ .\" Please adjust this date whenever revising the manpage.
+ .SH NAME
+ renderd \- Rendering daemon for rendering OpenStreetMap tiles.
+@@ -36,6 +36,9 @@ of renderd. The default is to use the master section
+ .TP
+ \fB\-h\fR|\-\-help
+ Print out a help text for renderd
++.TP
++\fB\-V\fR|\-\-version
++Print out the version number for renderd
+ .PP
+ .SH SEE ALSO
+ .BR renderd.conf (1),
+diff --git a/includes/config.h.in b/includes/config.h.in
+new file mode 100644
+index 0000000..dd93125
+--- /dev/null
++++ b/includes/config.h.in
+@@ -0,0 +1,18 @@
++/* Define to 1 if you have the functions. */
++#cmakedefine HAVE_DAEMON @HAVE_DAEMON@
++#cmakedefine HAVE_GETLOADAVG @HAVE_GETLOADAVG@
++
++/* Define to 1 if you have the header files. */
++#cmakedefine HAVE_PATHS_H @HAVE_PATHS_H@
++#cmakedefine HAVE_PTHREAD @HAVE_PTHREAD@
++#cmakedefine HAVE_SYS_CDEFS_H @HAVE_SYS_CDEFS_H@
++#cmakedefine HAVE_SYS_LOADAVG_H @HAVE_SYS_LOADAVG_H@
++
++/* Define to 1 if you have the libraries. */
++#cmakedefine HAVE_CAIRO @HAVE_CAIRO@
++#cmakedefine HAVE_LIBCURL @HAVE_LIBCURL@
++#cmakedefine HAVE_LIBMEMCACHED @HAVE_LIBMEMCACHED@
++#cmakedefine HAVE_LIBRADOS @HAVE_LIBRADOS@
++
++/* Version number of project */
++#cmakedefine VERSION "@VERSION@"
+diff --git a/includes/daemon.h b/includes/daemon.h
+index c337e9c..7af534e 100644
+--- a/includes/daemon.h
++++ b/includes/daemon.h
+@@ -34,15 +34,16 @@ int daemon(int nochdir, int noclose);
+ #define MAX_SLAVES 5
+ 
+ typedef struct {
+-	char *socketname;
+-	char *iphostname;
++	const char *iphostname;
++	const char *mapnik_font_dir;
++	const char *mapnik_plugins_dir;
++	const char *pid_filename;
++	const char *socketname;
++	const char *stats_filename;
++	const char *tile_dir;
+ 	int ipport;
+-	int num_threads;
+-	char *tile_dir;
+-	char *mapnik_plugins_dir;
+-	char *mapnik_font_dir;
+ 	int mapnik_font_dir_recurse;
+-	char * stats_filename;
++	int num_threads;
+ } renderd_config;
+ 
+ typedef struct {
+diff --git a/includes/protocol.h b/includes/protocol.h
+index 1444a80..a528d3b 100644
+--- a/includes/protocol.h
++++ b/includes/protocol.h
+@@ -35,6 +35,8 @@ extern "C" {
+ #define TILE_PATH_MAX (256)
+ #define PROTO_VER (3)
+ #define RENDER_SOCKET "/run/renderd/renderd.sock"
++#define RENDER_HOST "localhost"
++#define RENDER_PORT 7654
+ #define XMLCONFIG_MAX 41
+ 
+ enum protoCmd { cmdIgnore, cmdRender, cmdDirty, cmdDone, cmdNotDone, cmdRenderPrio, cmdRenderBulk, cmdRenderLow };
+diff --git a/includes/render_config.h b/includes/render_config.h
+index 7582263..39a08cb 100644
+--- a/includes/render_config.h
++++ b/includes/render_config.h
+@@ -50,6 +50,8 @@
+ #define XMLCONFIG_DEFAULT "default"
+ // Maximum number of configurations that mod tile will allow
+ #define XMLCONFIGS_MAX 10
++// Default PID file path
++#define PIDFILE "/run/renderd/renderd.pid"
+ 
+ // Mapnik input plugins (will need to adjust for 32 bit libs)
+ #define MAPNIK_PLUGINS "/usr/local/lib64/mapnik/input"
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+new file mode 100644
+index 0000000..254f686
+--- /dev/null
++++ b/src/CMakeLists.txt
+@@ -0,0 +1,194 @@
++#-----------------------------------------------------------------------------
++#
++#  CMake Config
++#
++#-----------------------------------------------------------------------------
++
++include_directories(${PROJECT_SOURCE_DIR}/includes)
++
++include_directories(SYSTEM ${APR_INCLUDE_DIRS} ${Cairo_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS} ${GLib_INCLUDE_DIRS} ${HTTPD_INCLUDE_DIRS})
++include_directories(SYSTEM ${ICU_INCLUDE_DIRS} ${IniParser_INCLUDE_DIRS} ${LibMemcached_INCLUDE_DIRS} ${LibRados_INCLUDE_DIRS} ${Mapnik_INCLUDE_DIRS})
++
++link_directories(${CMAKE_LIBRARY_PATH})
++
++set(COMMON_SRCS
++  g_logger.c
++  sys_utils.c
++)
++set(COMMON_LIBRARIES
++  ${GLib_LIBRARIES}
++  Threads::Threads
++)
++
++set(STORE_SRCS
++  store_file_utils.c
++  store_file.c
++  store_memcached.c
++  store_null.c
++  store_rados.c
++  store_ro_composite.c
++  store_ro_http_proxy.c
++  store.c
++)
++set(STORE_LIBRARIES
++  ${Cairo_LIBRARIES}
++  ${CURL_LIBRARIES}
++  ${LibMemcached_LIBRARIES}
++  ${LibRados_LIBRARIES}
++)
++
++#-----------------------------------------------------------------------------
++#
++#  Installed targets
++#
++#-----------------------------------------------------------------------------
++
++#-----------------------------------------------------------------------------
++#
++#  mod_tile.so
++#
++#-----------------------------------------------------------------------------
++
++set(mod_tile_SRCS
++  ${COMMON_SRCS}
++  ${STORE_SRCS}
++  mod_tile.c
++)
++set(mod_tile_LIBS
++  ${APR_LIBRARIES}
++  ${COMMON_LIBRARIES}
++  ${STORE_LIBRARIES}
++)
++add_library(mod_tile SHARED ${mod_tile_SRCS})
++target_link_libraries(mod_tile ${mod_tile_LIBS})
++set_target_properties(mod_tile PROPERTIES PREFIX "" SUFFIX ".so")
++
++#-----------------------------------------------------------------------------
++#
++#  render_expired
++#
++#-----------------------------------------------------------------------------
++
++set(render_expired_SRCS
++  ${COMMON_SRCS}
++  ${STORE_SRCS}
++  protocol_helper.c
++  render_expired.c
++  render_submit_queue.c
++)
++set(render_expired_LIBS
++  ${COMMON_LIBRARIES}
++  ${STORE_LIBRARIES}
++)
++add_executable(render_expired ${render_expired_SRCS})
++target_link_libraries(render_expired ${render_expired_LIBS})
++
++#-----------------------------------------------------------------------------
++#
++#  render_list
++#
++#-----------------------------------------------------------------------------
++
++set(render_list_SRCS
++  ${COMMON_SRCS}
++  ${STORE_SRCS}
++  protocol_helper.c
++  render_list.c
++  render_submit_queue.c
++)
++set(render_list_LIBS
++  ${COMMON_LIBRARIES}
++  ${STORE_LIBRARIES}
++)
++add_executable(render_list ${render_list_SRCS})
++target_link_libraries(render_list ${render_list_LIBS})
++
++#-----------------------------------------------------------------------------
++#
++#  render_old
++#
++#-----------------------------------------------------------------------------
++
++set(render_old_SRCS
++  ${COMMON_SRCS}
++  protocol_helper.c
++  render_old.c
++  render_submit_queue.c
++  store_file_utils.c
++)
++set(render_old_LIBS
++  ${COMMON_LIBRARIES}
++)
++add_executable(render_old ${render_old_SRCS})
++target_link_libraries(render_old ${render_old_LIBS})
++
++#-----------------------------------------------------------------------------
++#
++#  render_speedtest
++#
++#-----------------------------------------------------------------------------
++
++set(render_speedtest_SRCS
++  ${COMMON_SRCS}
++  protocol_helper.c
++  render_submit_queue.c
++  speedtest.cpp
++)
++set(render_speedtest_LIBS
++  ${COMMON_LIBRARIES}
++)
++add_executable(render_speedtest ${render_speedtest_SRCS})
++target_link_libraries(render_speedtest ${render_speedtest_LIBS})
++
++#-----------------------------------------------------------------------------
++#
++#  renderd
++#
++#-----------------------------------------------------------------------------
++
++set(renderd_SRCS
++  ${COMMON_SRCS}
++  ${STORE_SRCS}
++  cache_expire.c
++  daemon_compat.c
++  daemon.c
++  gen_tile.cpp
++  metatile.cpp
++  parameterize_style.cpp
++  protocol_helper.c
++  request_queue.c
++)
++set(renderd_LIBS
++  ${COMMON_LIBRARIES}
++  ${ICU_LIBRARIES}
++  ${IniParser_LIBRARIES}
++  ${Mapnik_LIBRARIES}
++  ${STORE_LIBRARIES}
++)
++add_executable(renderd ${renderd_SRCS})
++target_link_libraries(renderd ${renderd_LIBS})
++
++#-----------------------------------------------------------------------------
++#
++#  Test targets
++#
++#-----------------------------------------------------------------------------
++
++if (ENABLE_TESTS)
++#-----------------------------------------------------------------------------
++#
++#  gen_tile_test
++#
++#-----------------------------------------------------------------------------
++
++set(gen_tile_test_SRCS
++  ${renderd_SRCS}
++	gen_tile_test.cpp
++)
++set(gen_tile_test_LIBS
++  ${renderd_LIBS}
++)
++add_executable(gen_tile_test ${gen_tile_test_SRCS})
++target_link_libraries(gen_tile_test ${gen_tile_test_LIBS})
++target_compile_options(gen_tile_test PRIVATE -DMAIN_ALREADY_DEFINED)
++endif()
+diff --git a/src/cache_expire.c b/src/cache_expire.c
+index 057adea..206da43 100644
+--- a/src/cache_expire.c
++++ b/src/cache_expire.c
+@@ -115,7 +115,7 @@ void cache_expire(int sock, char * host, char * uri, int x, int y, int z)
+ 	}
+ 
+ 	char * url = (char *)malloc(1024);
+-	sprintf(url, "http://%s%s%i/%i/%i.png", host, uri, z, x, y);
++	snprintf(url, 1024, "http://%s%s%i/%i/%i.png", host, uri, z, x, y);
+ 	cache_expire_url(sock, url);
+ 	free(url);
+ }
+diff --git a/src/daemon.c b/src/daemon.c
+index 8858f3f..f2615d5 100644
+--- a/src/daemon.c
++++ b/src/daemon.c
+@@ -34,6 +34,7 @@
+ #include <strings.h>
+ #include <getopt.h>
+ 
++#include "config.h"
+ #include "render_config.h"
+ #include "daemon.h"
+ #include "gen_tile.h"
+@@ -43,11 +44,13 @@
+ #include "g_logger.h"
+ 
+ // extern "C" {
++#ifdef HAVE_INIPARSER_INIPARSER_H
+ #include <iniparser/iniparser.h>
++#else
++#include <iniparser.h>
++#endif
+ // }
+ 
+-#define PIDFILE "/run/renderd/renderd.pid"
+-
+ #define PFD_LISTEN        0
+ #define PFD_EXIT_PIPE     1
+ #define PFD_SPECIAL_COUNT 2
+@@ -739,14 +742,16 @@ int main(int argc, char **argv)
+ 	while (1) {
+ 		int option_index = 0;
+ 		static struct option long_options[] = {
+-			{"config", required_argument, 0, 'c'},
+-			{"foreground", no_argument, 0, 'f'},
+-			{"slave", required_argument, 0, 's'},
+-			{"help", no_argument, 0, 'h'},
++			{"config",     required_argument, 0, 'c'},
++			{"foreground", no_argument,       0, 'f'},
++			{"slave",      required_argument, 0, 's'},
++
++			{"help",       no_argument,       0, 'h'},
++			{"version",    no_argument,       0, 'V'},
+ 			{0, 0, 0, 0}
+ 		};
+ 
+-		c = getopt_long(argc, argv, "hfc:", long_options, &option_index);
++		c = getopt_long(argc, argv, "c:fs:hV", long_options, &option_index);
+ 
+ 		if (c == -1) {
+ 			break;
+@@ -773,10 +778,16 @@ int main(int argc, char **argv)
+ 			case 'h':
+ 				fprintf(stderr, "Usage: renderd [OPTION] ...\n");
+ 				fprintf(stderr, "Mapnik rendering daemon\n");
+-				fprintf(stderr, "  -f, --foreground      run in foreground\n");
+-				fprintf(stderr, "  -h, --help            display this help and exit\n");
+ 				fprintf(stderr, "  -c, --config=CONFIG   set location of config file (default %s)\n", RENDERD_CONFIG);
++				fprintf(stderr, "  -f, --foreground      run in foreground\n");
+ 				fprintf(stderr, "  -s, --slave=CONFIG_NR set which render slave this is (default 0)\n");
++				fprintf(stderr, "\n");
++				fprintf(stderr, "  -h, --help            display this help and exit\n");
++				fprintf(stderr, "  -V, --version         display the version number and exit\n");
++				exit(0);
++
++			case 'V':
++				fprintf(stdout, "%s\n", VERSION);
+ 				exit(0);
+ 
+ 			default:
+@@ -790,7 +801,7 @@ int main(int argc, char **argv)
+ 		exit(1);
+ 	}
+ 
+-	g_logger(G_LOG_LEVEL_INFO, "Rendering daemon started");
++	g_logger(G_LOG_LEVEL_INFO, "Rendering daemon started (version %s)", VERSION);
+ 
+ 	render_request_queue = request_queue_init();
+ 
+@@ -820,7 +831,7 @@ int main(int argc, char **argv)
+ 	char buffer[PATH_MAX];
+ 
+ 	for (int section = 0; section < iniparser_getnsec(ini); section++) {
+-		char *name = iniparser_getsecname(ini, section);
++		const char *name = iniparser_getsecname(ini, section);
+ 		g_logger(G_LOG_LEVEL_INFO, "Parsing section %s", name);
+ 
+ 		if (strncmp(name, "renderd", 7) && strcmp(name, "mapnik")) {
+@@ -844,8 +855,8 @@ int main(int argc, char **argv)
+ 
+ 			strcpy(maps[iconf].xmlname, name);
+ 
+-			sprintf(buffer, "%s:uri", name);
+-			char *ini_uri = iniparser_getstring(ini, buffer, (char *)"");
++			snprintf(buffer, sizeof(buffer), "%s:uri", name);
++			const char *ini_uri = iniparser_getstring(ini, buffer, (char *)"");
+ 
+ 			if (strlen(ini_uri) >= (PATH_MAX - 1)) {
+ 				g_logger(G_LOG_LEVEL_CRITICAL, "URI too long: %s", ini_uri);
+@@ -854,8 +865,8 @@ int main(int argc, char **argv)
+ 
+ 			strcpy(maps[iconf].xmluri, ini_uri);
+ 
+-			sprintf(buffer, "%s:xml", name);
+-			char *ini_xmlpath = iniparser_getstring(ini, buffer, (char *)"");
++			snprintf(buffer, sizeof(buffer), "%s:xml", name);
++			const char *ini_xmlpath = iniparser_getstring(ini, buffer, (char *)"");
+ 
+ 			if (strlen(ini_xmlpath) >= (PATH_MAX - 1)) {
+ 				g_logger(G_LOG_LEVEL_CRITICAL, "XML path too long: %s", ini_xmlpath);
+@@ -864,8 +875,8 @@ int main(int argc, char **argv)
+ 
+ 			strcpy(maps[iconf].xmlfile, ini_xmlpath);
+ 
+-			sprintf(buffer, "%s:host", name);
+-			char *ini_hostname = iniparser_getstring(ini, buffer, (char *) "");
++			snprintf(buffer, sizeof(buffer), "%s:host", name);
++			const char *ini_hostname = iniparser_getstring(ini, buffer, (char *) "");
+ 
+ 			if (strlen(ini_hostname) >= (PATH_MAX - 1)) {
+ 				g_logger(G_LOG_LEVEL_CRITICAL, "Host name too long: %s", ini_hostname);
+@@ -874,8 +885,8 @@ int main(int argc, char **argv)
+ 
+ 			strcpy(maps[iconf].host, ini_hostname);
+ 
+-			sprintf(buffer, "%s:htcphost", name);
+-			char *ini_htcpip = iniparser_getstring(ini, buffer, (char *) "");
++			snprintf(buffer, sizeof(buffer), "%s:htcphost", name);
++			const char *ini_htcpip = iniparser_getstring(ini, buffer, (char *) "");
+ 
+ 			if (strlen(ini_htcpip) >= (PATH_MAX - 1)) {
+ 				g_logger(G_LOG_LEVEL_CRITICAL, "HTCP host name too long: %s", ini_htcpip);
+@@ -884,8 +895,8 @@ int main(int argc, char **argv)
+ 
+ 			strcpy(maps[iconf].htcpip, ini_htcpip);
+ 
+-			sprintf(buffer, "%s:tilesize", name);
+-			char *ini_tilesize = iniparser_getstring(ini, buffer, (char *) "256");
++			snprintf(buffer, sizeof(buffer), "%s:tilesize", name);
++			const char *ini_tilesize = iniparser_getstring(ini, buffer, (char *) "256");
+ 			maps[iconf].tile_px_size = atoi(ini_tilesize);
+ 
+ 			if (maps[iconf].tile_px_size < 1) {
+@@ -893,8 +904,8 @@ int main(int argc, char **argv)
+ 				exit(7);
+ 			}
+ 
+-			sprintf(buffer, "%s:scale", name);
+-			char *ini_scale = iniparser_getstring(ini, buffer, (char *) "1.0");
++			snprintf(buffer, sizeof(buffer), "%s:scale", name);
++			const char *ini_scale = iniparser_getstring(ini, buffer, (char *) "1.0");
+ 			maps[iconf].scale_factor = atof(ini_scale);
+ 
+ 			if (maps[iconf].scale_factor < 0.1 || maps[iconf].scale_factor > 8.0) {
+@@ -902,8 +913,8 @@ int main(int argc, char **argv)
+ 				exit(7);
+ 			}
+ 
+-			sprintf(buffer, "%s:tiledir", name);
+-			char *ini_tiledir = iniparser_getstring(ini, buffer, (char *) config.tile_dir);
++			snprintf(buffer, sizeof(buffer), "%s:tiledir", name);
++			const char *ini_tiledir = iniparser_getstring(ini, buffer, (char *) config.tile_dir);
+ 
+ 			if (strlen(ini_tiledir) >= (PATH_MAX - 1)) {
+ 				g_logger(G_LOG_LEVEL_CRITICAL, "Tiledir too long: %s", ini_tiledir);
+@@ -912,21 +923,21 @@ int main(int argc, char **argv)
+ 
+ 			strcpy(maps[iconf].tile_dir, ini_tiledir);
+ 
+-			sprintf(buffer, "%s:maxzoom", name);
+-			char *ini_maxzoom = iniparser_getstring(ini, buffer, "18");
++			snprintf(buffer, sizeof(buffer), "%s:maxzoom", name);
++			const char *ini_maxzoom = iniparser_getstring(ini, buffer, "18");
+ 			maps[iconf].max_zoom = atoi(ini_maxzoom);
+ 
+ 			if (maps[iconf].max_zoom > MAX_ZOOM) {
+-				g_logger(G_LOG_LEVEL_CRITICAL, "Specified max zoom (%i) is to large. Renderd currently only supports up to zoom level %i", maps[iconf].max_zoom, MAX_ZOOM);
++				g_logger(G_LOG_LEVEL_CRITICAL, "Specified max zoom (%i) is too large. Renderd currently only supports up to zoom level %i", maps[iconf].max_zoom, MAX_ZOOM);
+ 				exit(7);
+ 			}
+ 
+-			sprintf(buffer, "%s:minzoom", name);
+-			char *ini_minzoom = iniparser_getstring(ini, buffer, "0");
++			snprintf(buffer, sizeof(buffer), "%s:minzoom", name);
++			const char *ini_minzoom = iniparser_getstring(ini, buffer, "0");
+ 			maps[iconf].min_zoom = atoi(ini_minzoom);
+ 
+ 			if (maps[iconf].min_zoom < 0) {
+-				g_logger(G_LOG_LEVEL_CRITICAL, "Specified min zoom (%i) is to small. Minimum zoom level has to be greater or equal to 0", maps[iconf].min_zoom);
++				g_logger(G_LOG_LEVEL_CRITICAL, "Specified min zoom (%i) is too small. Minimum zoom level has to be greater or equal to 0", maps[iconf].min_zoom);
+ 				exit(7);
+ 			}
+ 
+@@ -935,8 +946,8 @@ int main(int argc, char **argv)
+ 				exit(7);
+ 			}
+ 
+-			sprintf(buffer, "%s:parameterize_style", name);
+-			char *ini_parameterize = iniparser_getstring(ini, buffer, "");
++			snprintf(buffer, sizeof(buffer), "%s:parameterize_style", name);
++			const char *ini_parameterize = iniparser_getstring(ini, buffer, "");
+ 
+ 			if (strlen(ini_parameterize) >= (PATH_MAX - 1)) {
+ 				g_logger(G_LOG_LEVEL_CRITICAL, "Parameterize_style too long: %s", ini_parameterize);
+@@ -965,23 +976,26 @@ int main(int argc, char **argv)
+ 				exit(7);
+ 			}
+ 
+-			sprintf(buffer, "%s:socketname", name);
++			snprintf(buffer, sizeof(buffer), "%s:socketname", name);
+ 			config_slaves[render_sec].socketname = iniparser_getstring(ini,
+ 							       buffer, (char *) RENDER_SOCKET);
+-			sprintf(buffer, "%s:iphostname", name);
++			snprintf(buffer, sizeof(buffer), "%s:iphostname", name);
+ 			config_slaves[render_sec].iphostname = iniparser_getstring(ini,
+ 							       buffer, "");
+-			sprintf(buffer, "%s:ipport", name);
++			snprintf(buffer, sizeof(buffer), "%s:ipport", name);
+ 			config_slaves[render_sec].ipport = iniparser_getint(ini, buffer, 0);
+-			sprintf(buffer, "%s:num_threads", name);
++			snprintf(buffer, sizeof(buffer), "%s:num_threads", name);
+ 			config_slaves[render_sec].num_threads = iniparser_getint(ini,
+ 								buffer, NUM_THREADS);
+-			sprintf(buffer, "%s:tile_dir", name);
++			snprintf(buffer, sizeof(buffer), "%s:tile_dir", name);
+ 			config_slaves[render_sec].tile_dir = iniparser_getstring(ini,
+ 							     buffer, (char *) HASH_PATH);
+-			sprintf(buffer, "%s:stats_file", name);
++			snprintf(buffer, sizeof(buffer), "%s:stats_file", name);
+ 			config_slaves[render_sec].stats_filename = iniparser_getstring(ini,
+ 					buffer, NULL);
++			snprintf(buffer, sizeof(buffer), "%s:pid_file", name);
++			config_slaves[render_sec].pid_filename = iniparser_getstring(ini,
++					buffer, (char *) PIDFILE);
+ 
+ 			if (render_sec == active_slave) {
+ 				config.socketname = config_slaves[render_sec].socketname;
+@@ -991,6 +1005,8 @@ int main(int argc, char **argv)
+ 				config.tile_dir = config_slaves[render_sec].tile_dir;
+ 				config.stats_filename
+ 					= config_slaves[render_sec].stats_filename;
++				config.pid_filename
++					= config_slaves[render_sec].pid_filename;
+ 				config.mapnik_plugins_dir = iniparser_getstring(ini,
+ 							    "mapnik:plugins_dir", (char *) MAPNIK_PLUGINS);
+ 				config.mapnik_font_dir = iniparser_getstring(ini,
+@@ -1017,6 +1033,7 @@ int main(int argc, char **argv)
+ 
+ 	g_logger(G_LOG_LEVEL_INFO, "config renderd: tile_dir=%s", config.tile_dir);
+ 	g_logger(G_LOG_LEVEL_INFO, "config renderd: stats_file=%s", config.stats_filename);
++	g_logger(G_LOG_LEVEL_INFO, "config renderd: pid_file=%s", config.pid_filename);
+ 	g_logger(G_LOG_LEVEL_INFO, "config mapnik:  plugins_dir=%s", config.mapnik_plugins_dir);
+ 	g_logger(G_LOG_LEVEL_INFO, "config mapnik:  font_dir=%s", config.mapnik_font_dir);
+ 	g_logger(G_LOG_LEVEL_INFO, "config mapnik:  font_dir_recurse=%d", config.mapnik_font_dir_recurse);
+@@ -1044,6 +1061,8 @@ int main(int argc, char **argv)
+ 			 config_slaves[i].tile_dir);
+ 		g_logger(G_LOG_LEVEL_INFO, "config renderd(%i): stats_file=%s", i,
+ 			 config_slaves[i].stats_filename);
++		g_logger(G_LOG_LEVEL_INFO, "config renderd(%i): pid_file=%s", i,
++			 config_slaves[i].pid_filename);
+ 	}
+ 
+ 	for (iconf = 0; iconf < XMLCONFIGS_MAX; ++iconf) {
+@@ -1085,7 +1104,7 @@ int main(int argc, char **argv)
+ 		}
+ 
+ 		/* write pid file */
+-		FILE *pidfile = fopen(PIDFILE, "w");
++		FILE *pidfile = fopen(config.pid_filename, "w");
+ 
+ 		if (pidfile) {
+ 			(void) fprintf(pidfile, "%d\n", getpid());
+diff --git a/src/daemon_compat.c b/src/daemon_compat.c
+index daf66ac..e6d8ebc 100644
+--- a/src/daemon_compat.c
++++ b/src/daemon_compat.c
+@@ -30,7 +30,7 @@
+ #include "config.h"
+ #ifndef HAVE_DAEMON
+ 
+-#ifdef HAVE_SYS_CDEFS_C
++#ifdef HAVE_SYS_CDEFS_H
+ #include <sys/cdefs.h>
+ #endif
+ 
+diff --git a/src/gen_tile_test.cpp b/src/gen_tile_test.cpp
+index 063a651..d43fffb 100644
+--- a/src/gen_tile_test.cpp
++++ b/src/gen_tile_test.cpp
+@@ -17,11 +17,12 @@
+ 
+ #include <iostream>
+ 
+-// https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
++// https://github.com/catchorg/Catch2/blob/v2.13.9/docs/own-main.md#let-catch2-take-full-control-of-args-and-config
+ #define CATCH_CONFIG_RUNNER
+ #include "catch.hpp"
+ 
+ #include "metatile.h"
++#include "config.h"
+ #include "gen_tile.h"
+ #include "render_config.h"
+ #include "request_queue.h"
+@@ -40,6 +41,10 @@
+ #include <mach/clock.h>
+ #include <mach/mach.h>
+ #endif
++#ifdef __FreeBSD__
++#include <pthread.h>
++#include <sys/wait.h>
++#endif
+ 
+ #include <mapnik/version.hpp>
+ #if MAPNIK_VERSION < 200000
+@@ -103,6 +108,8 @@ void * addition_thread(void * arg)
+ 	uint64_t threadid;
+ #ifdef __MACH__ // Mac OS X does not support SYS_gettid
+ 	pthread_threadid_np(NULL, &threadid);
++#elif __FreeBSD__ // FreeBSD does not support SYS_getid either
++	threadid = (uint64_t) pthread_self();
+ #else
+ 	threadid = syscall(SYS_gettid);
+ #endif
+@@ -131,6 +138,146 @@ void * fetch_thread(void * arg)
+ 	return NULL;
+ }
+ 
++TEST_CASE("render_expired", "render expired")
++{
++
++	SECTION("render_expired startup --help", "should start and show help message") {
++		int ret = system("./render_expired -h");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 0);
++	}
++
++	SECTION("render_expired startup --version", "should start and show version number") {
++		FILE *pipe = popen("./render_expired -V", "r");
++		std::string output;
++		char buffer[strlen(VERSION) + 1];
++		fgets(buffer, sizeof(buffer), pipe);
++		output += buffer;
++		pclose(pipe);
++		REQUIRE(output == VERSION);
++	}
++
++	SECTION("render_expired startup unrecognized option", "should return 1") {
++		int ret = system("./render_expired --doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++
++	SECTION("render_expired startup invalid option", "should return 1") {
++		int ret = system("./render_expired -oesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++}
++
++TEST_CASE("render_list", "render list")
++{
++
++	SECTION("render_list startup --help", "should start and show help message") {
++		int ret = system("./render_list -h");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 0);
++	}
++
++	SECTION("render_list startup --version", "should start and show version number") {
++		FILE *pipe = popen("./render_list -V", "r");
++		std::string output;
++		char buffer[strlen(VERSION) + 1];
++		fgets(buffer, sizeof(buffer), pipe);
++		output += buffer;
++		pclose(pipe);
++		REQUIRE(output == VERSION);
++	}
++
++	SECTION("render_list startup unrecognized option", "should return 1") {
++		int ret = system("./render_list --doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++
++	SECTION("render_list startup invalid option", "should return 1") {
++		int ret = system("./render_list -doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++}
++
++TEST_CASE("render_old", "render old")
++{
++
++	SECTION("render_old startup --help", "should start and show help message") {
++		int ret = system("./render_old -h");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 0);
++	}
++
++	SECTION("render_old startup --version", "should start and show version number") {
++		FILE *pipe = popen("./render_old -V", "r");
++		std::string output;
++		char buffer[strlen(VERSION) + 1];
++		fgets(buffer, sizeof(buffer), pipe);
++		output += buffer;
++		pclose(pipe);
++		REQUIRE(output == VERSION);
++	}
++
++	SECTION("render_old startup unrecognized option", "should return 1") {
++		int ret = system("./render_old --doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++
++	SECTION("render_old startup invalid option", "should return 1") {
++		int ret = system("./render_old -doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++}
++
++TEST_CASE("render_speedtest", "render speed test")
++{
++
++	SECTION("render_speedtest startup --help", "should start and show help message") {
++		int ret = system("./render_speedtest -h");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 0);
++	}
++
++	SECTION("render_speedtest startup --version", "should start and show version number") {
++		FILE *pipe = popen("./render_speedtest -V", "r");
++		std::string output;
++		char buffer[strlen(VERSION) + 1];
++		fgets(buffer, sizeof(buffer), pipe);
++		output += buffer;
++		pclose(pipe);
++		REQUIRE(output == VERSION);
++	}
++
++	SECTION("render_speedtest startup unrecognized option", "should return 1") {
++		int ret = system("./render_speedtest --doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++
++	SECTION("render_speedtest startup invalid option", "should return 1") {
++		int ret = system("./render_speedtest -doesnotexit");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++}
++
+ TEST_CASE("renderd/queueing", "request queueing")
+ {
+ 	SECTION("renderd/queueing/initialisation", "test the initialisation of the request queue") {
+@@ -595,6 +742,23 @@ TEST_CASE("renderd", "tile generation")
+ 		REQUIRE(ret == 0);
+ 	}
+ 
++	SECTION("renderd startup --version", "should start and show version number") {
++		FILE *pipe = popen("./renderd -V", "r");
++		std::string output;
++		char buffer[strlen(VERSION) + 1];
++		fgets(buffer, sizeof(buffer), pipe);
++		output += buffer;
++		pclose(pipe);
++		REQUIRE(output == VERSION);
++	}
++
++	SECTION("renderd startup --config fakefile.conf --foreground", "should not start and return 1") {
++		int ret = system("./renderd -c fakefile.conf -f");
++		ret = WEXITSTATUS(ret);
++		//CAPTURE( ret );
++		REQUIRE(ret == 1);
++	}
++
+ 	SECTION("renderd startup unrecognized option", "should return 1") {
+ 		int ret = system("./renderd --doesnotexit");
+ 		ret = WEXITSTATUS(ret);
+@@ -985,7 +1149,8 @@ int main(int argc, char* const argv[])
+ 	//setvbuf(stream, 0, _IOLBF, 0); // No Buffering
+ 	openlog("renderd", LOG_PID | LOG_PERROR, LOG_DAEMON);
+ 	pthread_mutex_init(&item_counter_lock, NULL);
+-	int result = Catch::Main(argc, argv);
++	int result = Catch::Session().run(argc, argv);
+ 	pthread_mutex_destroy(&item_counter_lock);
++	fclose(stream);
+ 	return result;
+ }
+diff --git a/src/mod_tile.c b/src/mod_tile.c
+index 9273a9c..c26408f 100644
+--- a/src/mod_tile.c
++++ b/src/mod_tile.c
+@@ -15,32 +15,32 @@
+  * along with this program; If not, see http://www.gnu.org/licenses/.
+  */
+ 
+-#include "apr.h"
+-#include "apr_strings.h"
+-#include "apr_thread_proc.h"    /* for RLIMIT stuff */
+-#include "apr_optional.h"
+-#include "apr_buckets.h"
+-#include "apr_lib.h"
+-#include "apr_poll.h"
++#include <apr.h>
++#include <apr_strings.h>
++#include <apr_thread_proc.h>    /* for RLIMIT stuff */
++#include <apr_optional.h>
++#include <apr_buckets.h>
++#include <apr_lib.h>
++#include <apr_poll.h>
+ 
+ #define APR_WANT_STRFUNC
+ #define APR_WANT_MEMFUNC
+-#include "apr_want.h"
+-
+-#include "util_filter.h"
+-#include "ap_config.h"
+-#include "httpd.h"
+-#include "http_config.h"
+-#include "http_request.h"
+-#include "http_core.h"
+-#include "http_protocol.h"
+-#include "http_main.h"
+-#include "http_log.h"
+-#include "util_script.h"
+-#include "ap_mpm.h"
+-#include "mod_core.h"
+-#include "mod_cgi.h"
+-#include "util_md5.h"
++#include <apr_want.h>
++
++#include <util_filter.h>
++#include <ap_config.h>
++#include <httpd.h>
++#include <http_config.h>
++#include <http_request.h>
++#include <http_core.h>
++#include <http_protocol.h>
++#include <http_main.h>
++#include <http_log.h>
++#include <util_script.h>
++#include <ap_mpm.h>
++#include <mod_core.h>
++#include <mod_cgi.h>
++#include <util_md5.h>
+ 
+ module AP_MODULE_DECLARE_DATA tile_module;
+ 
+@@ -83,6 +83,10 @@ APLOG_USE_MODULE(tile);
+ #define APACHE24 1
+ #endif
+ 
++#if (defined(__FreeBSD__) || defined(__MACH__)) && !defined(s6_addr32)
++#define s6_addr32 __u6_addr.__u6_addr32
++#endif
++
+ apr_shm_t *stats_shm;
+ apr_shm_t *delaypool_shm;
+ char *shmfilename;
+@@ -321,7 +325,7 @@ static int request_tile(request_rec *r, struct protocol *cmd, int renderImmediat
+ 
+ 				if (ret != sizeof(struct protocol_v2)) {
+ 					ap_log_rerror(APLOG_MARK, APLOG_WARNING, 0, r, "request_tile: Failed to read response from rendering socket. Got %d bytes but expected %d. Errno %d (%s)",
+-						      ret, sizeof(struct protocol_v2), errno, strerror(errno));
++						      ret, (int) sizeof(struct protocol_v2), errno, strerror(errno));
+ 					break;
+ 				}
+ 
+diff --git a/src/parameterize_style.cpp b/src/parameterize_style.cpp
+index b0976fa..be17b52 100644
+--- a/src/parameterize_style.cpp
++++ b/src/parameterize_style.cpp
+@@ -40,6 +40,7 @@ static void parameterize_map_language(mapnik::Map &m, char * parameter)
+ 	tok = strtok(data, ",");
+ 
+ 	if (!tok) {
++		free(data);
+ 		return;        //No parameterization given
+ 	}
+ 
+@@ -92,11 +93,11 @@ static void parameterize_map_language(mapnik::Map &m, char * parameter)
+ 
+ parameterize_function_ptr init_parameterization_function(char * function_name)
+ {
+-	g_logger(G_LOG_LEVEL_INFO, "Loading parameterization function for %s", function_name);
+-
+ 	if (strcmp(function_name, "") == 0) {
++		g_logger(G_LOG_LEVEL_DEBUG, "Parameterize_style not specified (or empty string specified)");
+ 		return NULL;
+ 	} else if (strcmp(function_name, "language") == 0) {
++		g_logger(G_LOG_LEVEL_INFO, "Loading parameterization function for %s", function_name);
+ 		return parameterize_map_language;
+ 	} else {
+ 		g_logger(G_LOG_LEVEL_WARNING, "unknown parameterization function for %s", function_name);
+diff --git a/src/render_expired.c b/src/render_expired.c
+index a606229..7ca0b9b 100644
+--- a/src/render_expired.c
++++ b/src/render_expired.c
+@@ -34,6 +34,7 @@
+ #include <pthread.h>
+ 
+ #include "protocol.h"
++#include "config.h"
+ #include "render_config.h"
+ #include "store.h"
+ #include "render_submit_queue.h"
+@@ -124,21 +125,23 @@ int main(int argc, char **argv)
+ 	while (1) {
+ 		int option_index = 0;
+ 		static struct option long_options[] = {
+-			{"min-zoom", required_argument, 0, 'z'},
+-			{"max-zoom", required_argument, 0, 'Z'},
+-			{"socket", required_argument, 0, 's'},
+-			{"num-threads", required_argument, 0, 'n'},
+ 			{"delete-from", required_argument, 0, 'd'},
+-			{"touch-from", required_argument, 0, 'T'},
+-			{"tile-dir", required_argument, 0, 't'},
+-			{"max-load", required_argument, 0, 'l'},
+-			{"map", required_argument, 0, 'm'},
+-			{"verbose", no_argument, 0, 'v'},
+-			{"help", no_argument, 0, 'h'},
++			{"map",         required_argument, 0, 'm'},
++			{"max-load",    required_argument, 0, 'l'},
++			{"max-zoom",    required_argument, 0, 'Z'},
++			{"min-zoom",    required_argument, 0, 'z'},
++			{"num-threads", required_argument, 0, 'n'},
++			{"socket",      required_argument, 0, 's'},
++			{"tile-dir",    required_argument, 0, 't'},
++			{"touch-from",  required_argument, 0, 'T'},
++			{"verbose",     no_argument,       0, 'v'},
++
++			{"help",        no_argument,       0, 'h'},
++			{"version",     no_argument,       0, 'V'},
+ 			{0, 0, 0, 0}
+ 		};
+ 
+-		c = getopt_long(argc, argv, "hvz:Z:s:m:t:n:l:T:d:", long_options, &option_index);
++		c = getopt_long(argc, argv, "d:m:l:Z:z:n:s:t:T:vhV", long_options, &option_index);
+ 
+ 		if (c == -1) {
+ 			break;
+@@ -217,14 +220,18 @@ int main(int argc, char **argv)
+ 
+ 			case 'h':   /* -h, --help */
+ 				fprintf(stderr, "Usage: render_expired [OPTION] ...\n");
+-				fprintf(stderr, "  -m, --map=MAP        render tiles in this map (defaults to '" XMLCONFIG_DEFAULT "')\n");
+-				fprintf(stderr, "  -s, --socket=SOCKET  unix domain socket name for contacting renderd\n");
+-				fprintf(stderr, "  -n, --num-threads=N the number of parallel request threads (default 1)\n");
+-				fprintf(stderr, "  -t, --tile-dir       tile cache directory (defaults to '" HASH_PATH "')\n");
+-				fprintf(stderr, "  -z, --min-zoom=ZOOM  filter input to only render tiles greater or equal to this zoom level (default is 0)\n");
+-				fprintf(stderr, "  -Z, --max-zoom=ZOOM  filter input to only render tiles less than or equal to this zoom level (default is %d)\n", 18);
+-				fprintf(stderr, "  -d, --delete-from=ZOOM  when expiring tiles of ZOOM or higher, delete them instead of re-rendering (default is off)\n");
+-				fprintf(stderr, "  -T, --touch-from=ZOOM   when expiring tiles of ZOOM or higher, touch them instead of re-rendering (default is off)\n");
++				fprintf(stderr, "  -d, --delete-from=ZOOM            when expiring tiles of ZOOM or higher, delete them instead of re-rendering (default is off)\n");
++				fprintf(stderr, "  -m, --map=MAP                     render tiles in this map (defaults to '" XMLCONFIG_DEFAULT "')\n");
++				fprintf(stderr, "  -n, --num-threads=N               the number of parallel request threads (default 1)\n");
++				fprintf(stderr, "  -s, --socket=SOCKET|HOSTNAME:PORT unix domain socket name or hostname and port for contacting renderd\n");
++				fprintf(stderr, "  -t, --tile-dir                    tile cache directory (defaults to '" HASH_PATH "')\n");
++				fprintf(stderr, "  -T, --touch-from=ZOOM             when expiring tiles of ZOOM or higher, touch them instead of re-rendering (default is off)\n");
++				fprintf(stderr, "  -Z, --max-zoom=ZOOM               filter input to only render tiles less than or equal to this zoom level (default is %d)\n", 18);
++				fprintf(stderr, "  -z, --min-zoom=ZOOM               filter input to only render tiles greater or equal to this zoom level (default is 0)\n");
++				fprintf(stderr, "\n");
++				fprintf(stderr, "  -h, --help                        display this help and exit\n");
++				fprintf(stderr, "  -V, --version                     display the version number and exit\n");
++				fprintf(stderr, "\n");
+ 				fprintf(stderr, "Send a list of tiles to be rendered from STDIN in the format:\n");
+ 				fprintf(stderr, "  z/x/y\n");
+ 				fprintf(stderr, "e.g.\n");
+@@ -233,11 +240,15 @@ int main(int argc, char **argv)
+ 				fprintf(stderr, "  1/0/0\n");
+ 				fprintf(stderr, "  1/1/0\n");
+ 				fprintf(stderr, "The above would cause all 4 tiles at zoom 1 to be rendered\n");
+-				return -1;
++				exit(0);
++
++			case 'V':
++				fprintf(stdout, "%s\n", VERSION);
++				exit(0);
+ 
+ 			default:
+ 				fprintf(stderr, "unhandled char '%c'\n", c);
+-				break;
++				exit(1);
+ 		}
+ 	}
+ 
+diff --git a/src/render_list.c b/src/render_list.c
+index cb75e7b..f377668 100644
+--- a/src/render_list.c
++++ b/src/render_list.c
+@@ -36,6 +36,7 @@
+ 
+ #include "gen_tile.h"
+ #include "protocol.h"
++#include "config.h"
+ #include "render_config.h"
+ #include "store.h"
+ #include "sys_utils.h"
+@@ -95,25 +96,27 @@ int main(int argc, char **argv)
+ 	while (1) {
+ 		int option_index = 0;
+ 		static struct option long_options[] = {
+-			{"min-zoom", required_argument, 0, 'z'},
+-			{"max-zoom", required_argument, 0, 'Z'},
+-			{"min-x", required_argument, 0, 'x'},
+-			{"max-x", required_argument, 0, 'X'},
+-			{"min-y", required_argument, 0, 'y'},
+-			{"max-y", required_argument, 0, 'Y'},
+-			{"socket", required_argument, 0, 's'},
++			{"all",         no_argument,       0, 'a'},
++			{"force",       no_argument,       0, 'f'},
++			{"map",         required_argument, 0, 'm'},
++			{"max-load",    required_argument, 0, 'l'},
++			{"max-x",       required_argument, 0, 'X'},
++			{"max-y",       required_argument, 0, 'Y'},
++			{"max-zoom",    required_argument, 0, 'Z'},
++			{"min-x",       required_argument, 0, 'x'},
++			{"min-y",       required_argument, 0, 'y'},
++			{"min-zoom",    required_argument, 0, 'z'},
+ 			{"num-threads", required_argument, 0, 'n'},
+-			{"max-load", required_argument, 0, 'l'},
+-			{"tile-dir", required_argument, 0, 't'},
+-			{"map", required_argument, 0, 'm'},
+-			{"verbose", no_argument, 0, 'v'},
+-			{"force", no_argument, 0, 'f'},
+-			{"all", no_argument, 0, 'a'},
+-			{"help", no_argument, 0, 'h'},
++			{"socket",      required_argument, 0, 's'},
++			{"tile-dir",    required_argument, 0, 't'},
++			{"verbose",     no_argument,       0, 'v'},
++
++			{"help",        no_argument,       0, 'h'},
++			{"version",     no_argument,       0, 'V'},
+ 			{0, 0, 0, 0}
+ 		};
+ 
+-		c = getopt_long(argc, argv, "hvaz:Z:x:X:y:Y:s:m:t:n:l:f", long_options, &option_index);
++		c = getopt_long(argc, argv, "afm:l:X:Y:Z:x:y:z:n:s:t:vhV", long_options, &option_index);
+ 
+ 		if (c == -1) {
+ 			break;
+@@ -197,20 +200,25 @@ int main(int argc, char **argv)
+ 
+ 			case 'h':   /* -h, --help */
+ 				fprintf(stderr, "Usage: render_list [OPTION] ...\n");
+-				fprintf(stderr, "  -a, --all            render all tiles in given zoom level range instead of reading from STDIN\n");
+-				fprintf(stderr, "  -f, --force          render tiles even if they seem current\n");
+-				fprintf(stderr, "  -m, --map=MAP        render tiles in this map (defaults to '" XMLCONFIG_DEFAULT "')\n");
+-				fprintf(stderr, "  -l, --max-load=LOAD  sleep if load is this high (defaults to %d)\n", MAX_LOAD_OLD);
+-				fprintf(stderr, "  -s, --socket=SOCKET  unix domain socket name for contacting renderd\n");
+-				fprintf(stderr, "  -n, --num-threads=N the number of parallel request threads (default 1)\n");
+-				fprintf(stderr, "  -t, --tile-dir       tile cache directory (defaults to '" HASH_PATH "')\n");
+-				fprintf(stderr, "  -z, --min-zoom=ZOOM  filter input to only render tiles greater or equal to this zoom level (default is 0)\n");
+-				fprintf(stderr, "  -Z, --max-zoom=ZOOM  filter input to only render tiles less than or equal to this zoom level (default is %d)\n", MAX_ZOOM);
++				fprintf(stderr, "  -a, --all                         render all tiles in given zoom level range instead of reading from STDIN\n");
++				fprintf(stderr, "  -f, --force                       render tiles even if they seem current\n");
++				fprintf(stderr, "  -l, --max-load=LOAD               sleep if load is this high (defaults to %d)\n", MAX_LOAD_OLD);
++				fprintf(stderr, "  -m, --map=MAP                     render tiles in this map (defaults to '" XMLCONFIG_DEFAULT "')\n");
++				fprintf(stderr, "  -n, --num-threads=N               the number of parallel request threads (default 1)\n");
++				fprintf(stderr, "  -s, --socket=SOCKET|HOSTNAME:PORT unix domain socket name or hostname and port for contacting renderd\n");
++				fprintf(stderr, "  -t, --tile-dir                    tile cache directory (defaults to '" HASH_PATH "')\n");
++				fprintf(stderr, "  -Z, --max-zoom=ZOOM               filter input to only render tiles less than or equal to this zoom level (default is %d)\n", MAX_ZOOM);
++				fprintf(stderr, "  -z, --min-zoom=ZOOM               filter input to only render tiles greater or equal to this zoom level (default is 0)\n");
++				fprintf(stderr, "\n");
+ 				fprintf(stderr, "If you are using --all, you can restrict the tile range by adding these options:\n");
+-				fprintf(stderr, "  -x, --min-x=X        minimum X tile coordinate\n");
+-				fprintf(stderr, "  -X, --max-x=X        maximum X tile coordinate\n");
+-				fprintf(stderr, "  -y, --min-y=Y        minimum Y tile coordinate\n");
+-				fprintf(stderr, "  -Y, --max-y=Y        maximum Y tile coordinate\n");
++				fprintf(stderr, "  -X, --max-x=X                     maximum X tile coordinate\n");
++				fprintf(stderr, "  -x, --min-x=X                     minimum X tile coordinate\n");
++				fprintf(stderr, "  -Y, --max-y=Y                     maximum Y tile coordinate\n");
++				fprintf(stderr, "  -y, --min-y=Y                     minimum Y tile coordinate\n");
++				fprintf(stderr, "\n");
++				fprintf(stderr, "  -h, --help                        display this help and exit\n");
++				fprintf(stderr, "  -V, --version                     display the version number and exit\n");
++				fprintf(stderr, "\n");
+ 				fprintf(stderr, "Without --all, send a list of tiles to be rendered from STDIN in the format:\n");
+ 				fprintf(stderr, "  X Y Z\n");
+ 				fprintf(stderr, "e.g.\n");
+@@ -219,11 +227,15 @@ int main(int argc, char **argv)
+ 				fprintf(stderr, "  1 0 1\n");
+ 				fprintf(stderr, "  1 1 1\n");
+ 				fprintf(stderr, "The above would cause all 4 tiles at zoom 1 to be rendered\n");
+-				return -1;
++				exit(0);
++
++			case 'V':
++				fprintf(stdout, "%s\n", VERSION);
++				exit(0);
+ 
+ 			default:
+ 				fprintf(stderr, "unhandled char '%c'\n", c);
+-				break;
++				exit(1);
+ 		}
+ 	}
+ 
+diff --git a/src/render_old.c b/src/render_old.c
+index 900a5a3..06ba7c8 100644
+--- a/src/render_old.c
++++ b/src/render_old.c
+@@ -38,6 +38,7 @@
+ 
+ #include "gen_tile.h"
+ #include "protocol.h"
++#include "config.h"
+ #include "render_config.h"
+ #include "store_file_utils.h"
+ #include "render_submit_queue.h"
+@@ -202,21 +203,23 @@ int main(int argc, char **argv)
+ 	while (1) {
+ 		int option_index = 0;
+ 		static struct option long_options[] = {
+-			{"config", required_argument, 0, 'c'},
+-			{"min-zoom", required_argument, 0, 'z'},
+-			{"max-zoom", required_argument, 0, 'Z'},
+-			{"max-load", required_argument, 0, 'l'},
+-			{"socket", required_argument, 0, 's'},
++			{"config",      required_argument, 0, 'c'},
++			{"map",         required_argument, 0, 'm'},
++			{"max-load",    required_argument, 0, 'l'},
++			{"max-zoom",    required_argument, 0, 'Z'},
++			{"min-zoom",    required_argument, 0, 'z'},
+ 			{"num-threads", required_argument, 0, 'n'},
+-			{"tile-dir", required_argument, 0, 't'},
+-			{"timestamp", required_argument, 0, 'T'},
+-			{"map", required_argument, 0, 'm'},
+-			{"verbose", no_argument, 0, 'v'},
+-			{"help", no_argument, 0, 'h'},
++			{"socket",      required_argument, 0, 's'},
++			{"tile-dir",    required_argument, 0, 't'},
++			{"timestamp",   required_argument, 0, 'T'},
++			{"verbose",     no_argument,       0, 'v'},
++
++			{"help",        no_argument,       0, 'h'},
++			{"version",     no_argument,       0, 'V'},
+ 			{0, 0, 0, 0}
+ 		};
+ 
+-		c = getopt_long(argc, argv, "hvz:Z:s:t:n:c:l:T:m:", long_options, &option_index);
++		c = getopt_long(argc, argv, "c:m:l:Z:z:n:s:t:T:vhV", long_options, &option_index);
+ 
+ 		if (c == -1) {
+ 			break;
+@@ -312,20 +315,27 @@ int main(int argc, char **argv)
+ 			case 'h':   /* -h, --help */
+ 				fprintf(stderr, "Usage: render_old [OPTION] ...\n");
+ 				fprintf(stderr, "Search the rendered tiles and re-render tiles which are older then the last planet import\n");
+-				fprintf(stderr, "  -c, --config=CONFIG  specify the renderd config file\n");
+-				fprintf(stderr, "  -n, --num-threads=N  the number of parallel request threads (default 1)\n");
+-				fprintf(stderr, "  -t, --tile-dir       tile cache directory (defaults to '" HASH_PATH "')\n");
+-				fprintf(stderr, "  -z, --min-zoom=ZOOM  filter input to only render tiles greater or equal to this zoom level (default 0)\n");
+-				fprintf(stderr, "  -Z, --max-zoom=ZOOM  filter input to only render tiles less than or equal to this zoom level (default %d)\n", MAX_ZOOM);
+-				fprintf(stderr, "  -s, --socket=SOCKET  unix domain socket name for contacting renderd\n");
+-				fprintf(stderr, "  -l, --max-load=LOAD  maximum system load with which requests are submitted\n");
+-				fprintf(stderr, "  -T, --timestamp=DD/MM/YY  Overwrite the assumed data of the planet import\n");
+-				fprintf(stderr, "  -m, --map=STYLE      Instead of going through all styls of CONFIG, only use a specific map-style\n");
+-				return -1;
++				fprintf(stderr, "  -c, --config=CONFIG               specify the renderd config file\n");
++				fprintf(stderr, "  -l, --max-load=LOAD               maximum system load with which requests are submitted\n");
++				fprintf(stderr, "  -m, --map=STYLE                   Instead of going through all styls of CONFIG, only use a specific map-style\n");
++				fprintf(stderr, "  -n, --num-threads=N               the number of parallel request threads (default 1)\n");
++				fprintf(stderr, "  -s, --socket=SOCKET|HOSTNAME:PORT unix domain socket name or hostname and port for contacting renderd\n");
++				fprintf(stderr, "  -t, --tile-dir                    tile cache directory (defaults to '" HASH_PATH "')\n");
++				fprintf(stderr, "  -T, --timestamp=DD/MM/YY          Overwrite the assumed data of the planet import\n");
++				fprintf(stderr, "  -Z, --max-zoom=ZOOM               filter input to only render tiles less than or equal to this zoom level (default is %d)\n", MAX_ZOOM);
++				fprintf(stderr, "  -z, --min-zoom=ZOOM               filter input to only render tiles greater or equal to this zoom level (default is 0)\n");
++				fprintf(stderr, "\n");
++				fprintf(stderr, "  -h, --help                        display this help and exit\n");
++				fprintf(stderr, "  -V, --version                     display the version number and exit\n");
++				exit(0);
++
++			case 'V':
++				fprintf(stdout, "%s\n", VERSION);
++				exit(0);
+ 
+ 			default:
+ 				fprintf(stderr, "unhandled char '%c'\n", c);
+-				break;
++				exit(1);
+ 		}
+ 	}
+ 
+diff --git a/src/render_submit_queue.c b/src/render_submit_queue.c
+index 145c6a6..09f61c0 100644
+--- a/src/render_submit_queue.c
++++ b/src/render_submit_queue.c
+@@ -15,15 +15,19 @@
+  * along with this program; If not, see http://www.gnu.org/licenses/.
+  */
+ 
+-#include <stdio.h>
+-#include <unistd.h>
+-#include <stddef.h>
+-#include <sys/socket.h>
+-#include <sys/un.h>
++#include <arpa/inet.h>
++#include <assert.h>
++#include <errno.h>
++#include <netdb.h>
+ #include <pthread.h>
++#include <stddef.h>
++#include <stdio.h>
+ #include <stdlib.h>
++#include <sys/socket.h>
+ #include <sys/time.h>
+-#include <errno.h>
++#include <sys/types.h>
++#include <sys/un.h>
++#include <unistd.h>
+ 
+ #include "render_submit_queue.h"
+ #include "sys_utils.h"
+@@ -225,22 +229,124 @@ void enqueue(const char *xmlname, int x, int y, int z)
+ int make_connection(const char *spath)
+ {
+ 	int fd;
+-	struct sockaddr_un addr;
+ 
+-	fd = socket(PF_UNIX, SOCK_STREAM, 0);
++	if (spath[0] == '/') {
++		// Create a Unix socket
++		struct sockaddr_un addr;
+ 
+-	if (fd < 0) {
+-		fprintf(stderr, "failed to create unix socket\n");
+-		exit(2);
+-	}
++		fd = socket(PF_UNIX, SOCK_STREAM, 0);
++
++		if (fd < 0) {
++			fprintf(stderr, "failed to create unix socket\n");
++			exit(2);
++		}
++
++		bzero(&addr, sizeof(addr));
++		addr.sun_family = AF_UNIX;
++		strncpy(addr.sun_path, spath, sizeof(addr.sun_path) - 1);
++
++		if (connect(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
++			close(fd);
++			return -1;
++		}
++
++	} else {
++		// Create a network socket
++		const char *d = strchr(spath, ':');
++		char *hostname;
++		u_int16_t port = RENDER_PORT;
++		char port_s[6];
++		size_t spath_len = strlen(spath);
++		size_t hostname_len = d ? d - spath : spath_len;
++
++		if (!hostname_len) {
++			hostname = strdup(RENDER_HOST);
++		} else {
++			hostname = malloc(hostname_len + sizeof('\0'));
++			assert(hostname != NULL);
++			strncpy(hostname, spath, hostname_len);
++		}
++
++		if (d) {
++			port = atoi(d + 1);
++
++			if (!port) {
++				port = RENDER_PORT;
++			}
++		}
++
++		snprintf(port_s, sizeof(port_s), "%u", port);
++
++		printf("Connecting to %s, port %u/tcp\n", hostname, port);
++
++		struct protoent *protocol = getprotobyname("tcp");
+ 
+-	bzero(&addr, sizeof(addr));
+-	addr.sun_family = AF_UNIX;
+-	strncpy(addr.sun_path, spath, sizeof(addr.sun_path) - 1);
++		if (!protocol) {
++			fprintf(stderr, "cannot find TCP protocol number\n");
++			exit(2);
++		}
++
++		struct addrinfo hints;
++
++		struct addrinfo *result;
++
++		memset(&hints, 0, sizeof(hints));
++
++		hints.ai_family = AF_UNSPEC;
++
++		hints.ai_socktype = SOCK_STREAM;
++
++		hints.ai_flags = 0;
++
++		hints.ai_protocol = protocol->p_proto;
++
++		hints.ai_canonname = NULL;
++
++		hints.ai_addr = NULL;
++
++		hints.ai_next = NULL;
++
++		int ai = getaddrinfo(hostname, port_s, &hints, &result);
++
++		if (ai != 0) {
++			fprintf(stderr, "cannot resolve hostname %s\n", hostname);
++			exit(2);
++		}
++
++		struct addrinfo *rp;
++
++		for (rp = result; rp != NULL; rp = rp->ai_next) {
++			fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
++
++			if (fd == -1) {
++				continue;
++			}
++
++			char resolved_addr[NI_MAXHOST];
++			char resolved_port[NI_MAXSERV];
++			int name_info = getnameinfo(rp->ai_addr, rp->ai_addrlen, resolved_addr, sizeof(resolved_addr), resolved_port, sizeof(resolved_port), NI_NUMERICHOST | NI_NUMERICSERV);
++
++			if (name_info != 0) {
++				fprintf(stderr, "cannot retrieve name info: %d\n", name_info);
++				exit(2);
++			}
++
++			fprintf(stderr, "Trying %s:%s\n", resolved_addr, resolved_port);
++
++			if (connect(fd, rp->ai_addr, rp->ai_addrlen) == 0) {
++				printf("Connected to %s:%s\n", resolved_addr, resolved_port);
++				break;
++			}
++
++		}
++
++		freeaddrinfo(result);
++
++		if (rp == NULL) {
++			fprintf(stderr, "cannot connect to any address for %s\n", hostname);
++			exit(2);
++		}
+ 
+-	if (connect(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+-		close(fd);
+-		return -1;
+ 	}
+ 
+ 	return fd;
+@@ -252,7 +358,7 @@ void *thread_main(void *arg)
+ 	int fd = make_connection(spath);
+ 
+ 	if (fd < 0) {
+-		fprintf(stderr, "socket connect failed for: %s\n", spath);
++		fprintf(stderr, "connect failed for: %s\n", spath);
+ 		return NULL;
+ 	}
+ 
+@@ -265,14 +371,14 @@ void *thread_main(void *arg)
+ 		}
+ 
+ 		while (process(cmd, fd) < 1) {
+-			fprintf(stderr, "connection to renderd lost");
++			fprintf(stderr, "connection to renderd lost\n");
+ 			close(fd);
+ 			fd = -1;
+ 
+ 			while (fd < 0) {
+-				fprintf(stderr, "sleeping for 30 seconds");
++				fprintf(stderr, "sleeping for 30 seconds\n");
+ 				sleep(30);
+-				fprintf(stderr, "attempting to reconnect");
++				fprintf(stderr, "attempting to reconnect\n");
+ 				fd = make_connection(spath);
+ 			}
+ 		}
+@@ -361,4 +467,3 @@ void finish_workers(void)
+ 	free(workers);
+ 	workers = NULL;
+ }
+-
+diff --git a/src/speedtest.cpp b/src/speedtest.cpp
+index b9678a3..788d33c 100644
+--- a/src/speedtest.cpp
++++ b/src/speedtest.cpp
+@@ -33,6 +33,7 @@
+ 
+ #include "gen_tile.h"
+ #include "protocol.h"
++#include "config.h"
+ #include "render_config.h"
+ #include "render_submit_queue.h"
+ 
+@@ -49,9 +50,6 @@ int main(int argc, char **argv)
+ }
+ #else
+ 
+-static const int minZoom = 0;
+-static const int maxZoom = 18;
+-
+ #if 1
+ static double boundx0 = -0.5;
+ static double boundy0 = 51.25;
+@@ -124,9 +122,6 @@ public:
+ 	}
+ };
+ 
+-static GoogleProjection gprj(maxZoom + 1);
+-
+-
+ void display_rate(struct timeval start, struct timeval end, int num)
+ {
+ 	int d_s, d_us;
+@@ -141,8 +136,6 @@ void display_rate(struct timeval start, struct timeval end, int num)
+ 	fflush(NULL);
+ }
+ 
+-
+-
+ int rx_process(const struct protocol *req)
+ {
+ 	fprintf(stderr, "version(%d), cmd(%d), z(%d), x(%d), y(%d)\n",
+@@ -191,7 +184,6 @@ int process_loop(int fd, int x, int y, int z, const char * map)
+ 	return ret;
+ }
+ 
+-
+ int main(int argc, char **argv)
+ {
+ 	const char *spath = RENDER_SOCKET;
+@@ -204,22 +196,26 @@ int main(int argc, char **argv)
+ 	struct timeval start, end;
+ 	struct timeval start_all, end_all;
+ 	int num, num_all = 0;
+-	const char * mapname = "default";
+-	int verbose = 0;
++	const char * mapname = XMLCONFIG_DEFAULT;
++	int maxZoom = MAX_ZOOM;
++	int minZoom = 0;
+ 	int numThreads = 1;
+ 
+ 	while (1) {
+ 		int option_index = 0;
+ 		static struct option long_options[] = {
+-			{"socket", required_argument, 0, 's'},
++			{"map",         required_argument, 0, 'm'},
++			{"max-zoom",    required_argument, 0, 'Z'},
++			{"min-zoom",    required_argument, 0, 'z'},
+ 			{"num-threads", required_argument, 0, 'n'},
+-			{"map", required_argument, 0, 'm'},
+-			{"verbose", no_argument, 0, 'v'},
+-			{"help", no_argument, 0, 'h'},
++			{"socket",      required_argument, 0, 's'},
++
++			{"help",        no_argument,       0, 'h'},
++			{"version",     no_argument,       0, 'V'},
+ 			{0, 0, 0, 0}
+ 		};
+ 
+-		c = getopt_long(argc, argv, "hvs:m:", long_options, &option_index);
++		c = getopt_long(argc, argv, "m:Z:z:n:s:hV", long_options, &option_index);
+ 
+ 		if (c == -1) {
+ 			break;
+@@ -234,10 +230,6 @@ int main(int argc, char **argv)
+ 				mapname = strdup(optarg);
+ 				break;
+ 
+-			case 'v':   /* -v, --verbose */
+-				verbose = 1;
+-				break;
+-
+ 			case 'n':   /* -n, --num-threads */
+ 				numThreads = atoi(optarg);
+ 
+@@ -248,21 +240,49 @@ int main(int argc, char **argv)
+ 
+ 				break;
+ 
++			case 'z':   /* -z, --min-zoom */
++				minZoom = atoi(optarg);
++
++				if (minZoom < 0 || minZoom > MAX_ZOOM) {
++					fprintf(stderr, "Invalid minimum zoom selected, must be between 0 and %d\n", MAX_ZOOM);
++					return 1;
++				}
++
++				break;
++
++			case 'Z':   /* -Z, --max-zoom */
++				maxZoom = atoi(optarg);
++
++				if (maxZoom < 0 || maxZoom > MAX_ZOOM) {
++					fprintf(stderr, "Invalid maximum zoom selected, must be between 0 and %d\n", MAX_ZOOM);
++					return 1;
++				}
++
++				break;
++
+ 			case 'h':   /* -h, --help */
+-				fprintf(stderr, "Usage: speedtest [OPTION] ...\n");
+-				fprintf(stderr, "  -m, --map=MAP        render tiles in this map (defaults to '" XMLCONFIG_DEFAULT "')\n");
+-				fprintf(stderr, "  -s, --socket=SOCKET  unix domain socket name for contacting renderd\n");
+-				fprintf(stderr, "  -n, --num-threads=N the number of parallel request threads (default 1)\n");
+-				return -1;
++				fprintf(stderr, "Usage: render_speedtest [OPTION] ...\n");
++				fprintf(stderr, "  -m, --map=MAP                     render tiles in this map (defaults to '%s')\n", XMLCONFIG_DEFAULT);
++				fprintf(stderr, "  -n, --num-threads=N               the number of parallel request threads (default 1)\n");
++				fprintf(stderr, "  -s, --socket=SOCKET|HOSTNAME:PORT unix domain socket name or hostname and port for contacting renderd\n");
++				fprintf(stderr, "  -Z, --max-zoom=ZOOM               only render tiles less than or equal to this zoom level (default is %d)\n", MAX_ZOOM);
++				fprintf(stderr, "  -z, --min-zoom=ZOOM               only render tiles greater or equal to this zoom level (default is 0)\n");
++				fprintf(stderr, "\n");
++				fprintf(stderr, "  -h, --help                        display this help and exit\n");
++				fprintf(stderr, "  -V, --version                     display the version number and exit\n");
++				exit(0);
++
++			case 'V':
++				fprintf(stdout, "%s\n", VERSION);
++				exit(0);
+ 
+ 			default:
+ 				fprintf(stderr, "unhandled char '%c'\n", c);
+-				break;
++				exit(1);
+ 		}
+ 	}
+ 
+-
+-
++	static GoogleProjection gprj(maxZoom + 1);
+ 
+ 	fprintf(stderr, "Rendering client\n");
+ 
+diff --git a/src/store_rados.c b/src/store_rados.c
+index 4333682..724911c 100644
+--- a/src/store_rados.c
++++ b/src/store_rados.c
+@@ -352,6 +352,8 @@ struct storage_backend * init_storage_rados(const char * connection_string)
+ 	int i;
+ 
+ 	if (ctx == NULL) {
++		free(ctx);
++		free(store);
+ 		return NULL;
+ 	}
+ 
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+new file mode 100644
+index 0000000..ebbcd33
+--- /dev/null
++++ b/tests/CMakeLists.txt
+@@ -0,0 +1,197 @@
++#-----------------------------------------------------------------------------
++#
++#  CMake Config
++#
++#-----------------------------------------------------------------------------
++
++#-----------------------------------------------------------------------------
++#
++#  Find external dependencies
++#
++#-----------------------------------------------------------------------------
++
++include(Dart)
++
++execute_process(COMMAND ${APXS_EXECUTABLE} -q progname
++  OUTPUT_VARIABLE APXS_PROGNAME
++  OUTPUT_STRIP_TRAILING_WHITESPACE
++)
++
++find_package(UnixCommands REQUIRED)
++find_program(CAT_EXECUTABLE NAMES cat REQUIRED)
++find_program(CURL_EXECUTABLE NAMES curl REQUIRED)
++find_program(HTTPD_EXECUTABLE NAMES ${APXS_PROGNAME} REQUIRED)
++find_program(ID_EXECUTABLE NAMES id REQUIRED)
++find_program(KILL_EXECUTABLE NAMES kill REQUIRED)
++find_program(MAPNIK_CONFIG_EXECUTABLE NAMES mapnik-config REQUIRED)
++find_program(MKDIR_EXECUTABLE NAMES mkdir REQUIRED)
++find_program(SHA256SUM_EXECUTABLE NAMES gsha256sum sha256sum REQUIRED)
++
++execute_process(COMMAND ${MAPNIK_CONFIG_EXECUTABLE} --fonts
++  OUTPUT_STRIP_TRAILING_WHITESPACE
++  OUTPUT_VARIABLE MAPNIK_FONTS_DIR
++)
++
++execute_process(COMMAND ${MAPNIK_CONFIG_EXECUTABLE} --input-plugins
++  OUTPUT_STRIP_TRAILING_WHITESPACE
++  OUTPUT_VARIABLE MAPNIK_INPUT_DIR
++)
++
++execute_process(COMMAND ${ID_EXECUTABLE} -gn nobody
++  OUTPUT_STRIP_TRAILING_WHITESPACE
++  OUTPUT_VARIABLE NOGROUP_NAME
++)
++
++#-----------------------------------------------------------------------------
++#
++#  Test configurations
++#
++#-----------------------------------------------------------------------------
++
++set(MAP_NAME "default")
++set(TILE_SHA256SUM "dbf26531286e844a3a9735cdd193598dca78d22f77cafe5824bcaf17f88cbb08")
++set(TILE_URL "http://localhost:8081/tiles/renderd-example/9/297/191.png")
++set(TILE_CMD "${CURL_EXECUTABLE} --fail --silent ${TILE_URL}")
++
++configure_file(
++    renderd.conf.in
++    conf/renderd.conf
++)
++
++configure_file(
++  httpd.conf.in
++  conf/httpd.conf
++)
++
++#-----------------------------------------------------------------------------
++#
++#  Tests
++#
++#-----------------------------------------------------------------------------
++
++add_test(
++  NAME gen_tile_test
++  COMMAND gen_tile_test
++  WORKING_DIRECTORY src
++)
++add_test(
++  NAME create_dirs
++  COMMAND ${MKDIR_EXECUTABLE} -p -v logs run tiles
++)
++add_test(
++  NAME start_renderd
++  COMMAND renderd --config ${PROJECT_BINARY_DIR}/tests/conf/renderd.conf
++)
++add_test(
++  NAME start_httpd
++  COMMAND ${HTTPD_EXECUTABLE} -e debug -f ${PROJECT_BINARY_DIR}/tests/conf/httpd.conf -k start
++)
++add_test(
++  NAME render_speedtest
++  COMMAND render_speedtest --map ${MAP_NAME} --max-zoom 11 --socket ${PROJECT_BINARY_DIR}/tests/run/renderd.sock
++)
++add_test(
++  NAME download_tile
++  COMMAND ${BASH} -c "
++    until $(${TILE_CMD} --output tile.png); do
++      echo 'Sleeping 1s';
++      sleep 1;
++    done
++  "
++)
++add_test(
++  NAME check_tile
++  COMMAND ${BASH} -c "
++    echo '${TILE_SHA256SUM}  tile.png' | ${SHA256SUM_EXECUTABLE} -c
++  "
++)
++add_test(
++  NAME dirty_tile
++  COMMAND ${BASH} -c "
++    TILE_STATUS_CMD=\"${TILE_CMD}/status | cut -d. -f2\"
++    TILE_STATUS_OUTPUT_OLD=$(\${TILE_STATUS_CMD})
++    sleep 5;
++    TILE_DIRTY_OUTPUT=$(${TILE_CMD}/dirty)
++    if [ \"\${TILE_DIRTY_OUTPUT}\" != \"Tile submitted for rendering\" ]; then
++      exit 1;
++    fi
++    until [ \"\${TILE_STATUS_OUTPUT_OLD}\" != \"$(\${TILE_STATUS_CMD})\" ]; do
++      echo 'Sleeping 1s';
++      sleep 1;
++    done
++  "
++)
++add_test(
++  NAME remove_tile
++  COMMAND ${RM} -v tile.png
++)
++add_test(
++  NAME stop_renderd
++  COMMAND ${BASH} -c "
++    ${KILL_EXECUTABLE} $(${CAT_EXECUTABLE} run/renderd.pid) && ${RM} run/renderd.pid
++  "
++)
++add_test(
++  NAME stop_httpd
++  COMMAND ${BASH} -c "
++    ${KILL_EXECUTABLE} $(${CAT_EXECUTABLE} run/httpd.pid) && ${RM} run/httpd.pid
++  "
++)
++add_test(
++  NAME clear_dirs
++  COMMAND ${BASH} -c "
++    ${RM} -f -r -v logs/* run/* tiles/*
++  "
++)
++
++
++set_tests_properties(create_dirs PROPERTIES
++  FIXTURES_SETUP httpd_started
++)
++set_tests_properties(start_renderd PROPERTIES
++  DEPENDS create_dirs
++  FIXTURES_SETUP httpd_started
++)
++set_tests_properties(start_httpd PROPERTIES
++  DEPENDS create_dirs
++  FIXTURES_SETUP httpd_started
++)
++set_tests_properties(stop_renderd PROPERTIES
++  FIXTURES_CLEANUP httpd_started
++  REQUIRED_FILES run/renderd.pid
++)
++set_tests_properties(stop_httpd PROPERTIES
++  FIXTURES_CLEANUP httpd_started
++  REQUIRED_FILES run/httpd.pid
++)
++set_tests_properties(clear_dirs PROPERTIES
++  DEPENDS "stop_renderd;stop_httpd"
++  FIXTURES_CLEANUP httpd_started
++  REQUIRED_FILES "logs;run;tiles"
++)
++
++set_tests_properties(render_speedtest PROPERTIES
++  FIXTURES_REQUIRED httpd_started
++  TIMEOUT 60
++)
++set_tests_properties(download_tile PROPERTIES
++  FIXTURES_REQUIRED httpd_started
++  FIXTURES_SETUP tile_downloaded
++  TIMEOUT 10
++)
++set_tests_properties(check_tile PROPERTIES
++  DEPENDS download_tile
++  FIXTURES_REQUIRED "httpd_started;tile_downloaded"
++  REQUIRED_FILES tile.png
++)
++set_tests_properties(dirty_tile PROPERTIES
++  DEPENDS download_tile
++  FIXTURES_REQUIRED "httpd_started;tile_downloaded"
++  REQUIRED_FILES tile.png
++  TIMEOUT 20
++)
++set_tests_properties(remove_tile PROPERTIES
++  DEPENDS download_tile
++  FIXTURES_CLEANUP tile_downloaded
++  REQUIRED_FILES tile.png
++)
+diff --git a/tests/httpd.conf.in b/tests/httpd.conf.in
+new file mode 100644
+index 0000000..556613f
+--- /dev/null
++++ b/tests/httpd.conf.in
+@@ -0,0 +1,69 @@
++Alias /renderd-example-map @PROJECT_SOURCE_DIR@/utils/example-map
++Redirect /renderd-example-map/leaflet/leaflet.css https://unpkg.com/leaflet/dist/leaflet.css
++Redirect /renderd-example-map/leaflet/leaflet.min.js https://unpkg.com/leaflet/dist/leaflet.js
++
++<Directory @PROJECT_SOURCE_DIR@/utils/example-map>
++  Allow from all
++  AllowOverride All
++  DirectoryIndex index.html
++  Options +FollowSymLinks
++  Order Allow,Deny
++</Directory>
++
++<IfModule !tile_module>
++  LoadModule tile_module @PROJECT_BINARY_DIR@/src/mod_tile.so
++</IfModule>
++
++<VirtualHost *:8081>
++  LoadTileConfigFile @PROJECT_BINARY_DIR@/tests/conf/renderd.conf
++  ModTileBulkMode Off
++  ModTileCacheDurationDirty 900
++  ModTileCacheDurationLowZoom 9 518400
++  ModTileCacheDurationMax 604800
++  ModTileCacheDurationMediumZoom 13 86400
++  ModTileCacheDurationMinimum 10800
++  ModTileCacheLastModifiedFactor 0.20
++  ModTileEnableStats On
++  ModTileEnableTileThrottling Off
++  ModTileEnableTileThrottlingXForward 0
++  ModTileMaxLoadMissing 5
++  ModTileMaxLoadOld 2
++  ModTileMissingRequestTimeout 10
++  ModTileRenderdSocketName @PROJECT_BINARY_DIR@/tests/run/renderd.sock
++  ModTileRequestTimeout 3
++  ModTileThrottlingRenders 128 0.2
++  ModTileThrottlingTiles 10000 1
++  ModTileTileDir @PROJECT_BINARY_DIR@/tests/tiles
++</VirtualHost>
++
++CustomLog logs/access_log "%h %l %u %t \"%r\" %>s %b"
++ErrorLog logs/error_log
++Group @NOGROUP_NAME@
++Listen 8081
++LogLevel debug
++PidFile run/httpd.pid
++ServerName localhost
++ServerRoot @PROJECT_BINARY_DIR@/tests
++User nobody
++
++<IfModule !access_compat_module>
++  LoadModule access_compat_module @HTTPD_MODULES_DIR@/mod_access_compat.so
++</IfModule>
++<IfModule !alias_module>
++  LoadModule alias_module @HTTPD_MODULES_DIR@/mod_alias.so
++</IfModule>
++<IfModule !authz_core_module>
++  LoadModule authz_core_module @HTTPD_MODULES_DIR@/mod_authz_core.so
++</IfModule>
++<IfModule !dir_module>
++  LoadModule dir_module @HTTPD_MODULES_DIR@/mod_dir.so
++</IfModule>
++<IfModule !log_config_module>
++  LoadModule log_config_module @HTTPD_MODULES_DIR@/mod_log_config.so
++</IfModule>
++<IfModule !mpm_event_module>
++  LoadModule mpm_event_module @HTTPD_MODULES_DIR@/mod_mpm_event.so
++</IfModule>
++<IfModule !unixd_module>
++  LoadModule unixd_module @HTTPD_MODULES_DIR@/mod_unixd.so
++</IfModule>
+diff --git a/tests/renderd.conf.in b/tests/renderd.conf.in
+new file mode 100644
+index 0000000..610faee
+--- /dev/null
++++ b/tests/renderd.conf.in
+@@ -0,0 +1,15 @@
++[renderd]
++pid_file=@PROJECT_BINARY_DIR@/tests/run/renderd.pid
++socketname=@PROJECT_BINARY_DIR@/tests/run/renderd.sock
++stats_file=@PROJECT_BINARY_DIR@/tests/run/renderd.stats
++tile_dir=@PROJECT_BINARY_DIR@/tests/tiles
++
++[mapnik]
++font_dir_recurse=true
++font_dir=@MAPNIK_FONTS_DIR@
++plugins_dir=@MAPNIK_INPUT_DIR@
++
++[@MAP_NAME@]
++TILEDIR=@PROJECT_BINARY_DIR@/tests/tiles
++URI=/tiles/renderd-example
++XML=@PROJECT_SOURCE_DIR@/utils/example-map/mapnik.xml

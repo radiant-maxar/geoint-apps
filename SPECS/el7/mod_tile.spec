@@ -1,3 +1,5 @@
+%{!?catch2_version: %global catch2_version 2.13.9}
+
 # renderd service user details.
 %global renderd_home %{_sharedstatedir}/mod_tile
 %global renderd_user renderd
@@ -13,11 +15,13 @@ Summary:       A program to efficiently render and serve map tiles for www.opens
 License:       GPLv2
 URL:           https://github.com/openstreetmap/mod_tile
 Source0:       https://github.com/openstreetmap/mod_tile/archive/%{rpmbuild_version}/%{name}-%{rpmbuild_version}.tar.gz
-Patch0:        mod_tile-20220622.patch
+Source1:       https://github.com/catchorg/Catch2/releases/download/v%{catch2_version}/catch.hpp
+Patch0:        mod_tile-20230217.patch
 
 Requires:      httpd >= 2.4.6
 Requires:      iniparser
 
+BuildRequires: cmake3
 BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: glib2-devel
@@ -34,35 +38,48 @@ BuildRequires: mapnik-devel
 
 %prep
 %autosetup -p1
-%{__mkdir_p} includes/iniparser
-%{__ln_s} /usr/include/iniparser.h includes/iniparser/iniparser.h
+%{__mv} %{SOURCE1} includes/catch.hpp
 
 
 %build
-autoreconf --install
-%configure
-%__make
+%{cmake3} \
+  -DCMAKE_BUILD_TYPE:STRING=Release \
+  -DENABLE_TESTS:BOOL=On
+%{cmake3_build}
 
 
 %install
-%make_install
-%__make install-mod_tile DESTDIR=%{buildroot}
-%__install -d -m 0755 %{buildroot}%{renderd_home}
-%__install -d -m 0755 %{buildroot}%{_rundir}/renderd
-%__install -d -m 0755 %{buildroot}%{_sysconfdir}/httpd/conf.modules.d
+%{cmake3_install}
+%{__install} -d -m 0755 \
+  %{buildroot}%{_sysconfdir}/httpd/conf.modules.d \
+  %{buildroot}%{_usr}/lib/tmpfiles.d \
+  %{buildroot}%{renderd_home}
+%{__install} -d -m 0750 \
+  %{buildroot}%{_rundir}/renderd
+
+# tmpfiles.d configuration file for renderd.
+echo "d %{_rundir}/renderd 0750 %{renderd_user} %{renderd_group} -" > \
+     %{buildroot}%{_usr}/lib/tmpfiles.d/renderd.conf
+
+# Apache HTTP Server LoadModule configuration file for mod_tile.
 echo "LoadModule tile_module modules/mod_tile.so" > %{buildroot}%{_sysconfdir}/httpd/conf.modules.d/11-tile.conf
-# Basic configuration file for mod_tile.
+
+# Basic configuration file for mod_tile/renderd.
 %{__cat} > %{buildroot}%{_sysconfdir}/renderd.conf << EOF
 [renderd]
+iphostname=localhost
+ipport=7654
 num_threads=4
+pid_file=%{_rundir}/renderd/renderd.pid
+stats_file=%{_rundir}/renderd/renderd.stats
 tile_dir=%{renderd_home}
-stats_file=/run/renderd/renderd.stats
 
 [mapnik]
-plugins_dir=/usr/lib64/mapnik/input
-font_dir=/usr/share/fonts
 font_dir_recurse=1
+font_dir=$(mapnik-config --fonts)
+plugins_dir=$(mapnik-config --input-plugins)
 EOF
+
 # Example configuration file for mod_tile.
 %{__cat} > mod_tile-example.conf << EOF
 <VirtualHost *:80>
@@ -71,9 +88,9 @@ EOF
 
   LogLevel warn
 
-  LoadTileConfigFile /etc/renderd.conf
+  LoadTileConfigFile %{_sysconfdir}/renderd.conf
 
-  ModTileRenderdSocketAddr tile-backend 7654
+  ModTileRenderdSocketAddr localhost 7654
 
   ModTileEnableStats On
   ModTileBulkMode Off
@@ -98,7 +115,7 @@ EOF
 
 
 %check
-%__make test
+%{ctest3}
 
 
 %pre
@@ -132,8 +149,9 @@ getent passwd %{renderd_user} >/dev/null || \
 %{_sysconfdir}/httpd/conf.modules.d/11-tile.conf
 %config(noreplace) %{_sysconfdir}/renderd.conf
 %{_bindir}/render*
-%{_mandir}/man1/render*
 %{_libdir}/httpd/modules/mod_tile.so
+%{_mandir}/man1/render*
+%{_usr}/lib/tmpfiles.d/renderd.conf
 %defattr(-, %{renderd_user}, apache, -)
 %{renderd_home}
 %defattr(-, %{renderd_user}, %{renderd_group}, -)
