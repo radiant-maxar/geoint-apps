@@ -53,7 +53,7 @@ This package contains OSRM header files for development purposes.
 
 %prep
 %autosetup -p1
-%{__mkdir_p} build
+%{__mkdir} build
 # Patch CMakeLists.txt:
 #  * Use proper library path (/usr/lib64)
 #  * Relax Lua requirement to 5.1
@@ -92,7 +92,7 @@ popd
 %check
 %if %{with tests}
 npm run nodejs-tests
-%{__mkdir_p} example/build
+%{__mkdir} example/build
 pushd example/build
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:%{buildroot}%{_libdir}
 export PKG_CONFIG_PATH=%{buildroot}%{_libdir}/pkgconfig
