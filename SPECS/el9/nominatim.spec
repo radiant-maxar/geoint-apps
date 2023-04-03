@@ -297,6 +297,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 %config %{nominatim_conf}/country-names
 %config %{nominatim_conf}/icu-rules
 %config %{nominatim_conf}/*.json
+%config %{nominatim_conf}/*.lua
 %config %{nominatim_conf}/*.style
 %config %{nominatim_conf}/*.yaml
 # Allow nominatim user access to home, data and www directories.
