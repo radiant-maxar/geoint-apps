@@ -39,7 +39,7 @@ x-rpmbuild:
       version: &nominatim_version 4.0.2-1
     nominatim-ui:
       image: rpmbuild-nominatim-ui
-      version: &nominatim_ui_version 3.2.8-1
+      version: &nominatim_ui_version 3.2.12-1
     osrm-backend:
       image: rpmbuild-osrm-backend
       version: &osrm_backend_version 5.26.0-1
