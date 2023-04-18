@@ -27,6 +27,15 @@ x-rpmbuild:
     rpmbuild_image: rpmbuild
   # Configuration for building every application RPM.
   rpms:
+    mapproxy:
+      defines:
+        gevent_version: 22.10.2
+        gunicorn_version: 20.1.0
+        pyproj_version: 3.5.0
+        pyyaml_version: "6.0"
+        shapely_version: 2.0.1
+      image: rpmbuild-mapproxy
+      version: &mapproxy_version 1.16.0-1
     mod_tile:
       defines:
         catch2_version: 2.13.10
@@ -59,12 +68,12 @@ x-rpmbuild:
       image: rpmbuild-taginfo
       version: &taginfo_version 2023.01.19-1
   service_volumes: &service_volumes
+    - ./.cache.el9:/rpmbuild/.cache:rw
     - ./RPMS:/rpmbuild/RPMS:rw
     - ./SOURCES/el9:/rpmbuild/SOURCES:rw
     - ./SPECS/el9:/rpmbuild/SPECS:ro
     - ./scripts:/rpmbuild/scripts:ro
   service_defaults: &service_defaults
-    command: tail -f /dev/null
     init: true
     volumes: *service_volumes
 
@@ -91,6 +100,13 @@ services:
         <<: *build_args_defaults
     image: ${IMAGE_PREFIX}rpmbuild-generic
   # RPM images
+  rpmbuild-mapproxy:
+    <<: *service_defaults
+    build:
+      <<: *build_defaults
+      args:
+        <<: *build_args_defaults
+        packages: ${RPMBUILD_MAPPROXY_PACKAGES}
   rpmbuild-mod_tile:
     <<: *service_defaults
     build:
