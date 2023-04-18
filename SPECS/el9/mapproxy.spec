@@ -203,14 +203,14 @@ EOF
 
 %pre
 %{_bindir}/getent group %{mapproxy_group} >/dev/null || \
-    groupadd \
+    %{_sbindir}/groupadd \
         --force \
         --gid %{mapproxy_gid} \
         --system \
         %{mapproxy_group}
 
 %{_bindir}/getent passwd %{mapproxy_user} >/dev/null || \
-    useradd \
+    %{_sbindir}/useradd \
         --uid %{mapproxy_uid} \
         --gid %{mapproxy_group} \
         --comment "MapProxy user" \
