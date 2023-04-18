@@ -9,7 +9,7 @@
 %global mapproxy_home %{_sharedstatedir}/mapproxy
 %global mapproxy_logs %{_var}/log/mapproxy
 %global mapproxy_root %{_datadir}/mapproxy
-%global mapproxy_run %{_localstatedir}/run/mapproxy
+%global mapproxy_run /run/mapproxy
 %global mapproxy_user mapproxy
 %global mapproxy_group %{mapproxy_user}
 %global mapproxy_uid 753
@@ -93,7 +93,7 @@ python3 -m venv --system-site-packages venv
  %{buildroot}%{mapproxy_run}
 
 # mapproxy tmpfiles.d entry
-echo "d /run/%{name} 0750 %{mapproxy_user} %{mapproxy_group} -" > \
+echo "d %{mapproxy_run} 0750 %{mapproxy_user} %{mapproxy_group} -" > \
        %{buildroot}%{_usr}/lib/tmpfiles.d/%{name}.conf
 
 # Create an empty default config file.
