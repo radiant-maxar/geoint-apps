@@ -120,30 +120,6 @@ for dir in mapproxy venv; do
     %{__cp} -rp ${dir} %{buildroot}%{mapproxy_root}/${dir}
 done
 
-# mapproxy-seed
-%{__cat} <<EOF > %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-seed
-#!%{mapproxy_root}/venv/bin/python3
-import re
-import sys
-from mapproxy.seed.script import main
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?\$', '', sys.argv[0])
-    sys.exit(main())
-EOF
-chmod 0755 %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-seed
-
-# mapproxy-util
-%{__cat} <<EOF > %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-util
-#!%{mapproxy_root}/venv/bin/python3
-import re
-import sys
-from mapproxy.script.util import main
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?\$', '', sys.argv[0])
-    sys.exit(main())
-EOF
-chmod 0755 %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-util
-
 # Ensure VIRTUAL_ENV points to the installed location in activation scripts.
 %{__sed} -i -e 's|^VIRTUAL_ENV=.*|VIRTUAL_ENV="%{mapproxy_root}/venv"|g' \
   %{buildroot}%{mapproxy_root}/venv/bin/activate
