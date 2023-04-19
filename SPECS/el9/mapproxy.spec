@@ -2,6 +2,7 @@
 # * gevent_version
 # * gunicorn_version
 # * pyproj_version
+# * pyredis_version
 # * pyyaml_version
 # * shapely_version
 
@@ -53,6 +54,7 @@ Provides:       bundled(python3-gevent) = %{gevent_version}
 Provides:       bundled(python3-gunicorn) = %{gunicorn_version}
 Provides:       bundled(python3-pyproj) = %{pyproj_version}
 Provides:       bundled(python3-PyYAML) = %{pyyaml_version}
+Provides:       bundled(python3-redis) = %{pyredis_version}
 Provides:       bundled(python3-shapely) = %{shapely_version}
 
 
@@ -76,6 +78,7 @@ python3 -m venv --system-site-packages venv
   gunicorn==%{gunicorn_version} \
   pyproj==%{pyproj_version} \
   PyYAML==%{pyyaml_version} \
+  redis==%{pyredis_version} \
   shapely==%{shapely_version} \
   -v --no-binary :all:
 
@@ -103,9 +106,8 @@ touch %{buildroot}%{mapproxy_config}/%{name}.yaml
 %{__cat} <<EOF > %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 MAPPROXY_CONFIG_FILE=%{mapproxy_config}/%{name}.yaml
 MAPPROXY_HOST=0.0.0.0
-MAPPROXY_PORT=8181
+MAPPROXY_PORT=8080
 MAPPROXY_WORKERS=3
-MAPPROXY_THREADS=3
 MAPPROXY_TIMEOUT=179
 EOF
 chmod 0640 %{buildroot}%{_sysconfdir}/sysconfig/%{name}
@@ -122,7 +124,7 @@ import re
 import sys
 from mapproxy.seed.script import main
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?\$', '', sys.argv[0])
     sys.exit(main())
 EOF
 chmod 0755 %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-seed
@@ -134,7 +136,7 @@ import re
 import sys
 from mapproxy.script.util import main
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?\$', '', sys.argv[0])
     sys.exit(main())
 EOF
 chmod 0755 %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-util
@@ -178,7 +180,6 @@ ExecStart=%{mapproxy_root}/venv/bin/gunicorn \\
   --bind \${MAPPROXY_HOST}:\${MAPPROXY_PORT} \\
   --worker-class gevent \\
   --workers \${MAPPROXY_WORKERS} \\
-  --threads \${MAPPROXY_THREADS} \\
   --timeout \${MAPPROXY_TIMEOUT} \\
   --access-logfile - \\
   wsgi

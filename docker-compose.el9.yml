@@ -32,6 +32,7 @@ x-rpmbuild:
         gevent_version: 22.10.2
         gunicorn_version: 20.1.0
         pyproj_version: 3.5.0
+        pyredis_version: 4.5.4
         pyyaml_version: "6.0"
         shapely_version: 2.0.1
       image: rpmbuild-mapproxy
