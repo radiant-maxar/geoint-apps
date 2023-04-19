@@ -1,6 +1,7 @@
 # The following macros are also required:
 # * gevent_version
 # * gunicorn_version
+# * numpy_version
 # * pyproj_version
 # * pyredis_version
 # * pyyaml_version
@@ -52,6 +53,7 @@ Requires:       python3-pillow
 
 Provides:       bundled(python3-gevent) = %{gevent_version}
 Provides:       bundled(python3-gunicorn) = %{gunicorn_version}
+Provides:       bundled(python3-numpy) = %{numpy_version}
 Provides:       bundled(python3-pyproj) = %{pyproj_version}
 Provides:       bundled(python3-PyYAML) = %{pyyaml_version}
 Provides:       bundled(python3-redis) = %{pyredis_version}
@@ -76,6 +78,7 @@ python3 -m venv --system-site-packages venv
 ./venv/bin/pip3 install \
   gevent==%{gevent_version} \
   gunicorn==%{gunicorn_version} \
+  numpy==%{numpy_version} \
   pyproj==%{pyproj_version} \
   PyYAML==%{pyyaml_version} \
   redis==%{pyredis_version} \
