@@ -7,6 +7,7 @@
 # * pyyaml_version
 # * shapely_version
 
+%global mapproxy_cache %{_var}/cache/mapproxy
 %global mapproxy_config %{_sysconfdir}/mapproxy
 %global mapproxy_home %{_sharedstatedir}/mapproxy
 %global mapproxy_logs %{_var}/log/mapproxy
@@ -93,6 +94,7 @@ python3 -m venv --system-site-packages venv
  %{buildroot}%{_usr}/lib/tmpfiles.d \
  %{buildroot}%{mapproxy_root}
 %{__install} -d -m 0750 \
+ %{buildroot}%{mapproxy_cache} \
  %{buildroot}%{mapproxy_config} \
  %{buildroot}%{mapproxy_home} \
  %{buildroot}%{mapproxy_logs} \
@@ -227,9 +229,10 @@ if test -f /.dockerenv; then exit 0; fi
 %config(noreplace) %{mapproxy_config}/%{name}.yaml
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %defattr(-, %{mapproxy_user}, %{mapproxy_group}, -)
-%{mapproxy_logs}
-%{mapproxy_home}
-%{mapproxy_run}
+%dir %{mapproxy_cache}
+%dir %{mapproxy_logs}
+%dir %{mapproxy_home}
+%dir %{mapproxy_run}
 
 
 %changelog
