@@ -39,6 +39,7 @@ RPMBUILD_UID := $(shell id -u)
 RPMBUILD_GID := $(shell id -g)
 
 # RPM files at desired versions.
+MAPPROXY_RPM := $(call rpm_file,mapproxy)
 MOD_TILE_RPM := $(call rpm_file,mod_tile)
 NOMINATIM_RPM := $(call rpm_file,nominatim)
 NOMINATIM_UI_RPM := $(call rpm_file,nominatim-ui)
@@ -52,6 +53,7 @@ RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
 	rpmbuild-generic
 RPMBUILD_RPMS := \
+	mapproxy \
 	mod_tile \
 	nominatim \
 	nominatim-ui \
@@ -69,6 +71,9 @@ RPMBUILD_RPMS := \
 	$(RPMBUILD_BASE_IMAGES) \
 	$(RPMBUILD_RPMS)
 
+.cache.el9:
+	mkdir -p .cache.el9
+
 all:
 ifndef DOCKER_VERSION
 	$(error "command docker is not available, please install Docker")
@@ -81,7 +86,7 @@ all-rpms: $(RPMBUILD_RPMS)
 
 distclean: .env
 	COMPOSE_FILE=$(COMPOSE_FILE) $(DOCKER_COMPOSE) down --volumes --rmi all
-	rm -fr .env RPMS/noarch RPMS/x86_64 \
+	rm -fr .cache.el9 .env RPMS/noarch RPMS/x86_64 \
 	  SOURCES/$(EL_VERSION)/*.asc SOURCES/$(EL_VERSION)/*.sha256 SOURCES/$(EL_VERSION)/*.tgz \
 	  SOURCES/$(EL_VERSION)/*.tar.gz SOURCES/$(EL_VERSION)/*.tar.xz SOURCES/$(EL_VERSION)/*.zip
 
@@ -92,6 +97,7 @@ distclean: .env
 	echo IMAGE_PREFIX=$(IMAGE_PREFIX) >> .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env
+	echo RPMBUILD_MAPPROXY_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mapproxy.spec) >> .env
 	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mod_tile.spec) >> .env
 	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/nominatim.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
 	echo RPMBUILD_NOMINATIM_UI_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/nominatim-ui.spec) >> .env
@@ -113,6 +119,7 @@ rpmbuild-generic: rpmbuild
 
 
 ## RPM targets
+mapproxy: $(MAPPROXY_RPM)
 mod_tile: $(MOD_TILE_RPM)
 nominatim: $(NOMINATIM_RPM)
 nominatim-ui: $(NOMINATIM_UI_RPM)
@@ -123,7 +130,7 @@ taginfo: $(TAGINFO_RPM)
 
 
 ## Build patterns
-RPMS/x86_64/%.rpm RPMS/noarch/%.rpm: | .env
+RPMS/x86_64/%.rpm RPMS/noarch/%.rpm: | .cache.el9 .env
 	$(MAKE) --makefile=Makefile.$(EL_VERSION) $(call rpmbuild_image_parent,$*)
 	$(call pull_if_ci,$(call rpmbuild_image,$*))
 	$(call build_unless_image_exists,$(call rpmbuild_image,$*))
