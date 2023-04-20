@@ -139,6 +139,34 @@ done
   %{buildroot}%{mapproxy_root}/venv/bin/pyproj* \
   %{buildroot}%{mapproxy_root}/venv/bin/wheel*
 
+# Link mapproxy module into the virtual environment site modules.
+%{__ln_s} %{mapproxy_root}/mapproxy \
+ %{buildroot}%{mapproxy_root}/venv/lib/python%{__default_python3_version}/site-packages
+
+# mapproxy-seed
+%{__cat} <<EOF > %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-seed
+#!%{mapproxy_root}/venv/bin/python3
+import re
+import sys
+from mapproxy.seed.script import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?\$', '', sys.argv[0])
+    sys.exit(main())
+EOF
+chmod 0755 %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-seed
+
+# mapproxy-util
+%{__cat} <<EOF > %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-util
+#!%{mapproxy_root}/venv/bin/python3
+import re
+import sys
+from mapproxy.script.util import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?\$', '', sys.argv[0])
+    sys.exit(main())
+EOF
+chmod 0755 %{buildroot}%{mapproxy_root}/venv/bin/mapproxy-util
+
 # Create WSGI module that'll get the configuration file from the environment.
 %{__cat} <<EOF > %{buildroot}%{mapproxy_root}/wsgi.py
 import os
