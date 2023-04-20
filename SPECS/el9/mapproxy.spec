@@ -48,6 +48,7 @@ BuildRequires:  python3-pillow
 BuildRequires:  python3-wheel
 BuildRequires:  systemd-rpm-macros
 
+Requires:       python3-gdal
 Requires:       python3-lxml
 Requires:       python3-numpy
 Requires:       python3-pillow
