@@ -50,7 +50,6 @@ BuildRequires:  systemd-rpm-macros
 
 Requires:       python3-gdal
 Requires:       python3-lxml
-Requires:       python3-numpy
 Requires:       python3-pillow
 
 Provides:       bundled(python3-gevent) = %{gevent_version}
