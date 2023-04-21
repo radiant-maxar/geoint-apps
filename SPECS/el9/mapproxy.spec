@@ -86,6 +86,9 @@ python3 -m venv --system-site-packages venv
   shapely==%{shapely_version} \
   -v --no-binary :all:
 
+# Report RPM version.
+%{__sed} -i -e 's/unknown_version/%{version}-%{rpmbuild_release}/g' mapproxy/version.py
+
 
 %install
 %{__install} -d -m 0755 \
