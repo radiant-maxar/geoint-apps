@@ -27,6 +27,9 @@ x-rpmbuild:
     rpmbuild_image: rpmbuild
   # Configuration for building every application RPM.
   rpms:
+    geoserver:
+      image: rpmbuild-generic
+      version: &geoserver_version 2.23.0-1
     mapproxy:
       defines:
         gevent_version: 22.10.2
