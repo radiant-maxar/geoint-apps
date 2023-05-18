@@ -83,7 +83,7 @@ License:       LGPL-2.1
 Requires:      geoserver = %{version}-%{release}
 
 %description app-schema
-GeoServer Application Schema Support Extension
+%{summary}
 
 
 %package authkey
@@ -92,7 +92,7 @@ License:       GPLv2
 Requires:      geoserver = %{version}-%{release}
 
 %description authkey
-GeoServer Authkey Extension
+%{summary}
 
 
 %package cas
@@ -101,7 +101,7 @@ License:       GPLv2
 Requires:      geoserver = %{version}-%{release}
 
 %description cas
-GeoServer CAS Extension
+%{summary}
 
 
 %package charts
@@ -110,7 +110,7 @@ License:       LGPL-2.1
 Requires:      geoserver = %{version}-%{release}
 
 %description charts
-GeoServer Charts Extension
+%{summary}
 
 
 %package control-flow
@@ -119,7 +119,7 @@ License:       GPLv2
 Requires:      geoserver = %{version}-%{release}
 
 %description control-flow
-GeoServer Control Flow Extension
+%{summary}
 
 
 %package css
@@ -128,7 +128,7 @@ License:       GPLv2 and LGPL-2.1
 Requires:      geoserver = %{version}-%{release}
 
 %description css
-GeoServer CSS Extension
+%{summary}
 
 
 %package csw-iso
@@ -137,7 +137,7 @@ License:       GPLv2
 Requires:      geoserver = %{version}-%{release}
 
 %description csw-iso
-GeoServer CSW ISO Extension
+%{summary}
 
 
 %package csw
@@ -146,21 +146,102 @@ License:       GPLv2 and LGPL-2.1
 Requires:      geoserver = %{version}-%{release}
 
 %description csw
-GeoServer CSW Extension
+%{summary}
+
+
+%package db2
+Summary:       GeoServer DB2 Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description db2
+%{summary}
+
+
+%package dxf
+Summary:       GeoServer DXF Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description dxf
+%{summary}
+
+
+%package excel
+Summary:       GeoServer Excel Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description excel
+%{summary}
+
+
+%package feature-pregeneralized
+Summary:       GeoServer Feature Pregeneralized Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description feature-pregeneralized
+%{summary}
+
+
+%package gdal
+Summary:       GeoServer GDAL Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      gdal-java
+Requires:      geoserver = %{version}-%{release}
+
+%description gdal
+%{summary}
+
+
+%package geofence
+Summary:       GeoServer Geofence Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description geofence
+%{summary}
+
+
+%package geofence-server
+Summary:       GeoServer Geofence Server Extension
+License:       GPLv2
+Requires:      geoserver-geofence = %{version}-%{release}
+
+%description geofence-server
+%{summary}
+
+
+%package geofence-wps
+Summary:       GeoServer Geofence WPS Extension
+License:       GPLv2
+Requires:      geoserver-geofence = %{version}-%{release}
+
+%description geofence-wps
+%{summary}
+
+
+%package geopkg-output
+Summary:       GeoServer GeoPackage Output Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description geopkg-output
+%{summary}
+
+
+%package grib
+Summary:       GeoServer Grib Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description grib
+%{summary}
 
 
 %prep
 %autosetup -c
-
-
-%install
-%{__install} -m 0750 -d %{buildroot}%{geoserver_home}
-%{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
-%{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
-
-%{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
-%{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
-
 for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib; do
     %{__mkdir_p} plugins/${plugin}
 done
@@ -183,7 +264,16 @@ done
 %{__unzip} %{SOURCE17} -d plugins/geopkg-output
 %{__unzip} %{SOURCE18} -d plugins/grib
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw; do
+
+%install
+%{__install} -m 0750 -d %{buildroot}%{geoserver_home}
+%{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
+%{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
+
+%{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
+%{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
+
+for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar > geoserver-${plugin}-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-${plugin}-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -243,6 +333,56 @@ done
 %files -f geoserver-csw-libs.txt csw
 %doc plugins/csw/GEOTOOLS_NOTICE.html plugins/csw/NOTICE.html
 %license plugins/csw/GPL.html plugins/csw/LGPL.html
+
+
+%files -f geoserver-db2-libs.txt db2
+%doc plugins/db2/GEOTOOLS_NOTICE.html plugins/db2/NOTICE.html
+%license plugins/db2/GPL.html plugins/db2/LGPL.html
+
+
+%files -f geoserver-dxf-libs.txt dxf
+%doc plugins/dxf/NOTICE.html
+%license plugins/dxf/GPL.html
+
+
+%files -f geoserver-excel-libs.txt excel
+%doc plugins/excel/GEOTOOLS_NOTICE.html plugins/excel/NOTICE.html
+%license plugins/excel/GPL.html plugins/excel/LGPL.html
+
+
+%files -f geoserver-feature-pregeneralized-libs.txt feature-pregeneralized
+%doc plugins/feature-pregeneralized/GEOTOOLS_NOTICE.html plugins/feature-pregeneralized/NOTICE.html
+%license plugins/feature-pregeneralized/GPL.html plugins/feature-pregeneralized/LGPL.html
+
+
+%files -f geoserver-gdal-libs.txt gdal
+%doc plugins/gdal/GEOTOOLS_NOTICE.html plugins/gdal/NOTICE.html
+%license plugins/gdal/GPL.html plugins/gdal/LGPL.html
+
+
+%files -f geoserver-geofence-libs.txt geofence
+%doc plugins/geofence/NOTICE.html
+%license plugins/geofence/GPL.html
+
+
+%files -f geoserver-geofence-server-libs.txt geofence-server
+%doc plugins/geofence-server/NOTICE.html
+%license plugins/geofence-server/GPL.html
+
+
+%files -f geoserver-geofence-wps-libs.txt geofence-wps
+%doc plugins/geofence-wps/NOTICE.html
+%license plugins/geofence-wps/GPL.html
+
+
+%files -f geoserver-geopkg-output-libs.txt geopkg-output
+%doc plugins/geopkg-output/GEOTOOLS_NOTICE.html plugins/geopkg-output/NOTICE.html
+%license plugins/geopkg-output/GPL.html plugins/geopkg-output/LGPL.html
+
+
+%files -f geoserver-grib-libs.txt grib
+%doc plugins/grib/GEOTOOLS_NOTICE.html plugins/grib/NOTICE.html
+%license plugins/grib/GPL.html plugins/grib/LGPL.html
 
 
 %pre
