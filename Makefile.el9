@@ -39,6 +39,7 @@ RPMBUILD_UID := $(shell id -u)
 RPMBUILD_GID := $(shell id -g)
 
 # RPM files at desired versions.
+GEONODE_RPM := $(call rpm_file,geonode)
 GEOSERVER_RPM := $(call rpm_file,geoserver)
 MAPPROXY_RPM := $(call rpm_file,mapproxy)
 MOD_TILE_RPM := $(call rpm_file,mod_tile)
@@ -54,6 +55,7 @@ RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
 	rpmbuild-generic
 RPMBUILD_RPMS := \
+	geonode \
 	geoserver \
 	mapproxy \
 	mod_tile \
@@ -99,6 +101,7 @@ distclean: .env
 	echo IMAGE_PREFIX=$(IMAGE_PREFIX) >> .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env
+	echo RPMBUILD_GEONODE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/geonode.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
 	echo RPMBUILD_MAPPROXY_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mapproxy.spec) >> .env
 	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mod_tile.spec) >> .env
 	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/nominatim.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
@@ -121,6 +124,7 @@ rpmbuild-generic: rpmbuild
 
 
 ## RPM targets
+geonode: $(GEONODE_RPM)
 geoserver: $(GEOSERVER_RPM)
 mapproxy: $(MAPPROXY_RPM)
 mod_tile: $(MOD_TILE_RPM)
