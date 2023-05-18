@@ -102,6 +102,7 @@ distclean: .env
 	echo RPMBUILD_GID=$(RPMBUILD_GID) >> .env
 	echo RPMBUILD_UID=$(RPMBUILD_UID) >> .env
 	echo RPMBUILD_GEONODE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/geonode.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env
+	echo RPMBUILD_GEOSERVER_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/geoserver.spec) >> .env
 	echo RPMBUILD_MAPPROXY_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mapproxy.spec) >> .env
 	echo RPMBUILD_MOD_TILE_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/mod_tile.spec) >> .env
 	echo RPMBUILD_NOMINATIM_PACKAGES=$(shell ./scripts/buildrequires.py SPECS/$(EL_VERSION)/nominatim.spec --define postgres_version=$(POSTGRES_VERSION)) >> .env

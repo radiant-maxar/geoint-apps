@@ -31,7 +31,7 @@ x-rpmbuild:
       image: rpmbuild-geonode
       version: &geonode_version 4.0.3-1
     geoserver:
-      image: rpmbuild-generic
+      image: rpmbuild-geoserver
       version: &geoserver_version 2.23.0-1
     mapproxy:
       defines:
@@ -118,6 +118,13 @@ services:
         postgres_version: *postgres_version
         rpmbuild_image: rpmbuild-generic
       dockerfile: docker/el9/Dockerfile.rpmbuild-geonode
+  rpmbuild-geoserver:
+    <<: *service_defaults
+    build:
+      <<: *build_defaults
+      args:
+        <<: *build_args_defaults
+        packages: ${RPMBUILD_GEOSERVER_PACKAGES}
   rpmbuild-mapproxy:
     <<: *service_defaults
     build:
