@@ -29,6 +29,48 @@ Source8:        https://prdownloads.sourceforge.net/geoserver/GeoServer/%{versio
 Source9:        https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-db2-plugin.zip
 Source10:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-dxf-plugin.zip
 Source11:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-excel-plugin.zip
+Source12:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-feature-pregeneralized-plugin.zip
+Source13:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-gdal-plugin.zip
+Source14:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-geofence-plugin.zip
+Source15:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-geofence-server-plugin.zip
+Source16:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-geofence-wps-plugin.zip
+Source17:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-geopkg-output-plugin.zip
+Source18:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-grib-plugin.zip
+Source19:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-gwc-s3-plugin.zip
+Source20:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-h2-plugin.zip
+Source21:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-imagemap-plugin.zip
+Source22:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-importer-plugin.zip
+Source23:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-inspire-plugin.zip
+Source24:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-jp2k-plugin.zip
+Source25:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-libjpeg-turbo-plugin.zip
+Source26:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-mapml-plugin.zip
+Source27:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-mbstyle-plugin.zip
+Source28:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-metadata-plugin.zip
+Source29:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-mongodb-plugin.zip
+Source30:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-monitor-plugin.zip
+Source31:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-mysql-plugin.zip
+Source32:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-netcdf-out-plugin.zip
+Source33:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-netcdf-plugin.zip
+Source34:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-ogr-wfs-plugin.zip
+Source35:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-ogr-wps-plugin.zip
+Source36:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-oracle-plugin.zip
+Source37:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-params-extractor-plugin.zip
+Source38:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-printing-plugin.zip
+Source39:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-pyramid-plugin.zip
+Source40:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-querylayer-plugin.zip
+Source41:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-sldservice-plugin.zip
+Source42:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-sqlserver-plugin.zip
+Source43:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-vectortiles-plugin.zip
+Source44:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-wcs2_0-eo-plugin.zip
+Source45:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-web-resource-plugin.zip
+Source46:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-wmts-multi-dimensional-plugin.zip
+Source47:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-wps-cluster-hazelcast-plugin.zip
+Source48:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-wps-download-plugin.zip
+Source49:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-wps-jdbc-plugin.zip
+Source50:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-wps-plugin.zip
+Source51:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-xslt-plugin.zip
+Source52:       https://prdownloads.sourceforge.net/geoserver/GeoServer/%{version}/extensions/geoserver-%{version}-ysld-plugin.zip
+
 
 %description
 GeoServer is an open source software server written in Java that allows users to share and edit geospatial data.
@@ -119,7 +161,7 @@ GeoServer CSW Extension
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel; do
+for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -133,6 +175,13 @@ done
 %{__unzip} %{SOURCE8}  -d plugins/db2
 %{__unzip} %{SOURCE10} -d plugins/dxf
 %{__unzip} %{SOURCE11} -d plugins/excel
+%{__unzip} %{SOURCE12} -d plugins/feature-pregeneralized
+%{__unzip} %{SOURCE13} -d plugins/gdal
+%{__unzip} %{SOURCE14} -d plugins/geofence
+%{__unzip} %{SOURCE15} -d plugins/geofence-server
+%{__unzip} %{SOURCE16} -d plugins/geofence-wps
+%{__unzip} %{SOURCE17} -d plugins/geopkg-output
+%{__unzip} %{SOURCE18} -d plugins/grib
 
 for plugin in app-schema authkey cas charts control-flow css csw-iso csw; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar > geoserver-${plugin}-libs.txt
