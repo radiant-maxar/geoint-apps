@@ -1,3 +1,13 @@
+%global geonode_home %{_sharedstatedir}/geonode
+%global geonode_logs %{_var}/log/geonode
+%global geonode_root %{_datadir}/geonode
+%global geonode_run /run/geonode
+%global geonode_user geonode
+%global geonode_group %{geonode_user}
+%global geonode_uid 737
+%global geonode_gid %{geonode_uid}
+
+
 Name:           geonode
 Version:        %{rpmbuild_version}
 Release:        %{rpmbuild_release}%{?dist}
@@ -39,8 +49,6 @@ BuildRequires:  systemd-rpm-macros
 BuildRequires:  tk-devel
 BuildRequires:  zlib-devel
 
-Requires:       python3-gdal
-
 Provides:       bundled(python3-cffi)
 Provides:       bundled(python3-gevent)
 Provides:       bundled(python3-gunicorn)
@@ -50,6 +58,10 @@ Provides:       bundled(python3-psycopg2)
 Provides:       bundled(python3-pyproj)
 Provides:       bundled(python3-PyYAML)
 Provides:       bundled(python3-shapely)
+
+Requires:       postgresql%{postgres_version}
+Requires:       python3-gdal
+
 
 %description
 GeoNode is a web-based application and platform for developing geospatial information systems (GIS) and for deploying spatial data infrastructures (SDI).
@@ -67,10 +79,118 @@ GeoNode is a web-based application and platform for developing geospatial inform
 --no-binary cffi,gevent,gunicorn,lxml,numpy,psycopg2,pyproj,Pillow,PyYAML,Shapely,uWSGI \
 -v -r requirements.txt
 
+%install
+%{__install} -d -m 0755 \
+ %{buildroot}%{_usr}/lib/tmpfiles.d \
+ %{buildroot}%{geonode_root}
+%{__install} -d -m 0750 \
+ %{buildroot}%{geonode_home} \
+ %{buildroot}%{geonode_logs} \
+ %{buildroot}%{geonode_run}
+
+# geonode tmpfiles.d entry
+echo "d %{geonode_run} 0750 %{geonode_user} %{geonode_group} -" > \
+       %{buildroot}%{_usr}/lib/tmpfiles.d/%{name}.conf
+
+# Copy module and virtual environment.
+for dir in geonode venv; do
+    %{__cp} -rp ${dir} %{buildroot}%{geonode_root}/${dir}
+done
+
+# Ensure VIRTUAL_ENV points to the installed location in activation scripts.
+%{__sed} -i -e 's|^VIRTUAL_ENV=.*|VIRTUAL_ENV="%{geonode_root}/venv"|g' \
+  %{buildroot}%{geonode_root}/venv/bin/activate
+%{__sed} -i -e 's|VIRTUAL_ENV ".*"|VIRTUAL_ENV="%{geonode_root}/venv"|g' \
+  %{buildroot}%{geonode_root}/venv/bin/activate.{csh,fish}
+
+# Correct shebang path for files in virtualenv directory.
+%{__sed} -i \
+  -e '1s|#!/usr/bin/env python|#!%{geonode_root}/venv/bin/python3|' \
+  -e '1s|#!/.*/venv/bin/python3|#!%{geonode_root}/venv/bin/python3|' \
+  %{buildroot}%{geonode_root}/venv/bin/automat* \
+  %{buildroot}%{geonode_root}/venv/bin/celery* \
+  %{buildroot}%{geonode_root}/venv/bin/cftp* \
+  %{buildroot}%{geonode_root}/venv/bin/ckeygen* \
+  %{buildroot}%{geonode_root}/venv/bin/con* \
+  %{buildroot}%{geonode_root}/venv/bin/coverage* \
+  %{buildroot}%{geonode_root}/venv/bin/create* \
+  %{buildroot}%{geonode_root}/venv/bin/csv2rdf* \
+  %{buildroot}%{geonode_root}/venv/bin/django-admin* \
+  %{buildroot}%{geonode_root}/venv/bin/dotenv* \
+  %{buildroot}%{geonode_root}/venv/bin/f2py* \
+  %{buildroot}%{geonode_root}/venv/bin/faker* \
+  %{buildroot}%{geonode_root}/venv/bin/flake* \
+  %{buildroot}%{geonode_root}/venv/bin/futurize* \
+  %{buildroot}%{geonode_root}/venv/bin/geolinks* \
+  %{buildroot}%{geonode_root}/venv/bin/gunicorn* \
+  %{buildroot}%{geonode_root}/venv/bin/inv* \
+  %{buildroot}%{geonode_root}/venv/bin/ipython* \
+  %{buildroot}%{geonode_root}/venv/bin/jp.py* \
+  %{buildroot}%{geonode_root}/venv/bin/jsonschema* \
+  %{buildroot}%{geonode_root}/venv/bin/ma* \
+  %{buildroot}%{geonode_root}/venv/bin/normalizer* \
+  %{buildroot}%{geonode_root}/venv/bin/pasteurize* \
+  %{buildroot}%{geonode_root}/venv/bin/pip* \
+  %{buildroot}%{geonode_root}/venv/bin/py* \
+  %{buildroot}%{geonode_root}/venv/bin/rdf* \
+  %{buildroot}%{geonode_root}/venv/bin/report* \
+  %{buildroot}%{geonode_root}/venv/bin/shortuuid* \
+  %{buildroot}%{geonode_root}/venv/bin/slugify* \
+  %{buildroot}%{geonode_root}/venv/bin/sqlformat* \
+  %{buildroot}%{geonode_root}/venv/bin/stone* \
+  %{buildroot}%{geonode_root}/venv/bin/tkconch* \
+  %{buildroot}%{geonode_root}/venv/bin/tldextract* \
+  %{buildroot}%{geonode_root}/venv/bin/tqdm* \
+  %{buildroot}%{geonode_root}/venv/bin/trial* \
+  %{buildroot}%{geonode_root}/venv/bin/twist* \
+  %{buildroot}%{geonode_root}/venv/bin/uwsgi* \
+  %{buildroot}%{geonode_root}/venv/bin/wandb* \
+  %{buildroot}%{geonode_root}/venv/bin/wb* \
+  %{buildroot}%{geonode_root}/venv/bin/wheel* \
+  %{buildroot}%{geonode_root}/venv/bin/wsdump* \
+  %{buildroot}%{geonode_root}/venv/bin/xml2json* \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/bin/django-admin.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/conf/project_template/manage.py-tpl \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/vendor/watchdog_0_9_0/wandb_watchdog/watchmedo.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/proto/wandb_internal_codegen.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/sqlparse/cli.py
+
+# Prevent following error:
+#   failed: mode 100755 Bad magic format `version %%#x (MVP)' (bad format char: #)
+%{__chmod} a-x \
+   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/geonode_mapstore_client/static/mapstore/dist/cesium/ThirdParty/basis_transcoder.wasm \
+   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/geonode_mapstore_client/static/mapstore/dist/cesium/ThirdParty/draco_decoder.wasm
+
 
 %files
 %doc AUTHORS README.md SECURITY.md
 %license license.txt
+%{geonode_root}
+%{_usr}/lib/tmpfiles.d/%{name}.conf
+%defattr(-, %{geonode_user}, %{geonode_group}, -)
+%dir %{geonode_logs}
+%dir %{geonode_home}
+%dir %{geonode_run}
+
+
+%pre
+%{_bindir}/getent group %{geonode_group} >/dev/null || \
+    %{_sbindir}/groupadd \
+        --force \
+        --gid %{geonode_gid} \
+        --system \
+        %{geonode_group}
+
+%{_bindir}/getent passwd %{geonode_user} >/dev/null || \
+    %{_sbindir}/useradd \
+        --uid %{geonode_uid} \
+        --gid %{geonode_group} \
+        --comment "GeoNode User" \
+        --shell %{_sbindir}/nologin \
+        --home-dir %{geonode_home} \
+        --no-create-home \
+        --system \
+        %{geonode_user}
 
 
 %changelog
