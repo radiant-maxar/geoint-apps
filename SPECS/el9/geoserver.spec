@@ -14,8 +14,6 @@ License:        GPLv2
 URL:            https://geoserver.org
 
 BuildArch:      noarch
-BuildRequires:  gdal-devel
-BuildRequires:  gdal-java
 BuildRequires:  unzip
 
 Requires:       tomcat
@@ -913,7 +911,7 @@ done
 
 %post gdal
 # Link in correct version og GDAL JAR on post-install.
-%{__ln_s} %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-$(%{_bindir}/rpm --qf '%%{version}' -q gdal-libs).jar
+%{__ln_s} %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-$(%{_bindir}/rpm --qf '%%{version}' -q gdal-java).jar
 
 
 %changelog
