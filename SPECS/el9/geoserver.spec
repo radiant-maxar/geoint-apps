@@ -270,6 +270,42 @@ Requires:      geoserver = %{version}-%{release}
 %{summary}
 
 
+%package importer
+Summary:       GeoServer Importer Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description importer
+%{summary}
+
+
+%package inspire
+Summary:       GeoServer Inspire Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description inspire
+%{summary}
+
+
+%package jp2k
+Summary:       GeoServer JP2K Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description jp2k
+%{summary}
+
+
+%package libjpeg-turbo
+Summary:       GeoServer LibJPEG Turbo Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description libjpeg-turbo
+%{summary}
+
+
 %prep
 %autosetup -c
 for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps-jdbc wps xslt ysld; do
@@ -337,7 +373,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap; do
+for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar > geoserver-${plugin}-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-${plugin}-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -462,6 +498,26 @@ done
 %files -f geoserver-imagemap-libs.txt imagemap
 %doc plugins/imagemap/NOTICE.html
 %license plugins/imagemap/GPL.html
+
+
+%files -f geoserver-importer-libs.txt importer
+%doc plugins/importer/GEOTOOLS_NOTICE.html plugins/importer/NOTICE.html
+%license plugins/importer/GPL.html plugins/importer/LGPL.html
+
+
+%files -f geoserver-inspire-libs.txt inspire
+%doc plugins/inspire/NOTICE.html
+%license plugins/inspire/GPL.html
+
+
+%files -f geoserver-jp2k-libs.txt jp2k
+%doc plugins/jp2k/GEOTOOLS_NOTICE.html plugins/jp2k/NOTICE.html
+%license plugins/jp2k/GPL.html plugins/jp2k/LGPL.html
+
+
+%files -f geoserver-libjpeg-turbo-libs.txt libjpeg-turbo
+%doc plugins/libjpeg-turbo/NOTICE.html
+%license plugins/libjpeg-turbo/GPL.html
 
 
 %pre
