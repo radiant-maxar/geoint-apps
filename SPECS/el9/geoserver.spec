@@ -306,6 +306,60 @@ Requires:      geoserver = %{version}-%{release}
 %{summary}
 
 
+%package mapml
+Summary:       GeoServer MapML Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description mapml
+%{summary}
+
+
+%package mbstyle
+Summary:       GeoServer MBStyle Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description mbstyle
+%{summary}
+
+
+%package metadata
+Summary:       GeoServer Metadata Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description metadata
+%{summary}
+
+
+%package mongodb
+Summary:       GeoServer MongoDB Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description mongodb
+%{summary}
+
+
+%package monitor
+Summary:       GeoServer Monitor Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description monitor
+%{summary}
+
+
+%package mysql
+Summary:       GeoServer MySQL Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description mysql
+%{summary}
+
+
 %prep
 %autosetup -c
 for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps-jdbc wps xslt ysld; do
@@ -373,7 +427,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo; do
+for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar > geoserver-${plugin}-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-${plugin}-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -518,6 +572,35 @@ done
 %files -f geoserver-libjpeg-turbo-libs.txt libjpeg-turbo
 %doc plugins/libjpeg-turbo/NOTICE.html
 %license plugins/libjpeg-turbo/GPL.html
+
+
+%files -f geoserver-mapml-libs.txt mapml
+%doc plugins/mapml/NOTICE.html
+%license plugins/mapml/GPL.html
+
+
+%files -f geoserver-mbstyle-libs.txt mbstyle
+%doc plugins/mbstyle/GEOTOOLS_NOTICE.html plugins/mbstyle/NOTICE.html
+%license plugins/mbstyle/GPL.html plugins/mbstyle/LGPL.html
+
+
+%files -f geoserver-metadata-libs.txt metadata
+%doc plugins/metadata/NOTICE.html
+%license plugins/metadata/GPL.html
+
+
+%files -f geoserver-mongodb-libs.txt mongodb
+%doc plugins/mongodb/GEOTOOLS_NOTICE.html plugins/mongodb/NOTICE.html
+%license plugins/mongodb/GPL.html plugins/mongodb/LGPL.html
+
+
+%files -f geoserver-monitor-libs.txt monitor
+%doc plugins/monitor/NOTICE.html
+%license plugins/monitor/GPL.html
+
+
+%files -f geoserver-mysql-libs.txt mysql
+%doc plugins/mysql/mysql-readme.txt
 
 
 %pre
