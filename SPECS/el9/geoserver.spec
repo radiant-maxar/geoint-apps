@@ -470,6 +470,87 @@ Requires:      geoserver = %{version}-%{release}
 %{summary}
 
 
+%package wcs2_0-eo
+Summary:       GeoServer WCS 2.0 EO Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description wcs2_0-eo
+%{summary}
+
+
+%package web-resource
+Summary:       GeoServer Web Resource Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description web-resource
+%{summary}
+
+
+%package wmts-multi-dimensional
+Summary:       GeoServer WMTS Multi Dimensional Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description wmts-multi-dimensional
+%{summary}
+
+
+%package wps-cluster-hazelcast
+Summary:       GeoServer WPS Cluster Hazelcast Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description wps-cluster-hazelcast
+%{summary}
+
+
+%package wps-download
+Summary:       GeoServer WPS Download Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description wps-download
+%{summary}
+
+
+%package wps-jdbc
+Summary:       GeoServer WPS JDBC Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description wps-jdbc
+%{summary}
+
+
+%package wps
+Summary:       GeoServer WPS Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description wps
+%{summary}
+
+
+%package xslt
+Summary:       GeoServer XSLT Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description xslt
+%{summary}
+
+
+%package ysld
+Summary:       GeoServer YSLD Extension
+License:       GPLv2 and LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description ysld
+%{summary}
+
+
 %prep
 %autosetup -c
 for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps-jdbc wps xslt ysld; do
@@ -537,7 +618,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles; do
+for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps-jdbc wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar > geoserver-${plugin}-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-${plugin}-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -773,6 +854,51 @@ done
 %license plugins/vectortiles/GPL.html
 
 
+%files -f geoserver-wcs2_0-eo-libs.txt wcs2_0-eo
+%doc plugins/wcs2_0-eo/NOTICE.html
+%license plugins/wcs2_0-eo/GPL.html
+
+
+%files -f geoserver-web-resource-libs.txt web-resource
+%doc plugins/web-resource/NOTICE.html
+%license plugins/web-resource/GPL.html
+
+
+%files -f geoserver-wmts-multi-dimensional-libs.txt wmts-multi-dimensional
+%doc plugins/wmts-multi-dimensional/NOTICE.html
+%license plugins/wmts-multi-dimensional/GPL.html
+
+
+%files -f geoserver-wps-cluster-hazelcast-libs.txt wps-cluster-hazelcast
+%doc plugins/wps-cluster-hazelcast/NOTICE.html
+%license plugins/wps-cluster-hazelcast/GPL.html
+
+
+%files -f geoserver-wps-download-libs.txt wps-download
+%doc plugins/wps-download/NOTICE.html
+%license plugins/wps-download/GPL.html
+
+
+%files -f geoserver-wps-jdbc-libs.txt wps-jdbc
+%doc plugins/wps-jdbc/GEOTOOLS_NOTICE.html plugins/wps-jdbc/NOTICE.html
+%license plugins/wps-jdbc/GPL.html plugins/wps-jdbc/LGPL.html
+
+
+%files -f geoserver-wps-libs.txt wps
+%doc plugins/wps/GEOTOOLS_NOTICE.html plugins/wps/NOTICE.html
+%license plugins/wps/GPL.html plugins/ysld/LGPL.html
+
+
+%files -f geoserver-xslt-libs.txt xslt
+%doc plugins/xslt/NOTICE.html
+%license plugins/xslt/GPL.html
+
+
+%files -f geoserver-ysld-libs.txt ysld
+%doc plugins/ysld/GEOTOOLS_NOTICE.html plugins/ysld/NOTICE.html
+%license plugins/ysld/GPL.html plugins/ysld/LGPL.html
+
+
 %pre
 %{_bindir}/getent passwd %{geoserver_user} >/dev/null || \
     %{_sbindir}/useradd \
@@ -783,6 +909,11 @@ done
         --home-dir %{geoserver_home} \
         --system \
         %{geoserver_user}
+
+
+%post gdal
+# Link in correct version og GDAL JAR on post-install.
+%{__ln_s} %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-$(%{_bindir}/rpm --qf '%%{version}' -q gdal-libs).jar
 
 
 %changelog
