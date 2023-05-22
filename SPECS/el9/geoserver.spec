@@ -407,7 +407,70 @@ Requires:      geoserver = %{version}-%{release}
 %{summary}
 
 
-%%prep
+%package params-extractor
+Summary:       GeoServer Params Extractor Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description params-extractor
+%{summary}
+
+
+%package printing
+Summary:       GeoServer Printing Extension
+License:       GPLv2 and MapFish
+Requires:      geoserver = %{version}-%{release}
+
+%description printing
+%{summary}
+
+
+%package pyramid
+Summary:       GeoServer Pyramid Extension
+License:       LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description pyramid
+%{summary}
+
+
+%package querylayer
+Summary:       GeoServer Query Layer Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description querylayer
+%{summary}
+
+
+%package sldservice
+Summary:       GeoServer SLD Service Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description sldservice
+%{summary}
+
+
+%package sqlserver
+Summary:       GeoServer SQL Server Extension
+License:       LGPL-2.1
+Requires:      geoserver = %{version}-%{release}
+
+%description sqlserver
+%{summary}
+
+
+%package vectortiles
+Summary:       GeoServer Vector Tiles Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description vectortiles
+%{summary}
+
+
+%prep
 %autosetup -c
 for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps-jdbc wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
@@ -474,7 +537,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-default-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-default-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle; do
+for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output grib gwc-s3 h2 imagemap importer inspire jp2k libjpeg-turbo mapml mbstyle metadata mongodb monitor mysql netcdf-out netcdf ogr-wfs ogr-wps oracle params-extractor printing pyramid querylayer sldservice sqlserver vectortiles; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar > geoserver-${plugin}-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-${plugin}-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -673,6 +736,41 @@ done
 %files -f geoserver-oracle-libs.txt oracle
 %doc plugins/oracle/GEOTOOLS_NOTICE.html plugins/oracle/oracle-readme.txt
 %license plugins/oracle/LGPL.html plugins/oracle/OracleFUTC.html
+
+
+%files -f geoserver-params-extractor-libs.txt params-extractor
+%doc plugins/params-extractor/NOTICE.html
+%license plugins/params-extractor/GPL.html
+
+
+%files -f geoserver-printing-libs.txt printing
+%doc plugins/printing/NOTICE.html
+%license plugins/printing/GPL.html plugins/printing/MAPFISH-LICENSE.txt
+
+
+%files -f geoserver-pyramid-libs.txt pyramid
+%doc plugins/pyramid/GEOTOOLS_NOTICE.html
+%license plugins/pyramid/LGPL.html
+
+
+%files -f geoserver-querylayer-libs.txt querylayer
+%doc plugins/querylayer/NOTICE.html
+%license plugins/querylayer/GPL.html
+
+
+%files -f geoserver-sldservice-libs.txt sldservice
+%doc plugins/sldservice/NOTICE.html
+%license plugins/sldservice/GPL.html
+
+
+%files -f geoserver-sqlserver-libs.txt sqlserver
+%doc plugins/sqlserver/GEOTOOLS_NOTICE.html
+%license plugins/sqlserver/LGPL.html
+
+
+%files -f geoserver-vectortiles-libs.txt vectortiles
+%doc plugins/vectortiles/NOTICE.html
+%license plugins/vectortiles/GPL.html
 
 
 %pre
