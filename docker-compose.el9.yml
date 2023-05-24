@@ -32,7 +32,7 @@ x-rpmbuild:
       version: &geonode_version 4.0.3-1
     geoserver:
       image: rpmbuild-generic
-      version: &geoserver_version 2.23.0-1
+      version: &geoserver_version 2.23.1-1
     mapproxy:
       defines:
         gevent_version: 22.10.2
