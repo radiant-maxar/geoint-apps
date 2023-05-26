@@ -1,7 +1,6 @@
-%global geoserver_group tomcat
-%global geoserver_user geoserver
-%global geoserver_uid 978
-%global geoserver_home %{_sharedstatedir}/geoserver
+# The following macros are also required:
+# * gdal_version
+%global geoserver_data %{_sharedstatedir}/geoserver
 %global geoserver_webapp %{_sharedstatedir}/tomcat/webapps/geoserver
 %global geoserver_source_url https://prdownloads.sourceforge.net/geoserver/GeoServer
 
@@ -16,8 +15,8 @@ URL:            https://geoserver.org
 BuildArch:      noarch
 BuildRequires:  unzip
 
-Requires:       gdal
-Requires:       gdal-java
+Requires:       gdal = %{gdal_version}
+Requires:       gdal-java = %{gdal_version}
 Requires:       tomcat
 
 Source0:        %{geoserver_source_url}/%{version}/geoserver-%{version}-war.zip
@@ -142,7 +141,7 @@ done
 
 
 %install
-%{__install} -m 0750 -d %{buildroot}%{geoserver_home}
+%{__install} -m 0750 -d %{buildroot}%{geoserver_data}
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
 
@@ -156,6 +155,10 @@ for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf
 done
 %{_bindir}/sort geoserver-libs.txt | %{_bindir}/uniq > geoserver-libs-uniq.txt
 
+# Link in correct version GDAL JAR.
+%{__ln_s} %{_javadir}/gdal/gdal.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib/gdal-%{gdal_version}.jar
+echo "%{geoserver_webapp}/WEB-INF/lib/gdal-%{gdal_version}.jar" >> geoserver-libs-uniq.txt
+
 # Package Oracle separately due to licensing.
 %{_bindir}/find plugins/oracle -type f -name \*.jar > geoserver-oracle-libs.txt
 %{__sed} -i -e "s|plugins/oracle|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-oracle-libs.txt
@@ -165,9 +168,9 @@ done
 %files -f geoserver-libs-uniq.txt
 %doc README.html target/VERSION.txt
 %license license/*.html
-%defattr(-, %{geoserver_user}, %{geoserver_user}, -)
-%{geoserver_home}
-%defattr(0664,%{geoserver_user},%{geoserver_group},0775)
+%defattr(-, tomcat, tomcat, -)
+%{geoserver_data}
+%defattr(0664,tomcat,tomcat,0775)
 %{geoserver_webapp}/data
 %{geoserver_webapp}/index.html
 %{geoserver_webapp}/META-INF
@@ -180,23 +183,6 @@ done
 %files -f geoserver-oracle-libs.txt oracle
 %doc plugins/oracle/GEOTOOLS_NOTICE.html plugins/oracle/oracle-readme.txt
 %license plugins/oracle/LGPL.html plugins/oracle/OracleFUTC.html
-
-
-%pre
-%{_bindir}/getent passwd %{geoserver_user} >/dev/null || \
-    %{_sbindir}/useradd \
-        --uid %{geoserver_uid} \
-        --gid %{geoserver_group} \
-        --comment "GeoServer User" \
-        --shell /sbin/nologin \
-        --home-dir %{geoserver_home} \
-        --system \
-        %{geoserver_user}
-
-
-%post
-# Link in correct version og GDAL JAR on post-install.
-%{__ln_s} %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-$(%{_bindir}/rpm --qf '%%{version}' -q gdal-java).jar
 
 
 %changelog
