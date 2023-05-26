@@ -90,7 +90,7 @@ done
 %{__unzip} %{SOURCE4}  -d plugins/charts
 %{__unzip} %{SOURCE5}  -d plugins/control-flow
 %{__unzip} %{SOURCE6}  -d plugins/css
-%{__unzip} %{SOURCE8}  -d plugins/db2
+%{__unzip} %{SOURCE9}  -d plugins/db2
 %{__unzip} %{SOURCE10} -d plugins/dxf
 %{__unzip} %{SOURCE11} -d plugins/excel
 %{__unzip} %{SOURCE12} -d plugins/feature-pregeneralized
