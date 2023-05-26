@@ -26,8 +26,6 @@ Source3:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source4:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-charts-plugin.zip
 Source5:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-control-flow-plugin.zip
 Source6:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-css-plugin.zip
-Source7:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-csw-iso-plugin.zip
-Source8:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-csw-plugin.zip
 Source9:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-db2-plugin.zip
 Source10:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-dxf-plugin.zip
 Source11:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-excel-plugin.zip
@@ -41,7 +39,6 @@ Source19:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source20:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-h2-plugin.zip
 Source21:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-imagemap-plugin.zip
 Source22:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-importer-plugin.zip
-Source23:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-inspire-plugin.zip
 Source24:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-jp2k-plugin.zip
 Source26:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mapml-plugin.zip
 Source27:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mbstyle-plugin.zip
@@ -84,7 +81,7 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output gwc-s3 h2 imagemap importer inspire jp2k mapml mbstyle metadata mongodb monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output gwc-s3 h2 imagemap importer jp2k mapml mbstyle metadata mongodb monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -93,8 +90,6 @@ done
 %{__unzip} %{SOURCE4}  -d plugins/charts
 %{__unzip} %{SOURCE5}  -d plugins/control-flow
 %{__unzip} %{SOURCE6}  -d plugins/css
-%{__unzip} %{SOURCE7}  -d plugins/csw-iso
-%{__unzip} %{SOURCE8}  -d plugins/csw
 %{__unzip} %{SOURCE8}  -d plugins/db2
 %{__unzip} %{SOURCE10} -d plugins/dxf
 %{__unzip} %{SOURCE11} -d plugins/excel
@@ -108,7 +103,6 @@ done
 %{__unzip} %{SOURCE20} -d plugins/h2
 %{__unzip} %{SOURCE21} -d plugins/imagemap
 %{__unzip} %{SOURCE22} -d plugins/importer
-%{__unzip} %{SOURCE23} -d plugins/inspire
 %{__unzip} %{SOURCE24} -d plugins/jp2k
 %{__unzip} %{SOURCE26} -d plugins/mapml
 %{__unzip} %{SOURCE27} -d plugins/mbstyle
@@ -140,11 +134,13 @@ done
 %{__install} -m 0750 -d %{buildroot}%{geoserver_data}
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
+%{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}/data/geofence
+echo "gwc.context.suffix=gwc" > %{buildroot}%{geoserver_webapp}/data/geofence/geofence-server.properties
 
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css csw-iso csw db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output gwc-s3 h2 imagemap importer inspire jp2k mapml mbstyle metadata mongodb monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output gwc-s3 h2 imagemap importer jp2k mapml mbstyle metadata mongodb monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar >> geoserver-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
