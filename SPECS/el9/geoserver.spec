@@ -147,14 +147,14 @@ for plugin in app-schema authkey cas charts control-flow css db2 dxf excel featu
 done
 %{_bindir}/sort geoserver-libs.txt | %{_bindir}/uniq > geoserver-libs-uniq.txt
 
-# Link in correct version GDAL JAR.
-%{__ln_s} %{_javadir}/gdal/gdal.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib/gdal-%{gdal_version}.jar
-echo "%{geoserver_webapp}/WEB-INF/lib/gdal-%{gdal_version}.jar" >> geoserver-libs-uniq.txt
-
 # Package Oracle separately due to licensing.
 %{_bindir}/find plugins/oracle -type f -name \*.jar > geoserver-oracle-libs.txt
 %{__sed} -i -e "s|plugins/oracle|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-oracle-libs.txt
 %{__install} plugins/oracle/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
+
+
+%post
+%{__cp} -p %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-%{gdal_version}.jar
 
 
 %files -f geoserver-libs-uniq.txt
