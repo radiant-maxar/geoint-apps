@@ -1,5 +1,3 @@
-# The following macros are also required:
-# * gdal_version
 %global geoserver_data %{_sharedstatedir}/geoserver
 %global geoserver_webapp %{_sharedstatedir}/tomcat/webapps/geoserver
 %global geoserver_source_url https://prdownloads.sourceforge.net/geoserver/GeoServer
@@ -15,8 +13,8 @@ URL:            https://geoserver.org
 BuildArch:      noarch
 BuildRequires:  unzip
 
-Requires:       gdal = %{gdal_version}
-Requires:       gdal-java = %{gdal_version}
+Requires:       gdal
+Requires:       gdal-java
 Requires:       tomcat
 
 Source0:        %{geoserver_source_url}/%{version}/geoserver-%{version}-war.zip
@@ -26,7 +24,6 @@ Source3:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source4:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-charts-plugin.zip
 Source5:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-control-flow-plugin.zip
 Source6:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-css-plugin.zip
-Source9:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-db2-plugin.zip
 Source10:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-dxf-plugin.zip
 Source11:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-excel-plugin.zip
 Source12:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-feature-pregeneralized-plugin.zip
@@ -35,15 +32,12 @@ Source14:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source15:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-geofence-server-plugin.zip
 Source16:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-geofence-wps-plugin.zip
 Source17:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-geopkg-output-plugin.zip
-Source19:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-gwc-s3-plugin.zip
 Source20:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-h2-plugin.zip
 Source21:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-imagemap-plugin.zip
 Source22:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-importer-plugin.zip
 Source24:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-jp2k-plugin.zip
 Source26:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mapml-plugin.zip
 Source27:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mbstyle-plugin.zip
-Source28:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-metadata-plugin.zip
-Source29:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mongodb-plugin.zip
 Source30:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-monitor-plugin.zip
 Source31:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mysql-plugin.zip
 Source34:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-ogr-wfs-plugin.zip
@@ -56,7 +50,6 @@ Source40:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source41:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-sldservice-plugin.zip
 Source42:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-sqlserver-plugin.zip
 Source43:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-vectortiles-plugin.zip
-Source44:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wcs2_0-eo-plugin.zip
 Source45:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-web-resource-plugin.zip
 Source46:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wmts-multi-dimensional-plugin.zip
 Source47:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wps-cluster-hazelcast-plugin.zip
@@ -70,6 +63,15 @@ GeoServer is an open source software server written in Java that allows users to
 Designed for interoperability, it publishes data from any major spatial data source using open standards.
 
 
+%package data
+Summary:       GeoServer Data
+License:       GeoSolutions
+Requires:      geoserver = %{version}-%{release}
+
+%description data
+Default data for use with a GeoServer instance.
+
+
 %package oracle
 Summary:       GeoServer Oracle Extension
 License:       LGPL-2.1 and Oracle FUTC
@@ -81,7 +83,7 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output gwc-s3 h2 imagemap importer jp2k mapml mbstyle metadata mongodb monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -90,7 +92,6 @@ done
 %{__unzip} %{SOURCE4}  -d plugins/charts
 %{__unzip} %{SOURCE5}  -d plugins/control-flow
 %{__unzip} %{SOURCE6}  -d plugins/css
-%{__unzip} %{SOURCE9}  -d plugins/db2
 %{__unzip} %{SOURCE10} -d plugins/dxf
 %{__unzip} %{SOURCE11} -d plugins/excel
 %{__unzip} %{SOURCE12} -d plugins/feature-pregeneralized
@@ -99,15 +100,12 @@ done
 %{__unzip} %{SOURCE15} -d plugins/geofence-server
 %{__unzip} %{SOURCE16} -d plugins/geofence-wps
 %{__unzip} %{SOURCE17} -d plugins/geopkg-output
-%{__unzip} %{SOURCE19} -d plugins/gwc-s3
 %{__unzip} %{SOURCE20} -d plugins/h2
 %{__unzip} %{SOURCE21} -d plugins/imagemap
 %{__unzip} %{SOURCE22} -d plugins/importer
 %{__unzip} %{SOURCE24} -d plugins/jp2k
 %{__unzip} %{SOURCE26} -d plugins/mapml
 %{__unzip} %{SOURCE27} -d plugins/mbstyle
-%{__unzip} %{SOURCE28} -d plugins/metadata
-%{__unzip} %{SOURCE29} -d plugins/mongodb
 %{__unzip} %{SOURCE30} -d plugins/monitor
 %{__unzip} %{SOURCE31} -d plugins/mysql
 %{__unzip} %{SOURCE34} -d plugins/ogr-wfs
@@ -120,7 +118,6 @@ done
 %{__unzip} %{SOURCE41} -d plugins/sldservice
 %{__unzip} %{SOURCE42} -d plugins/sqlserver
 %{__unzip} %{SOURCE43} -d plugins/vectortiles
-%{__unzip} %{SOURCE44} -d plugins/wcs2_0-eo
 %{__unzip} %{SOURCE45} -d plugins/web-resource
 %{__unzip} %{SOURCE46} -d plugins/wmts-multi-dimensional
 %{__unzip} %{SOURCE47} -d plugins/wps-cluster-hazelcast
@@ -134,13 +131,13 @@ done
 %{__install} -m 0750 -d %{buildroot}%{geoserver_data}
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
-%{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}/data/geofence
-echo "gwc.context.suffix=gwc" > %{buildroot}%{geoserver_webapp}/data/geofence/geofence-server.properties
+%{__mv} -v %{buildroot}%{geoserver_webapp}/data %{buildroot}%{geoserver_data}
+%{__ln_s} %{geoserver_data}/data %{buildroot}%{geoserver_webapp}
 
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css db2 dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output gwc-s3 h2 imagemap importer jp2k mapml mbstyle metadata mongodb monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles wcs2_0-eo web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar >> geoserver-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -154,14 +151,16 @@ done
 
 
 %post
-%{__cp} -p %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-%{gdal_version}.jar
+# Copy in GDAL jar to a versioned location.
+%{__cp} -p %{_javadir}/gdal/gdal.jar %{geoserver_webapp}/WEB-INF/lib/gdal-$(%{_bindir}/rpm --qf '%%{version}' -q gdal-java).jar
 
 
 %files -f geoserver-libs-uniq.txt
 %doc README.html target/VERSION.txt
 %license license/*.html
 %defattr(-, tomcat, tomcat, -)
-%{geoserver_data}
+%dir %{geoserver_data}
+%dir %{geoserver_data}/data
 %defattr(0664,tomcat,tomcat,0775)
 %{geoserver_webapp}/data
 %{geoserver_webapp}/index.html
@@ -171,6 +170,9 @@ done
 %dir %{geoserver_webapp}/WEB-INF/classes
 %dir %{geoserver_webapp}/WEB-INF/lib
 
+%files data
+%defattr(-, tomcat, tomcat, -)
+%config(noreplace) %{geoserver_data}/data/*
 
 %files -f geoserver-oracle-libs.txt oracle
 %doc plugins/oracle/GEOTOOLS_NOTICE.html plugins/oracle/oracle-readme.txt
