@@ -134,7 +134,6 @@ done
   %{buildroot}%{geonode_root}/venv/bin/py* \
   %{buildroot}%{geonode_root}/venv/bin/rdf* \
   %{buildroot}%{geonode_root}/venv/bin/report* \
-  %{buildroot}%{geonode_root}/venv/bin/shortuuid* \
   %{buildroot}%{geonode_root}/venv/bin/slugify* \
   %{buildroot}%{geonode_root}/venv/bin/sqlformat* \
   %{buildroot}%{geonode_root}/venv/bin/stone* \
@@ -151,9 +150,11 @@ done
   %{buildroot}%{geonode_root}/venv/bin/xml2json* \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/bin/django-admin.py \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/conf/project_template/manage.py-tpl \
-  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/vendor/watchdog_0_9_0/wandb_watchdog/watchmedo.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/rdflib/plugins/parsers/notation3.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/sqlparse/cli.py \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/proto/wandb_internal_codegen.py \
-  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/sqlparse/cli.py
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/sdk/lib/fsm.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/vendor/watchdog_0_9_0/wandb_watchdog/watchmedo.py
 
 # Prevent following error:
 #   failed: mode 100755 Bad magic format `version %%#x (MVP)' (bad format char: #)
