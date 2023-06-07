@@ -1,11 +1,17 @@
+%global geoserver_data %{_sharedstatedir}/geoserver
 %global geonode_home %{_sharedstatedir}/geonode
 %global geonode_logs %{_var}/log/geonode
 %global geonode_root %{_datadir}/geonode
 %global geonode_run /run/geonode
 %global geonode_user geonode
-%global geonode_group %{geonode_user}
+%global geonode_group tomcat
 %global geonode_uid 737
-%global geonode_gid %{geonode_uid}
+%global geonode_gid 53
+
+# The following macros are also required:
+# * geoserver_version
+%global geoserver_version_num %(echo %{geoserver_version} | awk -F- '{ print $1 }')
+%global geoserver_release %(echo %{geoserver_version} | awk -F- '{ print $2 }')
 
 
 Name:           geonode
@@ -15,6 +21,7 @@ Summary:        GeoNode is an open source platform that facilitates the creation
 License:        GPLv3
 URL:            https://geonode.org
 Source0:        https://github.com/GeoNode/geonode/archive/refs/tags/%{version}.tar.gz
+Source1:        https://artifacts.geonode.org/geoserver/%{geoserver_version}/geonode-geoserver-ext-web-app-data.zip
 
 
 BuildRequires:  freetype-devel
@@ -62,9 +69,19 @@ Provides:       bundled(python3-shapely)
 Requires:       postgresql%{postgres_version}
 Requires:       python3-gdal
 
-
 %description
 GeoNode is a web-based application and platform for developing geospatial information systems (GIS) and for deploying spatial data infrastructures (SDI).
+
+
+%package -n geoserver-geonode-data
+BuildArch:      noarch
+Summary:        GeoServer GeoNode Data
+Version:        %{geoserver_version_num}
+Release:        %{geoserver_release}%{?dist}
+Requires:       geoserver = %{geoserver_version}
+
+%description -n geoserver-geonode-data
+GeoServer data for use with a GeoNode instance.
 
 
 %prep
@@ -79,7 +96,10 @@ GeoNode is a web-based application and platform for developing geospatial inform
 --no-binary cffi,gevent,gunicorn,lxml,numpy,psycopg2,pyproj,Pillow,PyYAML,Shapely,uWSGI \
 -v -r requirements.txt
 
+
 %install
+%{__install} -m 0770 -d %{buildroot}%{geoserver_data}
+%{__unzip} %{SOURCE1} -d %{buildroot}%{geoserver_data}
 %{__install} -d -m 0755 \
  %{buildroot}%{_usr}/lib/tmpfiles.d \
  %{buildroot}%{geonode_root}
@@ -172,6 +192,10 @@ done
 %dir %{geonode_logs}
 %dir %{geonode_home}
 %dir %{geonode_run}
+
+%files -n geoserver-geonode-data
+%defattr(0664,tomcat,tomcat,0775)
+%config(noreplace) %{geoserver_data}/data/*
 
 
 %pre

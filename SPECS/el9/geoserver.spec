@@ -148,7 +148,7 @@ done
 
 
 %install
-%{__install} -m 0750 -d %{buildroot}%{geoserver_data}
+%{__install} -m 0770 -d %{buildroot}%{geoserver_data}
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
 %{__mv} -v %{buildroot}%{geoserver_webapp}/data %{buildroot}%{geoserver_data}
@@ -217,7 +217,7 @@ popd
 %dir %{geoserver_webapp}/WEB-INF/lib
 
 %files data
-%defattr(-, tomcat, tomcat, -)
+%defattr(0664,tomcat,tomcat,0775)
 %config(noreplace) %{geoserver_data}/data/*
 
 %files -f geoserver-geofence-libs.txt geofence
