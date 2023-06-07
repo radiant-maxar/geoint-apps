@@ -65,6 +65,7 @@ jobs:
           - mapproxy
           - mod_tile
           - nominatim
+          - nominatim-ui
           - osrm-backend
           - osrm-frontend
           - overpass-api
