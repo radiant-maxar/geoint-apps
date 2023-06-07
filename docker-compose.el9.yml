@@ -50,8 +50,6 @@ x-rpmbuild:
       image: rpmbuild-mod_tile
       version: &mod_tile_version 0.6.1-4
     nominatim:
-      defines:
-        data_archive_snapshot: 20230208112358
       image: rpmbuild-nominatim
       version: &nominatim_version 4.2.3-1
     nominatim-ui:
