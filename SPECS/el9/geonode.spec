@@ -21,7 +21,7 @@ Summary:        GeoNode is an open source platform that facilitates the creation
 License:        GPLv3
 URL:            https://geonode.org
 Source0:        https://github.com/GeoNode/geonode/archive/refs/tags/%{version}.tar.gz
-Source1:        https://artifacts.geonode.org/geoserver/%{geoserver_version}/geonode-geoserver-ext-web-app-data.zip
+Source1:        https://artifacts.geonode.org/geoserver/%{geoserver_version_num}/geonode-geoserver-ext-web-app-data.zip
 
 
 BuildRequires:  freetype-devel
