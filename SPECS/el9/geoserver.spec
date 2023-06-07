@@ -85,7 +85,8 @@ GeoFence is a GeoServer plugin that allows far more advanced security configurat
 %package geonode
 Summary:       GeoServer GeoNode Extension
 License:       ASL 1.1, ASL 2.0, GPLv2, and GPLv3
-Requires:      geoserver = %{version}-%{release}
+Requires:      geoserver-geofence = %{version}-%{release}
+Requires:      geoserver-oracle = %{version}-%{release}
 
 %description geonode
 %{summary}

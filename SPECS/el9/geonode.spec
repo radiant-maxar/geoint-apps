@@ -74,11 +74,12 @@ GeoNode is a web-based application and platform for developing geospatial inform
 
 
 %package -n geoserver-geonode-data
-BuildArch:      noarch
-Summary:        GeoServer GeoNode Data
 Version:        %{geoserver_version_num}
 Release:        %{geoserver_release}%{?dist}
-Requires:       geoserver = %{geoserver_version}
+Summary:        GeoServer GeoNode Data
+BuildArch:      noarch
+Conflicts:      geoserver-data
+Requires:       geoserver-geonode = %{geoserver_version}
 
 %description -n geoserver-geonode-data
 GeoServer data for use with a GeoNode instance.
