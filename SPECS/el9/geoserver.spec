@@ -57,6 +57,7 @@ Source48:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source50:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wps-plugin.zip
 Source51:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-xslt-plugin.zip
 Source52:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-ysld-plugin.zip
+Source60:       https://artifacts.geonode.org/geoserver/%{version}/geoserver.war
 
 %description
 GeoServer is an open source software server written in Java that allows users to share and edit geospatial data.
@@ -81,6 +82,15 @@ Requires:      geoserver = %{version}-%{release}
 GeoFence is a GeoServer plugin that allows far more advanced security configurations than the default GeoServer Security subsystem, such as rules that combine data and service restrictions.
 
 
+%package geonode
+Summary:       GeoServer GeoNode Extension
+License:       ASL 1.1, ASL 2.0, GPLv2, and GPLv3
+Requires:      geoserver = %{version}-%{release}
+
+%description geonode
+%{summary}
+
+
 %package oracle
 Summary:       GeoServer Oracle Extension
 License:       LGPL-2.1 and Oracle FUTC
@@ -92,7 +102,7 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -134,6 +144,7 @@ done
 %{__unzip} %{SOURCE50} -d plugins/wps
 %{__unzip} %{SOURCE51} -d plugins/xslt
 %{__unzip} %{SOURCE52} -d plugins/ysld
+%{__unzip} %{SOURCE60} -d plugins/geonode
 
 
 %install
@@ -171,6 +182,19 @@ popd
 %{__sed} -i -e "s|plugins/geofence|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-geofence-libs.txt
 %{__install} plugins/geofence/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
 
+# Package GeoNode's GeoServer files separately.
+pushd plugins/geonode/WEB-INF/lib
+for jar in $(ls *.jar); do
+    # Remove duplicate jars.
+    if [ -f %{buildroot}%{geoserver_webapp}/WEB-INF/lib/${jar} ]; then
+        %{__rm} ${jar}
+    fi
+done
+popd
+%{_bindir}/find plugins/geonode/WEB-INF/lib -type f -name \*.jar >> geoserver-geonode-libs.txt
+%{__sed} -i -e "s|plugins/geonode/WEB-INF/lib|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-geonode-libs.txt
+%{__install} plugins/geonode/WEB-INF/lib/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
+
 
 %post
 # Copy in GDAL jar to a versioned location.
@@ -199,6 +223,8 @@ popd
 %files -f geoserver-geofence-libs.txt geofence
 %doc plugins/geofence/NOTICE.html
 %license plugins/geofence/GPL.html
+
+%files -f geoserver-geonode-libs.txt geonode
 
 %files -f geoserver-oracle-libs.txt oracle
 %doc plugins/oracle/GEOTOOLS_NOTICE.html plugins/oracle/oracle-readme.txt
