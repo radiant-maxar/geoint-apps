@@ -72,6 +72,15 @@ Requires:      geoserver = %{version}-%{release}
 Default data for use with a GeoServer instance.
 
 
+%package geofence
+Summary:       GeoServer GeoFence Extension
+License:       GPLv2
+Requires:      geoserver = %{version}-%{release}
+
+%description geofence
+GeoFence is a GeoServer plugin that allows far more advanced security configurations than the default GeoServer Security subsystem, such as rules that combine data and service restrictions.
+
+
 %package oracle
 Summary:       GeoServer Oracle Extension
 License:       LGPL-2.1 and Oracle FUTC
@@ -83,7 +92,7 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -97,8 +106,8 @@ done
 %{__unzip} %{SOURCE12} -d plugins/feature-pregeneralized
 %{__unzip} %{SOURCE13} -d plugins/gdal
 %{__unzip} %{SOURCE14} -d plugins/geofence
-%{__unzip} %{SOURCE15} -d plugins/geofence-server
-%{__unzip} %{SOURCE16} -d plugins/geofence-wps
+%{__unzip} -o %{SOURCE15} -d plugins/geofence
+%{__unzip} -o %{SOURCE16} -d plugins/geofence
 %{__unzip} %{SOURCE17} -d plugins/geopkg-output
 %{__unzip} %{SOURCE20} -d plugins/h2
 %{__unzip} %{SOURCE21} -d plugins/imagemap
@@ -137,7 +146,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geofence-server geofence-wps geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar >> geoserver-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
@@ -148,6 +157,19 @@ done
 %{_bindir}/find plugins/oracle -type f -name \*.jar > geoserver-oracle-libs.txt
 %{__sed} -i -e "s|plugins/oracle|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-oracle-libs.txt
 %{__install} plugins/oracle/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
+
+# Package geofence separately as it requires extra configuration.
+pushd plugins/geofence
+for jar in $(ls *.jar); do
+    # Remove duplicate jars.
+    if [ -f %{buildroot}%{geoserver_webapp}/WEB-INF/lib/${jar} ]; then
+        %{__rm} ${jar}
+    fi
+done
+popd
+%{_bindir}/find plugins/geofence -type f -name \*.jar >> geoserver-geofence-libs.txt
+%{__sed} -i -e "s|plugins/geofence|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-geofence-libs.txt
+%{__install} plugins/geofence/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
 
 
 %post
@@ -173,6 +195,10 @@ done
 %files data
 %defattr(-, tomcat, tomcat, -)
 %config(noreplace) %{geoserver_data}/data/*
+
+%files -f geoserver-geofence-libs.txt geofence
+%doc plugins/geofence/NOTICE.html
+%license plugins/geofence/GPL.html
 
 %files -f geoserver-oracle-libs.txt oracle
 %doc plugins/oracle/GEOTOOLS_NOTICE.html plugins/oracle/oracle-readme.txt
