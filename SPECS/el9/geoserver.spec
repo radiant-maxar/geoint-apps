@@ -204,10 +204,6 @@ popd
 %files -f geoserver-libs-uniq.txt
 %doc README.html target/VERSION.txt
 %license license/*.html
-%defattr(-, tomcat, tomcat, -)
-%dir %{geoserver_data}
-%dir %{geoserver_data}/data
-%defattr(0664,tomcat,tomcat,0775)
 %{geoserver_webapp}/data
 %{geoserver_webapp}/index.html
 %{geoserver_webapp}/META-INF
@@ -215,6 +211,9 @@ popd
 %{geoserver_webapp}/WEB-INF/*.xml
 %dir %{geoserver_webapp}/WEB-INF/classes
 %dir %{geoserver_webapp}/WEB-INF/lib
+%defattr(-, tomcat, tomcat, -)
+%dir %{geoserver_data}
+%dir %{geoserver_data}/data
 
 %files data
 %defattr(0664,tomcat,tomcat,0775)
