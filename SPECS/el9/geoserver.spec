@@ -35,7 +35,6 @@ Source17:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source20:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-h2-plugin.zip
 Source21:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-imagemap-plugin.zip
 Source22:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-importer-plugin.zip
-Source24:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-jp2k-plugin.zip
 Source26:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mapml-plugin.zip
 Source27:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-mbstyle-plugin.zip
 Source30:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-monitor-plugin.zip
@@ -103,7 +102,7 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -123,7 +122,6 @@ done
 %{__unzip} %{SOURCE20} -d plugins/h2
 %{__unzip} %{SOURCE21} -d plugins/imagemap
 %{__unzip} %{SOURCE22} -d plugins/importer
-%{__unzip} %{SOURCE24} -d plugins/jp2k
 %{__unzip} %{SOURCE26} -d plugins/mapml
 %{__unzip} %{SOURCE27} -d plugins/mbstyle
 %{__unzip} %{SOURCE30} -d plugins/monitor
@@ -152,13 +150,15 @@ done
 %{__install} -m 0770 -d %{buildroot}%{geoserver_data}
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
+
+# Install GeoServer data into separate location.
 %{__mv} -v %{buildroot}%{geoserver_webapp}/data %{buildroot}%{geoserver_data}
 %{__ln_s} %{geoserver_data}/data %{buildroot}%{geoserver_webapp}
 
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer jp2k mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar >> geoserver-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
