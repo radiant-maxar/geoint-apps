@@ -13,6 +13,13 @@
 %global geoserver_version_num %(echo %{geoserver_version} | awk -F- '{ print $1 }')
 %global geoserver_release %(echo %{geoserver_version} | awk -F- '{ print $2 }')
 
+# Exclude provides/requires gathering from parts of embedded venv.
+%global __provides_exclude_from ^%{geonode_root}/venv/.*$
+%global __requires_exclude_from ^%{geonode_root}/venv/bin/.*$
+
+# Prevent duplicate build-ids from copied python3 binary in venv.
+%global _build_id_links none
+
 
 Name:           geonode
 Version:        %{rpmbuild_version}
@@ -22,7 +29,6 @@ License:        GPLv3
 URL:            https://geonode.org
 Source0:        https://github.com/GeoNode/geonode/archive/refs/tags/%{version}.tar.gz
 Source1:        https://artifacts.geonode.org/geoserver/%{geoserver_version_num}/geonode-geoserver-ext-web-app-data.zip
-
 
 BuildRequires:  freetype-devel
 BuildRequires:  gcc
@@ -35,6 +41,7 @@ BuildRequires:  lcms2-devel
 BuildRequires:  libffi-devel
 BuildRequires:  libimagequant-devel
 BuildRequires:  libjpeg-devel
+BuildRequires:  libmemcached-awesome-devel
 BuildRequires:  libraqm-devel
 BuildRequires:  libtiff-devel
 BuildRequires:  libwebp-devel
@@ -58,13 +65,17 @@ BuildRequires:  zlib-devel
 
 Provides:       bundled(python3-cffi)
 Provides:       bundled(python3-gevent)
+Provides:       bundled(python3-google-crc32c)
 Provides:       bundled(python3-gunicorn)
 Provides:       bundled(python3-lxml)
 Provides:       bundled(python3-numpy)
+Provides:       bundled(python3-pillow)
 Provides:       bundled(python3-psycopg2)
+Provides:       bundled(python3-pylibmc)
 Provides:       bundled(python3-pyproj)
 Provides:       bundled(python3-PyYAML)
 Provides:       bundled(python3-shapely)
+Provides:       bundled(uwsgi)
 
 Requires:       postgresql%{postgres_version}
 Requires:       python3-gdal
@@ -94,7 +105,7 @@ GeoServer data for use with a GeoNode instance.
 ./venv/bin/python3 -m pip install pip --upgrade
 ./venv/bin/python3 -m pip install setuptools wheel --upgrade
 ./venv/bin/python3 -m pip install \
---no-binary cffi,gevent,gunicorn,lxml,numpy,psycopg2,pyproj,Pillow,PyYAML,Shapely,uWSGI \
+--no-binary cffi,gevent,google-crc32c,gunicorn,lxml,numpy,psycopg2,pylibmc,pyproj,Pillow,PyYAML,Shapely,uWSGI \
 -v -r requirements.txt
 
 
@@ -129,46 +140,24 @@ done
   -e '1s|#!/usr/bin/env python|#!%{geonode_root}/venv/bin/python3|' \
   -e '1s|#!/.*/venv/bin/python3|#!%{geonode_root}/venv/bin/python3|' \
   %{buildroot}%{geonode_root}/venv/bin/automat* \
-  %{buildroot}%{geonode_root}/venv/bin/celery* \
-  %{buildroot}%{geonode_root}/venv/bin/cftp* \
-  %{buildroot}%{geonode_root}/venv/bin/ckeygen* \
-  %{buildroot}%{geonode_root}/venv/bin/con* \
-  %{buildroot}%{geonode_root}/venv/bin/coverage* \
-  %{buildroot}%{geonode_root}/venv/bin/create* \
-  %{buildroot}%{geonode_root}/venv/bin/csv2rdf* \
-  %{buildroot}%{geonode_root}/venv/bin/django-admin* \
-  %{buildroot}%{geonode_root}/venv/bin/dotenv* \
-  %{buildroot}%{geonode_root}/venv/bin/f2py* \
-  %{buildroot}%{geonode_root}/venv/bin/faker* \
-  %{buildroot}%{geonode_root}/venv/bin/flake* \
-  %{buildroot}%{geonode_root}/venv/bin/futurize* \
-  %{buildroot}%{geonode_root}/venv/bin/geolinks* \
-  %{buildroot}%{geonode_root}/venv/bin/gunicorn* \
-  %{buildroot}%{geonode_root}/venv/bin/inv* \
-  %{buildroot}%{geonode_root}/venv/bin/ipython* \
-  %{buildroot}%{geonode_root}/venv/bin/jp.py* \
-  %{buildroot}%{geonode_root}/venv/bin/jsonschema* \
-  %{buildroot}%{geonode_root}/venv/bin/ma* \
-  %{buildroot}%{geonode_root}/venv/bin/normalizer* \
-  %{buildroot}%{geonode_root}/venv/bin/pasteurize* \
+  %{buildroot}%{geonode_root}/venv/bin/b* \
+  %{buildroot}%{geonode_root}/venv/bin/c* \
+  %{buildroot}%{geonode_root}/venv/bin/d* \
+  %{buildroot}%{geonode_root}/venv/bin/f* \
+  %{buildroot}%{geonode_root}/venv/bin/g* \
+  %{buildroot}%{geonode_root}/venv/bin/i* \
+  %{buildroot}%{geonode_root}/venv/bin/j* \
+  %{buildroot}%{geonode_root}/venv/bin/m* \
+  %{buildroot}%{geonode_root}/venv/bin/n* \
+  %{buildroot}%{geonode_root}/venv/bin/pa* \
   %{buildroot}%{geonode_root}/venv/bin/pip* \
   %{buildroot}%{geonode_root}/venv/bin/py* \
-  %{buildroot}%{geonode_root}/venv/bin/rdf* \
-  %{buildroot}%{geonode_root}/venv/bin/report* \
-  %{buildroot}%{geonode_root}/venv/bin/slugify* \
-  %{buildroot}%{geonode_root}/venv/bin/sqlformat* \
-  %{buildroot}%{geonode_root}/venv/bin/stone* \
-  %{buildroot}%{geonode_root}/venv/bin/tkconch* \
-  %{buildroot}%{geonode_root}/venv/bin/tldextract* \
-  %{buildroot}%{geonode_root}/venv/bin/tqdm* \
-  %{buildroot}%{geonode_root}/venv/bin/trial* \
-  %{buildroot}%{geonode_root}/venv/bin/twist* \
-  %{buildroot}%{geonode_root}/venv/bin/uwsgi* \
-  %{buildroot}%{geonode_root}/venv/bin/wandb* \
-  %{buildroot}%{geonode_root}/venv/bin/wb* \
-  %{buildroot}%{geonode_root}/venv/bin/wheel* \
-  %{buildroot}%{geonode_root}/venv/bin/wsdump* \
-  %{buildroot}%{geonode_root}/venv/bin/xml2json* \
+  %{buildroot}%{geonode_root}/venv/bin/r* \
+  %{buildroot}%{geonode_root}/venv/bin/s* \
+  %{buildroot}%{geonode_root}/venv/bin/t* \
+  %{buildroot}%{geonode_root}/venv/bin/u* \
+  %{buildroot}%{geonode_root}/venv/bin/w* \
+  %{buildroot}%{geonode_root}/venv/bin/x* \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/bin/django-admin.py \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/conf/project_template/manage.py-tpl \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/rdflib/plugins/parsers/notation3.py \
@@ -177,11 +166,18 @@ done
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/sdk/lib/fsm.py \
   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/vendor/watchdog_0_9_0/wandb_watchdog/watchmedo.py
 
-# Prevent following error:
+# Prevent following error and trying to provide python3 from venv.
 #   failed: mode 100755 Bad magic format `version %%#x (MVP)' (bad format char: #)
 %{__chmod} a-x \
-   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/geonode_mapstore_client/static/mapstore/dist/cesium/ThirdParty/basis_transcoder.wasm \
-   %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/geonode_mapstore_client/static/mapstore/dist/cesium/ThirdParty/draco_decoder.wasm
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/bin/django-admin.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/django/conf/project_template/manage.py-tpl \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/geonode_mapstore_client/static/mapstore/dist/cesium/ThirdParty/basis_transcoder.wasm \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/geonode_mapstore_client/static/mapstore/dist/cesium/ThirdParty/draco_decoder.wasm \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/rdflib/plugins/parsers/notation3.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/sqlparse/cli.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/proto/wandb_internal_codegen.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/sdk/lib/fsm.py \
+  %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/wandb/vendor/watchdog_0_9_0/wandb_watchdog/watchmedo.py
 
 
 %files
