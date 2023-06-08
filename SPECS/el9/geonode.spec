@@ -90,7 +90,7 @@ Release:        %{geoserver_release}%{?dist}
 Summary:        GeoServer GeoNode Data
 BuildArch:      noarch
 Conflicts:      geoserver-data
-Requires:       geoserver-geonode = %{geoserver_version}
+Requires:       geoserver-geonode = %{geoserver_version}%{?dist}
 
 %description -n geoserver-geonode-data
 GeoServer data for use with a GeoNode instance.
