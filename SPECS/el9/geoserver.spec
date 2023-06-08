@@ -51,7 +51,6 @@ Source42:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source43:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-vectortiles-plugin.zip
 Source45:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-web-resource-plugin.zip
 Source46:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wmts-multi-dimensional-plugin.zip
-Source47:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wps-cluster-hazelcast-plugin.zip
 Source48:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wps-download-plugin.zip
 Source50:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-wps-plugin.zip
 Source51:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-xslt-plugin.zip
@@ -102,7 +101,7 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
@@ -138,7 +137,6 @@ done
 %{__unzip} %{SOURCE43} -d plugins/vectortiles
 %{__unzip} %{SOURCE45} -d plugins/web-resource
 %{__unzip} %{SOURCE46} -d plugins/wmts-multi-dimensional
-%{__unzip} %{SOURCE47} -d plugins/wps-cluster-hazelcast
 %{__unzip} %{SOURCE48} -d plugins/wps-download
 %{__unzip} %{SOURCE50} -d plugins/wps
 %{__unzip} %{SOURCE51} -d plugins/xslt
@@ -158,7 +156,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-cluster-hazelcast wps-download wps xslt ysld; do
+for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-download wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar >> geoserver-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
