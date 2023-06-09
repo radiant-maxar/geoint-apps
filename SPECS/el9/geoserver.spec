@@ -56,6 +56,11 @@ Source50:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{versio
 Source51:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-xslt-plugin.zip
 Source52:       %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-ysld-plugin.zip
 Source60:       https://artifacts.geonode.org/geoserver/%{version}/geoserver.war
+# These libraries are necessary for GeoFence server plugin to work and were extracted from the
+# geonode/geoserver:2.23.1 docker image:
+#  https://osgeo-org.atlassian.net/jira/core/projects/GEOS/issues/GEOS-9548
+Source61:       https://geoint-deps.s3.amazonaws.com/support-files/hibernate-spatial-postgis-1.1.3.2.jar
+Source62:       https://geoint-deps.s3.amazonaws.com/support-files/postgis-jdbc-1.3.3.jar
 
 %description
 GeoServer is an open source software server written in Java that allows users to share and edit geospatial data.
@@ -180,6 +185,9 @@ popd
 %{_bindir}/find plugins/geofence -type f -name \*.jar >> geoserver-geofence-libs.txt
 %{__sed} -i -e "s|plugins/geofence|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-geofence-libs.txt
 %{__install} plugins/geofence/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
+%{__install} %{SOURCE61} %{SOURCE62} %{buildroot}%{geoserver_webapp}/WEB-INF/lib
+echo "%{geoserver_webapp}/WEB-INF/lib/$(basename %{SOURCE61})" >> geoserver-geofence-libs.txt
+echo "%{geoserver_webapp}/WEB-INF/lib/$(basename %{SOURCE62})" >> geoserver-geofence-libs.txt
 
 # Package GeoNode's GeoServer files separately.
 pushd plugins/geonode/WEB-INF/lib
