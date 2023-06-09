@@ -213,6 +213,7 @@ popd
 %defattr(-, tomcat, tomcat, -)
 %dir %{geoserver_data}
 %dir %{geoserver_data}/data
+%defattr(-, root, root, -)
 
 %files data
 %defattr(0664,tomcat,tomcat,0775)
