@@ -20,7 +20,6 @@ Requires:       tomcat
 Source0:        %{geoserver_source_url}/%{version}/geoserver-%{version}-war.zip
 Source1:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-app-schema-plugin.zip
 Source2:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-authkey-plugin.zip
-Source3:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-cas-plugin.zip
 Source4:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-charts-plugin.zip
 Source5:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-control-flow-plugin.zip
 Source6:        %{geoserver_source_url}/%{version}/extensions/geoserver-%{version}-css-plugin.zip
@@ -106,12 +105,11 @@ Requires:      geoserver = %{version}-%{release}
 
 %prep
 %autosetup -c
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-download wps xslt ysld; do
+for plugin in app-schema authkey charts control-flow css dxf excel feature-pregeneralized gdal geofence geopkg-output geonode h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-download wps xslt ysld; do
     %{__mkdir_p} plugins/${plugin}
 done
 %{__unzip} %{SOURCE1}  -d plugins/app-schema
 %{__unzip} %{SOURCE2}  -d plugins/authkey
-%{__unzip} %{SOURCE3}  -d plugins/cas
 %{__unzip} %{SOURCE4}  -d plugins/charts
 %{__unzip} %{SOURCE5}  -d plugins/control-flow
 %{__unzip} %{SOURCE6}  -d plugins/css
@@ -161,7 +159,7 @@ done
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
 
-for plugin in app-schema authkey cas charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-download wps xslt ysld; do
+for plugin in app-schema authkey charts control-flow css dxf excel feature-pregeneralized gdal geopkg-output h2 imagemap importer mapml mbstyle monitor mysql ogr-wfs ogr-wps params-extractor printing pyramid querylayer sldservice sqlserver vectortiles web-resource wmts-multi-dimensional wps-download wps xslt ysld; do
     %{_bindir}/find plugins/${plugin} -type f -name \*.jar >> geoserver-libs.txt
     %{__sed} -i -e "s|plugins/${plugin}|%{geoserver_webapp}/WEB-INF/lib|g" geoserver-libs.txt
     %{__install} plugins/${plugin}/*.jar %{buildroot}%{geoserver_webapp}/WEB-INF/lib
