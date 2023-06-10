@@ -28,9 +28,11 @@ x-rpmbuild:
   # Configuration for building every application RPM.
   rpms:
     geoserver:
+      arch: noarch
       image: rpmbuild-generic
       version: &geoserver_version 2.23.1-1
     geoserver-geonode-data:
+      arch: noarch
       image: rpmbuild-generic
       version: *geoserver_version
     mapproxy:
