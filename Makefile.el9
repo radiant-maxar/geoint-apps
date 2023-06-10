@@ -39,6 +39,8 @@ RPMBUILD_UID := $(shell id -u)
 RPMBUILD_GID := $(shell id -g)
 
 # RPM files at desired versions.
+GEOSERVER_RPM := $(call rpm_file,geoserver)
+GEOSERVER_GEONODE_DATA_RPM := $(call rpm_file,geoserver-geonode-data)
 MAPPROXY_RPM := $(call rpm_file,mapproxy)
 MOD_TILE_RPM := $(call rpm_file,mod_tile)
 NOMINATIM_RPM := $(call rpm_file,nominatim)
@@ -53,6 +55,8 @@ RPMBUILD_BASE_IMAGES := \
 	rpmbuild \
 	rpmbuild-generic
 RPMBUILD_RPMS := \
+	geoserver \
+	geoserver-geonode-data \
 	mapproxy \
 	mod_tile \
 	nominatim \
@@ -119,6 +123,8 @@ rpmbuild-generic: rpmbuild
 
 
 ## RPM targets
+geoserver: $(GEOSERVER_RPM)
+geoserver-geonode-data: $(GEOSERVER_GEONODE_DATA_RPM)
 mapproxy: $(MAPPROXY_RPM)
 mod_tile: $(MOD_TILE_RPM)
 nominatim: $(NOMINATIM_RPM)

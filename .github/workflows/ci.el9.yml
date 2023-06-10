@@ -60,6 +60,8 @@ jobs:
       fail-fast: false
       matrix:
         rpm:
+          - geoserver
+          - geoserver-geonode-data
           - mapproxy
           - mod_tile
           - nominatim

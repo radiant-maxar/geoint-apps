@@ -10,6 +10,7 @@ SOURCES/el?/*.asc
 SOURCES/el?/*.bz2
 SOURCES/el?/*.gem
 SOURCES/el?/*.gz
+SOURCES/el?/*.jar
 SOURCES/el?/*.pbf
 SOURCES/el?/*.pdf
 SOURCES/el?/*.sha256
