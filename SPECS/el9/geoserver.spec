@@ -317,6 +317,8 @@ EOF
 %files -f geoserver-libs-uniq.txt
 %doc README.html target/VERSION.txt
 %license license/*.html
+# Exclude duplicate JAR from community plugin.
+%exclude %{geoserver_webapp}/WEB-INF/lib/bcprov-jdk15-1.46.jar
 %{geoserver_webapp}/data
 %{geoserver_webapp}/index.html
 %{geoserver_webapp}/META-INF
