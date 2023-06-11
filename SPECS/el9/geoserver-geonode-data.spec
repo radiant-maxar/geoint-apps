@@ -20,6 +20,7 @@ GeoServer data for use with a GeoNode instance.
 %install
 %{__install} -d %{buildroot}%{geoserver_data}
 %{__unzip} %{SOURCE0} -d %{buildroot}%{geoserver_data}
+%{_bindir}/touch %{buildroot}%{geoserver_data}/data/s3.properties
 
 
 %files

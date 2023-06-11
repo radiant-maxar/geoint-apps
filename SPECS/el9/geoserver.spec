@@ -72,6 +72,15 @@ Source60:       https://artifacts.geonode.org/geoserver/%{version}/geoserver.war
 Source61:       https://maven.geo-solutions.it/org/hibernatespatial/hibernate-spatial-postgis/1.1.3.2/hibernate-spatial-postgis-1.1.3.2.jar
 Source62:       https://repo1.maven.org/maven2/org/postgis/postgis-jdbc/1.3.3/postgis-jdbc-1.3.3.jar
 
+# XXX: The Spring 5.7.8 release breaks OAuth2 authentication with GeoServer and
+# unfortunately to keep auth functionality we have to keep vulnerable libraries in place:
+#  https://github.com/GeoNode/geoserver-geonode-ext/issues/170
+Source63:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-config/5.7.7/spring-security-config-5.7.7.jar
+Source64:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-core/5.7.7/spring-security-core-5.7.7.jar
+Source65:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-crypto/5.7.7/spring-security-crypto-5.7.7.jar
+Source66:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-web/5.7.7/spring-security-web-5.7.7.jar
+Source67:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-ldap/5.7.7/spring-security-ldap-5.7.7.jar
+
 # Community plugins.
 Source99:       %{geoserver_community_url}-backup-restore-plugin.zip
 Source100:      %{geoserver_community_url}-gdal-wcs-plugin.zip
@@ -175,6 +184,9 @@ done
 %{__unzip} -o %{SOURCE108} -d plugins/oauth2
 %{__unzip} -o %{SOURCE109} -d plugins/oauth2
 %{__unzip} -o %{SOURCE110} -d plugins/oauth2
+# XXX: Replace spring-security components
+%{__rm} -v plugins/oauth2/spring-security-{config,core,crypto,web}-5.7.8.jar
+%{__cp} -pv %{SOURCE63} %{SOURCE64} %{SOURCE65} %{SOURCE66} plugins/oauth2
 %{__unzip} %{SOURCE105} -d plugins/saml
 %{__unzip} %{SOURCE104} -d plugins/s3-geotiff
 %{__unzip} %{SOURCE41} -d plugins/sldservice
@@ -199,10 +211,14 @@ done
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__install} -m 0755 -d %{buildroot}%{tomcat_confd}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
+# XXX: Replace spring-security-ldap component
+%{__rm} -v %{buildroot}%{geoserver_webapp}/WEB-INF/lib/spring-security-ldap-5.7.8.jar
+%{__install} -m 0644 %{SOURCE67} %{buildroot}%{geoserver_webapp}/WEB-INF/lib
 
 # Install GeoServer data into separate location.
 %{__mv} -v %{buildroot}%{geoserver_webapp}/data %{buildroot}%{geoserver_data}
 %{__ln_s} %{geoserver_data}/data %{buildroot}%{geoserver_webapp}
+%{_bindir}/touch %{buildroot}%{geoserver_data}/data/s3.properties
 
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
 %{__sed} -i -e 's|%{buildroot}||g' geoserver-libs.txt
@@ -252,12 +268,17 @@ popd
 
 # Create Tomcat configuration file that will set up the environment.
 cat >> %{buildroot}%{tomcat_confd}/geoserver.conf <<EOF
+# Necessary for GDAL plugins.
+GDAL_DATA="\${GDAL_DATA:-%{_datadir}/gdal}"
+export GDAL_DATA
+
 GEOSERVER_DATA_DIR="\${GEOSERVER_DATA_DIR:-%{geoserver_data}/data}"
 export GEOSERVER_DATA_DIR
 
 GEOSERVER_ENCODING="\${GEOSERVER_ENCODING:-UTF-8}"
 export GEOSERVER_ENCODING
 
+# Necessary to load GDAL via JNI
 LD_LIBRARY_PATH="\${LD_LIBRARY_PATH:-%{_usr}/lib/java/gdal:%{_libdir}}"
 export LD_LIBRARY_PATH
 
@@ -280,6 +301,7 @@ JDK_JAVA_OPTIONS="\${JDK_JAVA_OPTIONS} \\
 -Duser.language=\${GEOSERVER_LANGUAGE:-en} \\
 -Duser.region=\${GEOSERVER_REGION:-US} \\
 -Duser.country=\${GEOSERVER_COUNTRY:-US} \\
+-Ds3.properties.location=\${GEOSERVER_S3_PROPERTIES_LOCATION:-\${GEOSERVER_DATA_DIR}/s3.properties} \\
 -Dsun.java2d.renderer.pixelsize=8192 \\
 -Dsun.java2d.renderer.useThreadLocal=false \\
 -Dsun.java2d.renderer=org.marlin.pisces.PiscesRenderingEngine \\
