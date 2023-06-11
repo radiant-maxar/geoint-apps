@@ -5,8 +5,8 @@ Version:        %{rpmbuild_version}
 Release:        %{rpmbuild_release}%{?dist}
 BuildArch:      noarch
 Summary:        GeoServer GeoNode Data
-License:        GPLv3
-URL:            https://geonode.org
+License:        Public Domain
+URL:            https://github.com/GeoNode/geoserver-geonode-ext
 Source0:        https://artifacts.geonode.org/geoserver/%{version}/geonode-geoserver-ext-web-app-data.zip
 
 Conflicts:      geoserver-data

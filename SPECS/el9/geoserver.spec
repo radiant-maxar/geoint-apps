@@ -72,8 +72,9 @@ Source60:       https://artifacts.geonode.org/geoserver/%{version}/geoserver.war
 Source61:       https://maven.geo-solutions.it/org/hibernatespatial/hibernate-spatial-postgis/1.1.3.2/hibernate-spatial-postgis-1.1.3.2.jar
 Source62:       https://repo1.maven.org/maven2/org/postgis/postgis-jdbc/1.3.3/postgis-jdbc-1.3.3.jar
 
-# XXX: The Spring 5.7.8 release breaks OAuth2 authentication with GeoServer and
-# unfortunately to keep auth functionality we have to keep vulnerable libraries in place:
+# XXX: The Spring 5.7.8 release breaks OAuth2 authentication with GeoServer
+# and unfortunately to keep auth functionality we have to keep libraries
+# vulnerable to CVE-2023-20862 in place:
 #  https://github.com/GeoNode/geoserver-geonode-ext/issues/170
 Source63:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-config/5.7.7/spring-security-config-5.7.7.jar
 Source64:       https://repo1.maven.org/maven2/org/springframework/security/spring-security-core/5.7.7/spring-security-core-5.7.7.jar
@@ -184,9 +185,6 @@ done
 %{__unzip} -o %{SOURCE108} -d plugins/oauth2
 %{__unzip} -o %{SOURCE109} -d plugins/oauth2
 %{__unzip} -o %{SOURCE110} -d plugins/oauth2
-# XXX: Replace spring-security components
-%{__rm} -v plugins/oauth2/spring-security-{config,core,crypto,web}-5.7.8.jar
-%{__cp} -pv %{SOURCE63} %{SOURCE64} %{SOURCE65} %{SOURCE66} plugins/oauth2
 %{__unzip} %{SOURCE105} -d plugins/saml
 %{__unzip} %{SOURCE104} -d plugins/s3-geotiff
 %{__unzip} %{SOURCE41} -d plugins/sldservice
@@ -201,6 +199,9 @@ done
 %{__unzip} -o %{SOURCE50} -d plugins/wps
 %{__unzip} %{SOURCE51} -d plugins/xslt
 %{__unzip} %{SOURCE52} -d plugins/ysld
+# XXX: Replace spring-security components
+%{__cp} -pv %{SOURCE63} %{SOURCE64} %{SOURCE65} %{SOURCE66} plugins/oauth2
+%{_bindir}/find plugins -type f -name \*spring-security-\*5.7.8\*.jar -print -delete
 
 
 %install
@@ -211,13 +212,13 @@ done
 %{__install} -m 0775 -d %{buildroot}%{geoserver_webapp}
 %{__install} -m 0755 -d %{buildroot}%{tomcat_confd}
 %{__unzip} geoserver.war -d %{buildroot}%{geoserver_webapp}
-# XXX: Replace spring-security-ldap component
-%{__rm} -v %{buildroot}%{geoserver_webapp}/WEB-INF/lib/spring-security-ldap-5.7.8.jar
+
+# XXX: Replace spring-security components
+%{_bindir}/find %{buildroot} -type f -name \*spring-security-\*5.7.8\*.jar -print -delete
 %{__install} -m 0644 %{SOURCE67} %{buildroot}%{geoserver_webapp}/WEB-INF/lib
 
 # Install GeoServer data into separate location.
 %{__mv} -v %{buildroot}%{geoserver_webapp}/data %{buildroot}%{geoserver_data}
-%{__ln_s} %{geoserver_data}/data %{buildroot}%{geoserver_webapp}
 %{_bindir}/touch %{buildroot}%{geoserver_data}/data/s3.properties
 
 %{_bindir}/find %{buildroot}%{geoserver_webapp}/WEB-INF/lib -type f -name \*.jar > geoserver-libs.txt
@@ -341,7 +342,6 @@ EOF
 %license license/*.html
 # Exclude duplicate JAR from community plugin.
 %exclude %{geoserver_webapp}/WEB-INF/lib/bcprov-jdk15-1.46.jar
-%{geoserver_webapp}/data
 %{geoserver_webapp}/index.html
 %{geoserver_webapp}/META-INF
 %{tomcat_confd}/geoserver.conf
