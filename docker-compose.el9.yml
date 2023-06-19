@@ -27,6 +27,9 @@ x-rpmbuild:
     rpmbuild_image: rpmbuild
   # Configuration for building every application RPM.
   rpms:
+    geonode:
+      image: rpmbuild-geonode
+      version: &geonode_version 4.1.0-1
     mapproxy:
       defines:
         gevent_version: 22.10.2
@@ -44,8 +47,6 @@ x-rpmbuild:
       image: rpmbuild-mod_tile
       version: &mod_tile_version 0.6.1-4
     nominatim:
-      defines:
-        data_archive_snapshot: 20230208112358
       image: rpmbuild-nominatim
       version: &nominatim_version 4.2.3-1
     nominatim-ui:
@@ -102,6 +103,16 @@ services:
         <<: *build_args_defaults
     image: ${IMAGE_PREFIX}rpmbuild-generic
   # RPM images
+  rpmbuild-geonode:
+    <<: *service_defaults
+    build:
+      <<: *build_defaults
+      args:
+        <<: *build_args_defaults
+        packages: ${RPMBUILD_GEONODE_PACKAGES}
+        postgres_version: *postgres_version
+        rpmbuild_image: rpmbuild-generic
+      dockerfile: docker/el9/Dockerfile.rpmbuild-geonode
   rpmbuild-mapproxy:
     <<: *service_defaults
     build:

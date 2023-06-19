@@ -60,6 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         rpm:
+          - geonode
           - mapproxy
           - mod_tile
           - nominatim
