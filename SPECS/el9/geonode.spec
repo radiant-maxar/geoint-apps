@@ -95,9 +95,12 @@ GeoNode is a web-based application and platform for developing geospatial inform
 %install
 %{__install} -d -m 0755 \
  %{buildroot}%{_usr}/lib/tmpfiles.d \
- %{buildroot}%{geonode_root}
-%{__install} -d -m 0750 \
+ %{buildroot}%{geonode_root} \
  %{buildroot}%{geonode_home} \
+ %{buildroot}%{geonode_home}/static \
+ %{buildroot}%{geonode_home}/uploaded \
+ %{buildroot}%{geonode_home}/wsgi
+%{__install} -d -m 0750 \
  %{buildroot}%{geonode_logs} \
  %{buildroot}%{geonode_run}
 
@@ -106,7 +109,7 @@ echo "d %{geonode_run} 0750 %{geonode_user} %{geonode_group} -" > \
        %{buildroot}%{_usr}/lib/tmpfiles.d/%{name}.conf
 
 # Copy module and virtual environment.
-for dir in geonode venv; do
+for dir in geonode manage.py pavement.py pyproject.toml pytest.ini requirements*.txt setup.cfg setup.py tasks.py uwsgi.ini venv; do
     %{__cp} -rp ${dir} %{buildroot}%{geonode_root}/${dir}
 done
 
@@ -124,6 +127,7 @@ done
 %{__sed} -i \
   -e '1s|#!/usr/bin/env python|#!%{geonode_root}/venv/bin/python3|' \
   -e '1s|#!/.*/venv/bin/python3|#!%{geonode_root}/venv/bin/python3|' \
+  %{buildroot}%{geonode_root}/manage.py \
   %{buildroot}%{geonode_root}/venv/bin/automat* \
   %{buildroot}%{geonode_root}/venv/bin/b* \
   %{buildroot}%{geonode_root}/venv/bin/c* \
@@ -167,12 +171,12 @@ done
 
 %files
 %doc AUTHORS README.md SECURITY.md
-%license license.txt
+%license LICENSE license.txt
 %{geonode_root}
 %{_usr}/lib/tmpfiles.d/%{name}.conf
 %defattr(-, %{geonode_user}, %{geonode_group}, -)
+%{geonode_home}
 %dir %{geonode_logs}
-%dir %{geonode_home}
 %dir %{geonode_run}
 
 
