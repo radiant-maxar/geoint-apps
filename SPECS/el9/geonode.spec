@@ -90,7 +90,6 @@ GeoNode is a web-based application and platform for developing geospatial inform
 ./venv/bin/python3 -m pip install \
   --no-binary cffi,gevent,google-crc32c,gunicorn,lxml,numpy,psycopg2,pylibmc,pyproj,Pillow,PyYAML,Shapely,uWSGI \
   -v -r requirements.txt
-./venv/bin/python3 -m pip install -e .
 
 
 %install
@@ -111,12 +110,9 @@ for dir in geonode venv; do
     %{__cp} -rp ${dir} %{buildroot}%{geonode_root}/${dir}
 done
 
-%{__mv} -v \
- %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/GeoNode-%{version}.dev0.dist-info \
- %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/GeoNode-%{version}.dist-info
-%{_bindir}/cat > %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages/GeoNode-%{version}.dist-info/direct_url.json <<EOF
-{"dir_info": {"editable": true}, "url": "file://%{geonode_root}/geonode"}
-EOF
+# Link geonode module into the virtual environment site modules.
+%{__ln_s} %{geonode_root}/geonode \
+ %{buildroot}%{geonode_root}/venv/lib/python%{__default_python3_version}/site-packages
 
 # Ensure VIRTUAL_ENV points to the installed location in activation scripts.
 %{__sed} -i -e 's|^VIRTUAL_ENV=.*|VIRTUAL_ENV="%{geonode_root}/venv"|g' \
