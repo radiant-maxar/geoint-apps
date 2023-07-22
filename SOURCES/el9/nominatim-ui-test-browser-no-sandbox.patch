@@ -2,9 +2,9 @@ diff --git a/test/_bootstrap.js b/test/_bootstrap.js
 index ad7733a..66ad9e0 100644
 --- a/test/_bootstrap.js
 +++ b/test/_bootstrap.js
-@@ -65,7 +65,8 @@ Nominatim_Config.Reverse_Only = ${reverse_only};
-     timeout: 10000,
+@@ -66,7 +66,8 @@ Nominatim_Config.Reverse_Only = ${reverse_only};
      // latency: 1000,
+     headless: 'new',
      args: [
 -      '--user-agent=Nominatim UI test suite Mozilla/5.0 Gecko/20100101 HeadlessChrome/90.0'
 +      '--user-agent=Nominatim UI test suite Mozilla/5.0 Gecko/20100101 HeadlessChrome/90.0',
