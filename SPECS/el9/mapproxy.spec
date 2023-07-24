@@ -31,6 +31,7 @@ License:        ASL 2.0
 URL:            https://mapproxy.org/
 Source0:        https://github.com/mapproxy/mapproxy/archive/refs/tags/%{version}/%{name}-%{version}.tar.gz
 Patch0:         mapproxy-tests-el9.patch
+Patch1:         mapproxy-pyproj.patch
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
