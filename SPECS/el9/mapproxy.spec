@@ -31,7 +31,6 @@ License:        ASL 2.0
 URL:            https://mapproxy.org/
 Source0:        https://github.com/mapproxy/mapproxy/archive/refs/tags/%{version}/%{name}-%{version}.tar.gz
 Patch0:         mapproxy-tests-el9.patch
-Patch1:         mapproxy-pyproj.patch
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
@@ -211,6 +210,13 @@ EOF
 
 
 %check
+# Don't install different requirements for tests.
+%{__sed} -i \
+ -e '/^Shapely==/d' \
+ -e '/^pyproj==/d' \
+ -e '/^PyYAML==/d' \
+ -e '/^redis==/d' \
+ requirements-tests.txt
 ./venv/bin/pip3 install -r requirements-tests.txt
 ./venv/bin/pytest -v mapproxy
 
