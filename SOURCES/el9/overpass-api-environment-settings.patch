@@ -12,8 +12,8 @@ index bd3edf1a..d6d46643 100644
  #include <sstream>
 @@ -101,6 +102,8 @@ Basic_Settings::Basic_Settings()
    shared_name_base("/osm3s"),
-   version("0.7.61.2"),
-   source_hash("bd0cdeae7ca855a4638b3c76f8165af77562141e"),
+   version("0.7.61.4"),
+   source_hash("df4c946ab8ee4fb6cb6b6d548da5290aea8d5b60"),
 +  enclave(getenv("OVERPASS_API_ENCLAVE") ? getenv("OVERPASS_API_ENCLAVE") : "www.openstreetmap.org"),
 +  generator_note(getenv("OVERPASS_API_GENERATOR_NOTE") ? getenv("OVERPASS_API_GENERATOR_NOTE") : ""),
  #ifdef HAVE_LZ4
