@@ -35,7 +35,7 @@ x-rpmbuild:
         pyproj_version: 3.6.0.post1
         pyredis_version: 4.6.0
         pyyaml_version: 6.0.1
-        shapely_version: 2.0.1
+        shapely_version: 1.8.5.post1
       image: rpmbuild-mapproxy
       version: &mapproxy_version 1.16.0-2
     mod_tile:
