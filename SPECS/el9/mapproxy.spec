@@ -80,7 +80,7 @@ python3 -m venv --system-site-packages venv
   gevent==%{gevent_version} \
   gunicorn==%{gunicorn_version} \
   numpy==%{numpy_version} \
-  pyproj==%{pyproj_version} \
+  https://github.com/radiant-maxar/pyproj/archive/%{pyproj_version}.zip \
   PyYAML==%{pyyaml_version} \
   redis==%{pyredis_version} \
   shapely==%{shapely_version} \
@@ -210,6 +210,13 @@ EOF
 
 
 %check
+# Don't install different requirements for tests.
+%{__sed} -i \
+ -e '/^Shapely==/d' \
+ -e '/^pyproj==/d' \
+ -e '/^PyYAML==/d' \
+ -e '/^redis==/d' \
+ requirements-tests.txt
 ./venv/bin/pip3 install -r requirements-tests.txt
 ./venv/bin/pytest -v mapproxy
 

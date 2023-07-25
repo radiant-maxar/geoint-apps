@@ -31,13 +31,13 @@ x-rpmbuild:
       defines:
         gevent_version: 22.10.2
         gunicorn_version: 20.1.0
-        numpy_version: 1.24.2
-        pyproj_version: 3.6.1
-        pyredis_version: 4.5.4
-        pyyaml_version: "6.0"
-        shapely_version: 2.0.1
+        numpy_version: 1.25.1
+        pyproj_version: 3.6.0.post1
+        pyredis_version: 4.6.0
+        pyyaml_version: 6.0.1
+        shapely_version: 1.8.5.post1
       image: rpmbuild-mapproxy
-      version: &mapproxy_version 1.16.0-1
+      version: &mapproxy_version 1.16.0-2
     mod_tile:
       defines:
         catch2_version: 2.13.10
