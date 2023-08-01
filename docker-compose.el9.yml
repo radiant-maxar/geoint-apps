@@ -42,7 +42,7 @@ x-rpmbuild:
       defines:
         catch2_version: 2.13.10
       image: rpmbuild-mod_tile
-      version: &mod_tile_version 0.6.1-4
+      version: &mod_tile_version 0.6.1-5
     nominatim:
       defines:
         data_archive_snapshot: 20230208112358
