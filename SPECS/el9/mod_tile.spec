@@ -62,7 +62,7 @@ EOF
 
 # tmpfiles.d configuration file for renderd.
 %{__cat} > %{buildroot}%{_usr}/lib/tmpfiles.d/renderd.conf << EOF
-d %{_rundir}/renderd 0750 %{renderd_user} %{renderd_group} -
+d %{_rundir}/renderd 0750 %{renderd_user} apache -
 d %{renderd_home} 0755 %{renderd_user} apache -
 EOF
 
