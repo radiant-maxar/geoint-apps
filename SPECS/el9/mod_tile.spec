@@ -108,28 +108,22 @@ EOF
 
 
 %pre
-getent group %{renderd_group} >/dev/null || \
-    groupadd \
+%{_bindir}/getent group %{renderd_group} >/dev/null || \
+    %{_sbindir}/groupadd \
         --force \
         --gid %{renderd_uid} \
         --system \
         %{renderd_group}
 
-getent passwd %{renderd_user} >/dev/null || \
-    useradd \
+%{_bindir}/getent passwd %{renderd_user} >/dev/null || \
+    %{_sbindir}/useradd \
         --uid %{renderd_uid} \
         --gid %{renderd_group} \
         --comment "Tile Rendering User" \
-        --shell /sbin/nologin \
+        --shell %{_sbindir}/nologin \
         --home-dir %{renderd_home} \
         --system \
         %{renderd_user}
-
-
-%post -p /sbin/ldconfig
-
-
-%postun -p /sbin/ldconfig
 
 
 %files
@@ -144,7 +138,6 @@ getent passwd %{renderd_user} >/dev/null || \
 %{_usr}/lib/tmpfiles.d/renderd.conf
 %defattr(-, %{renderd_user}, apache, -)
 %{renderd_home}
-%defattr(-, %{renderd_user}, %{renderd_group}, -)
 %{_rundir}/renderd
 
 
