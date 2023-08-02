@@ -1,4 +1,5 @@
 %{!?catch2_version: %global catch2_version 2.13.9}
+%{?systemd_requires}
 
 # renderd service user details.
 %global renderd_home %{_sharedstatedir}/mod_tile
@@ -16,7 +17,7 @@ License:       GPLv2
 URL:           https://github.com/openstreetmap/mod_tile
 Source0:       https://github.com/openstreetmap/mod_tile/archive/%{rpmbuild_version}/%{name}-%{rpmbuild_version}.tar.gz
 Source1:       https://github.com/catchorg/Catch2/releases/download/v%{catch2_version}/catch.hpp
-Patch0:        mod_tile-20230217.patch
+Patch0:        mod_tile-20230720.patch
 
 Requires:      httpd >= 2.4.6
 Requires:      iniparser
@@ -51,33 +52,19 @@ BuildRequires: mapnik-devel
 %install
 %{cmake_install}
 %{__install} -d -m 0755 \
-  %{buildroot}%{_sysconfdir}/httpd/conf.modules.d \
-  %{buildroot}%{_usr}/lib/tmpfiles.d \
-  %{buildroot}%{renderd_home}
-%{__install} -d -m 0750 \
-  %{buildroot}%{_rundir}/renderd
+  %{buildroot}%{_usr}/lib/sysusers.d \
+  %{buildroot}%{_usr}/lib/tmpfiles.d
+
+# sysusers.d configuration file for renderd.
+%{__cat} > %{buildroot}%{_usr}/lib/sysusers.d/renderd.conf << EOF
+g %{renderd_group} %{renderd_uid}
+u %{renderd_user} %{renderd_uid}:%{renderd_uid} 'Tile Rendering User' %{renderd_home} -
+EOF
 
 # tmpfiles.d configuration file for renderd.
-echo "d %{_rundir}/renderd 0750 %{renderd_user} %{renderd_group} -" > \
-     %{buildroot}%{_usr}/lib/tmpfiles.d/renderd.conf
-
-# Apache HTTP Server LoadModule configuration file for mod_tile.
-echo "LoadModule tile_module modules/mod_tile.so" > %{buildroot}%{_sysconfdir}/httpd/conf.modules.d/11-tile.conf
-
-# Basic configuration file for mod_tile/renderd.
-%{__cat} > %{buildroot}%{_sysconfdir}/renderd.conf << EOF
-[renderd]
-iphostname=localhost
-ipport=7654
-num_threads=4
-pid_file=%{_rundir}/renderd/renderd.pid
-stats_file=%{_rundir}/renderd/renderd.stats
-tile_dir=%{renderd_home}
-
-[mapnik]
-font_dir_recurse=1
-font_dir=$(mapnik-config --fonts)
-plugins_dir=$(mapnik-config --input-plugins)
+%{__cat} > %{buildroot}%{_usr}/lib/tmpfiles.d/renderd.conf << EOF
+d %{_rundir}/renderd 0750 %{renderd_user} apache -
+d %{renderd_home} 0755 %{renderd_user} apache -
 EOF
 
 # Example configuration file for mod_tile.
@@ -90,7 +77,7 @@ EOF
 
   LoadTileConfigFile %{_sysconfdir}/renderd.conf
 
-  ModTileRenderdSocketAddr localhost 7654
+  ModTileRenderdSocketName %{_rundir}/renderd/renderd.sock
 
   ModTileEnableStats On
   ModTileBulkMode Off
@@ -118,29 +105,9 @@ EOF
 %{ctest}
 
 
-%pre
-getent group %{renderd_group} >/dev/null || \
-    groupadd \
-        --force \
-        --gid %{renderd_uid} \
-        --system \
-        %{renderd_group}
-
-getent passwd %{renderd_user} >/dev/null || \
-    useradd \
-        --uid %{renderd_uid} \
-        --gid %{renderd_group} \
-        --comment "Tile Rendering User" \
-        --shell /sbin/nologin \
-        --home-dir %{renderd_home} \
-        --system \
-        %{renderd_user}
-
-
-%post -p /sbin/ldconfig
-
-
-%postun -p /sbin/ldconfig
+%post
+%{_usr}/bin/systemd-sysusers %{_usr}/lib/sysusers.d/renderd.conf
+%{_usr}/bin/systemd-tmpfiles --create %{_usr}/lib/tmpfiles.d/renderd.conf
 
 
 %files
@@ -151,11 +118,8 @@ getent passwd %{renderd_user} >/dev/null || \
 %{_bindir}/render*
 %{_libdir}/httpd/modules/mod_tile.so
 %{_mandir}/man1/render*
+%{_usr}/lib/sysusers.d/renderd.conf
 %{_usr}/lib/tmpfiles.d/renderd.conf
-%defattr(-, %{renderd_user}, apache, -)
-%{renderd_home}
-%defattr(-, %{renderd_user}, %{renderd_group}, -)
-%{_rundir}/renderd
 
 
 %changelog
