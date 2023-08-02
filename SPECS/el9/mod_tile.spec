@@ -1,4 +1,5 @@
 %{!?catch2_version: %global catch2_version 2.13.9}
+%{?systemd_requires}
 
 # renderd service user details.
 %global renderd_home %{_sharedstatedir}/mod_tile
