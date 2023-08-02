@@ -52,7 +52,10 @@ BuildRequires: mapnik-devel
 %{cmake_install}
 %{__install} -d -m 0755 \
   %{buildroot}%{_usr}/lib/sysusers.d \
-  %{buildroot}%{_usr}/lib/tmpfiles.d
+  %{buildroot}%{_usr}/lib/tmpfiles.d \
+  %{buildroot}%{renderd_home}
+%{__install} -d -m 0750 \
+  %{buildroot}%{_rundir}/renderd
 
 # sysusers.d configuration file for renderd.
 %{__cat} > %{buildroot}%{_usr}/lib/sysusers.d/renderd.conf << EOF
@@ -104,14 +107,26 @@ EOF
 %{ctest}
 
 
-%post 
-/usr/bin/systemd-sysusers %{_usr}/lib/sysusers.d/renderd.conf
-/usr/bin/systemd-tmpfiles --create %{_usr}/lib/tmpfiles.d/renderd.conf
-/sbin/ldconfig
+%pre
+getent group %{renderd_group} >/dev/null || \
+    groupadd \
+        --force \
+        --gid %{renderd_uid} \
+        --system \
+        %{renderd_group}
+
+getent passwd %{renderd_user} >/dev/null || \
+    useradd \
+        --uid %{renderd_uid} \
+        --gid %{renderd_group} \
+        --comment "Tile Rendering User" \
+        --shell /sbin/nologin \
+        --home-dir %{renderd_home} \
+        --system \
+        %{renderd_user}
 
 
-%preun
-/usr/bin/systemd-tmpfiles --remove %{_usr}/lib/tmpfiles.d/renderd.conf
+%post -p /sbin/ldconfig
 
 
 %postun -p /sbin/ldconfig
@@ -127,6 +142,10 @@ EOF
 %{_mandir}/man1/render*
 %{_usr}/lib/sysusers.d/renderd.conf
 %{_usr}/lib/tmpfiles.d/renderd.conf
+%defattr(-, %{renderd_user}, apache, -)
+%{renderd_home}
+%defattr(-, %{renderd_user}, %{renderd_group}, -)
+%{_rundir}/renderd
 
 
 %changelog
