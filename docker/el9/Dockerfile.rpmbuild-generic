@@ -11,7 +11,7 @@ ARG nodejs_version=18
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # hadolint ignore=DL3032,DL3033,DL3040,DL3041
 RUN --mount=type=cache,target=/var/cache/dnf \
-    /usr/local/bin/geoint-deps-repo.sh && \
+    GEOINT_DEPS_CHANNEL=testing /usr/local/bin/geoint-deps-repo.sh && \
     /usr/local/bin/nodesource-repo.sh ${nodejs_version} && \
     /usr/local/bin/yarn-repo.sh && \
     if [ -n "${packages:-}" ]; then dnf -q -y install ${packages}; fi && \
