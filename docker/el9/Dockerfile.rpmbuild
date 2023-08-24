@@ -34,10 +34,6 @@ RUN --mount=type=cache,target=/var/cache/dnf \
     dnf -q -y install "dnf-command(config-manager)" glibc-langpack-en && \
     dnf config-manager --save \
         --setopt=keepcache=1 \
-        --setopt=baseos.repo_gpgcheck=1 \
-        --setopt=appstream.repo_gpgcheck=1 \
-        --setopt=crb.repo_gpgcheck=1 \
-        --setopt=extras-common.repo_gpgcheck=1 \
         --setopt=crb.enabled=1  \
     && \
     dnf -q -y update && \
