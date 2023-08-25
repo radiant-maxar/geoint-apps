@@ -5,19 +5,22 @@ ARG rpmbuild_image_prefix
 FROM ${rpmbuild_image_prefix}${rpmbuild_image}:latest
 
 ARG packages
+ARG geoint_deps_channel=stable
+ARG geoint_deps_gpgcheck=1
 ARG nodejs_version=18
 
 # If any package dependencies are needed, install them.
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # hadolint ignore=DL3032,DL3033,DL3040,DL3041
 RUN --mount=type=cache,target=/var/cache/dnf \
+    GEOINT_DEPS_CHANNEL=${geoint_deps_channel} \
+    GEOINT_DEPS_GPGCHECK=${geoint_deps_gpgcheck} \
     /usr/local/bin/geoint-deps-repo.sh && \
     /usr/local/bin/nodesource-repo.sh ${nodejs_version} && \
     /usr/local/bin/yarn-repo.sh && \
     if [ -n "${packages:-}" ]; then dnf -q -y install ${packages}; fi && \
     /usr/local/bin/rpmbuild-user.sh && \
     rm -f /usr/local/bin/rpmbuild-user.sh
-
 
 # Use unprivileged RPM build user and work directory by default.
 USER ${RPMBUILD_USER}

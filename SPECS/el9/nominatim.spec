@@ -44,6 +44,7 @@ Patch1:         nominatim-no-calculate-postcodes.patch
 Patch2:         nominatim-legacy-tokenizer.patch
 Patch3:         nominatim-tests-run-serial.patch
 Patch4:         nominatim-setup-no-create-db.patch
+Patch5:         nominatim-postgis-3.4.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel

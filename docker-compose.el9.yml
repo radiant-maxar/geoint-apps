@@ -44,10 +44,8 @@ x-rpmbuild:
       image: rpmbuild-mod_tile
       version: &mod_tile_version 0.6.1-5
     nominatim:
-      defines:
-        data_archive_snapshot: 20230208112358
       image: rpmbuild-nominatim
-      version: &nominatim_version 4.2.3-1
+      version: &nominatim_version 4.2.3-2
     nominatim-ui:
       image: rpmbuild-nominatim-ui
       version: &nominatim_ui_version 3.3.0-1
@@ -61,7 +59,7 @@ x-rpmbuild:
       version: &osrm_frontend_version 2021.9.30-1
     overpass-api:
       image: rpmbuild-overpass-api
-      version: &overpass_api_version 0.7.61.4-1
+      version: &overpass_api_version 0.7.61.6-1
     taginfo:
       defines:
         abseil_git_ref: 384a25d5e19228ceb7641676aefd58c4ca7a9568

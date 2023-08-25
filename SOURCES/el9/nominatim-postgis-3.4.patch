@@ -1,0 +1,19 @@
+Fix parameter use for `ST_Project` with PostGIS 3.4:
+
+https://github.com/osm-search/Nominatim/pull/3159/commits/7c79b07817a6e647113786dffbbfbfd9024fb64f
+
+diff --git a/lib-sql/functions/utils.sql b/lib-sql/functions/utils.sql
+index f5be7b61..b2771ba1 100644
+--- a/lib-sql/functions/utils.sql
++++ b/lib-sql/functions/utils.sql
+@@ -273,8 +273,8 @@ BEGIN
+   END IF;
+ 
+   RETURN ST_Envelope(ST_Collect(
+-                     ST_Project(geom, radius, 0.785398)::geometry,
+-                     ST_Project(geom, radius, 3.9269908)::geometry));
++                     ST_Project(geom::geography, radius, 0.785398)::geometry,
++                     ST_Project(geom::geography, radius, 3.9269908)::geometry));
+ END;
+ $$
+ LANGUAGE plpgsql IMMUTABLE;
