@@ -220,14 +220,14 @@ getent passwd %{taginfo_user} >/dev/null || \
 %{taginfo_home}/vendor
 %{taginfo_home}/Gemfile*
 %dir %{taginfo_home}/web
+%{taginfo_home}/web/*.ini
+%{taginfo_home}/web/*.rb
 %{taginfo_home}/web/i18n
+%{taginfo_home}/web/img
 %{taginfo_home}/web/lib
 %{taginfo_home}/web/public
 %{taginfo_home}/web/test
-%{taginfo_home}/web/*.rb
-%{taginfo_home}/web/*.ini
 %{taginfo_home}/web/views
-%{taginfo_home}/web/viewsjs
 %{_unitdir}/taginfo-update.service
 %{_datadir}/taginfo-config.json
 # Config files, readable by taginfo only.
