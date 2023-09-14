@@ -1,5 +1,5 @@
 diff --git a/test/_bootstrap.js b/test/_bootstrap.js
-index b538f5c..2c1ce41 100644
+index ad7733a..66ad9e0 100644
 --- a/test/_bootstrap.js
 +++ b/test/_bootstrap.js
 @@ -65,7 +65,8 @@ Nominatim_Config.Reverse_Only = ${reverse_only};
@@ -11,4 +11,4 @@ index b538f5c..2c1ce41 100644
 +      '--no-sandbox'
      ]
    });
- };
+ }
