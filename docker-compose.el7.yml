@@ -45,9 +45,9 @@ x-rpmbuild:
       version: &osrm_backend_version 5.26.0-1
     osrm-frontend:
       defines:
-        git_ref: 4a9f214b4cdd35e7dff5c171e2bad549da6a2d8e
+        git_ref: 0e6b825c10412e0993e455b4e7cd2e27fc50cd78
       image: rpmbuild-osrm-frontend
-      version: &osrm_frontend_version 2021.9.30-1
+      version: &osrm_frontend_version 2023.8.19-1
     overpass-api:
       image: rpmbuild-overpass-api
       version: &overpass_api_version 0.7.56.9-2
