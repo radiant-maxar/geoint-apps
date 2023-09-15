@@ -87,3 +87,18 @@ index 00f5569a..86f1ca86 100644
  # Restrict search languages.
  # Normally Nominatim will include all language variants of name:XX
  # in the search index. Set this to a comma separated list of language
+diff --git a/test/bdd/steps/steps_api_queries.py b/test/bdd/steps/steps_api_queries.py
+index fc0a2156..ea267f8c 100644
+--- a/test/bdd/steps/steps_api_queries.py
++++ b/test/bdd/steps/steps_api_queries.py
+@@ -36,7 +36,9 @@ BASE_SERVER_ENV = {
+     'GATEWAY_INTERFACE' : 'CGI/1.1',
+     'SERVER_PROTOCOL' : 'HTTP/1.1',
+     'REQUEST_METHOD' : 'GET',
+-    'REDIRECT_STATUS' : 'CGI'
++    'REDIRECT_STATUS' : 'CGI',
++    'NOMINATIM_OSM_URL': 'https://www.openstreetmap.org',
++    'NOMINATIM_OSM_API_URL':  'https://www.openstreetmap.org',
+ }
+ 
+ 

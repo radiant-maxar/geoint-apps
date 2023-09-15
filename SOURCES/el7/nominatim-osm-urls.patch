@@ -95,10 +95,16 @@ index 71e58787..105d61d8 100644
  
  def set_status(conn, date, seq=None, indexed=True):
 diff --git a/nominatim/tools/add_osm_data.py b/nominatim/tools/add_osm_data.py
-index fa356673..a15dc45c 100644
+index fa356673..99f3d2fc 100644
 --- a/nominatim/tools/add_osm_data.py
 +++ b/nominatim/tools/add_osm_data.py
-@@ -8,6 +8,8 @@ import urllib
+@@ -3,11 +3,14 @@ Function to add additional OSM data from a file or the API into the database.
+ """
+ from pathlib import Path
+ import logging
++import os
+ import urllib
+ 
  from nominatim.tools.exec_utils import run_osm2pgsql, get_url
  
  LOG = logging.getLogger()
@@ -107,7 +113,7 @@ index fa356673..a15dc45c 100644
  
  def add_data_from_file(fname, options):
      """ Adds data from a OSM file to the database. The file may be a normal
-@@ -26,7 +28,7 @@ def add_osm_object(osm_type, osm_id, use_main_api, options):
+@@ -26,7 +29,7 @@ def add_osm_object(osm_type, osm_id, use_main_api, options):
          API.
      """
      if use_main_api:
@@ -116,7 +122,7 @@ index fa356673..a15dc45c 100644
          if osm_type in ('way', 'relation'):
              base_url += '/full'
      else:
-@@ -37,7 +39,7 @@ def add_osm_object(osm_type, osm_id, use_main_api, options):
+@@ -37,7 +40,7 @@ def add_osm_object(osm_type, osm_id, use_main_api, options):
              data = f'(way({osm_id});>;);out meta;'
          else:
              data = f'(rel(id:{osm_id});>;);out meta;'
