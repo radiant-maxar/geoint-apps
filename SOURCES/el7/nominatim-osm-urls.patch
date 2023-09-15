@@ -140,16 +140,3 @@ index 00f5569a..61648315 100644
  ### Log settings
  #
  # The following options allow to enable logging of API requests.
-diff --git a/test/bdd/steps/nominatim_environment.py b/test/bdd/steps/nominatim_environment.py
-index 76f90cfa..dc118b7a 100644
---- a/test/bdd/steps/nominatim_environment.py
-+++ b/test/bdd/steps/nominatim_environment.py
-@@ -91,6 +91,8 @@ class NominatimEnvironment:
-         self.test_env['NOMINATIM_DATABASE_DSN'] = dsn
-         self.test_env['NOMINATIM_FLATNODE_FILE'] = ''
-         self.test_env['NOMINATIM_IMPORT_STYLE'] = 'full'
-+        self.test_env['NOMINATIM_OSM_URL'] = 'https://www.openstreetmap.org'
-+        self.test_env['NOMINATIM_OSM_API_URL'] = 'https://www.openstreetmap.org'
-         self.test_env['NOMINATIM_USE_US_TIGER_DATA'] = 'yes'
-         self.test_env['NOMINATIM_DATADIR'] = str((self.src_dir / 'data').resolve())
-         self.test_env['NOMINATIM_SQLDIR'] = str((self.src_dir / 'lib-sql').resolve())
