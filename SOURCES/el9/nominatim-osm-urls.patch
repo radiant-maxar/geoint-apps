@@ -67,7 +67,7 @@ index 5b6d0e4d..e1ea0bc6 100644
          self._write(f'<h5>{heading}</h5><p><dl>')
          total = 0
 diff --git a/nominatim/db/status.py b/nominatim/db/status.py
-index 2c01de71..8af5eb7e 100644
+index 2c01de71..3e945506 100644
 --- a/nominatim/db/status.py
 +++ b/nominatim/db/status.py
 @@ -10,6 +10,7 @@ Access and helper functions for the status and status log table.
@@ -78,23 +78,52 @@ index 2c01de71..8af5eb7e 100644
  import re
  
  from nominatim.db.connection import Connection
-@@ -18,6 +19,7 @@ from nominatim.errors import UsageError
+@@ -18,6 +19,8 @@ from nominatim.errors import UsageError
  from nominatim.typing import TypedDict
  
  LOG = logging.getLogger()
 +OSM_API_URL = os.getenv('NOMINATIM_OSM_API_URL', 'https://www.openstreetmap.org')
++OSM_TIMESTAMP = os.getenv('NOMINATIM_OSM_TIMESTAMP')
  ISODATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
  
  
-@@ -46,7 +48,7 @@ def compute_database_date(conn: Connection) -> dt.datetime:
+@@ -44,21 +47,25 @@ def compute_database_date(conn: Connection) -> dt.datetime:
+             LOG.fatal("No data found in the database.")
+             raise UsageError("No data found in the database.")
  
-     LOG.info("Using node id %d for timestamp lookup", osmid)
-     # Get the node from the API to find the timestamp when it was created.
+-    LOG.info("Using node id %d for timestamp lookup", osmid)
+-    # Get the node from the API to find the timestamp when it was created.
 -    node_url = f'https://www.openstreetmap.org/api/0.6/node/{osmid}/1'
-+    node_url = f'{OSM_API_URL}/api/0.6/node/{osmid}/1'
-     data = get_url(node_url)
+-    data = get_url(node_url)
++    if OSM_TIMESTAMP:
++        osm_timestamp = OSM_TIMESTAMP
++    else:
++        LOG.info("Using node id %d for timestamp lookup", osmid)
++        # Get the node from the API to find the timestamp when it was created.
++        node_url = f'{OSM_API_URL}/api/0.6/node/{osmid}/1'
++        data = get_url(node_url)
  
-     match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
+-    match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
++        match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
+ 
+-    if match is None:
+-        LOG.fatal("The node data downloaded from the API does not contain valid data.\n"
+-                  "URL used: %s", node_url)
+-        raise UsageError("Bad API data.")
++        if match is None:
++            LOG.fatal("The node data downloaded from the API does not contain valid data.\n"
++                      "URL used: %s", node_url)
++            raise UsageError("Bad API data.")
++        osm_timestamp = match.group(1)
+ 
+-    LOG.debug("Found timestamp %s", match.group(1))
++    LOG.debug("Found timestamp %s", osm_timestamp)
+ 
+-    return dt.datetime.strptime(match.group(1), ISODATE_FORMAT).replace(tzinfo=dt.timezone.utc)
++    return dt.datetime.strptime(osm_timestamp, ISODATE_FORMAT).replace(tzinfo=dt.timezone.utc)
+ 
+ 
+ def set_status(conn: Connection, date: Optional[dt.datetime],
 diff --git a/nominatim/tools/add_osm_data.py b/nominatim/tools/add_osm_data.py
 index 1814b921..3ab85691 100644
 --- a/nominatim/tools/add_osm_data.py
@@ -148,3 +177,16 @@ index 64a160c7..1ef36355 100644
  ### Log settings
  #
  # The following options allow to enable logging of API requests.
+diff --git a/test/bdd/steps/nominatim_environment.py b/test/bdd/steps/nominatim_environment.py
+index 7299988b..c70d0236 100644
+--- a/test/bdd/steps/nominatim_environment.py
++++ b/test/bdd/steps/nominatim_environment.py
+@@ -99,6 +99,8 @@ class NominatimEnvironment:
+         self.test_env = dict(self.default_config)
+         self.test_env['NOMINATIM_DATABASE_DSN'] = dsn
+         self.test_env['NOMINATIM_LANGUAGES'] = 'en,de,fr,ja'
++        self.test_env['NOMINATIM_OSM_URL'] = 'https://www.openstreetmap.org'
++        self.test_env['NOMINATIM_OSM_API_URL'] = 'https://www.openstreetmap.org'
+         self.test_env['NOMINATIM_FLATNODE_FILE'] = ''
+         self.test_env['NOMINATIM_IMPORT_STYLE'] = 'full'
+         self.test_env['NOMINATIM_USE_US_TIGER_DATA'] = 'yes'
