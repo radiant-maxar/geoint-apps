@@ -41,9 +41,10 @@ Source4:        https://geoint-deps.s3.amazonaws.com/support-files/monaco-latest
 
 Patch0:         nominatim-external-osm2pgsql.patch
 Patch1:         nominatim-phpunit-resolve-deprecation-warnings.patch
-Patch2:         nominatim-no-calculate-postcodes.patch
+Patch2:         nominatim-setup.patch
 Patch3:         nominatim-legacy-tokenizer.patch
 Patch4:         nominatim-tests-run-serial.patch
+Patch5:         nominatim-osm-urls.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
