@@ -45,6 +45,7 @@ Patch2:         nominatim-setup.patch
 Patch3:         nominatim-legacy-tokenizer.patch
 Patch4:         nominatim-tests-run-serial.patch
 Patch5:         nominatim-osm-urls.patch
+Patch6:         nominatim-postgis-3.4.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
