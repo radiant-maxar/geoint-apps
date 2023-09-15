@@ -177,16 +177,18 @@ index 64a160c7..1ef36355 100644
  ### Log settings
  #
  # The following options allow to enable logging of API requests.
-diff --git a/test/bdd/steps/nominatim_environment.py b/test/bdd/steps/nominatim_environment.py
-index 7299988b..c70d0236 100644
---- a/test/bdd/steps/nominatim_environment.py
-+++ b/test/bdd/steps/nominatim_environment.py
-@@ -99,6 +99,8 @@ class NominatimEnvironment:
-         self.test_env = dict(self.default_config)
-         self.test_env['NOMINATIM_DATABASE_DSN'] = dsn
-         self.test_env['NOMINATIM_LANGUAGES'] = 'en,de,fr,ja'
-+        self.test_env['NOMINATIM_OSM_URL'] = 'https://www.openstreetmap.org'
-+        self.test_env['NOMINATIM_OSM_API_URL'] = 'https://www.openstreetmap.org'
-         self.test_env['NOMINATIM_FLATNODE_FILE'] = ''
-         self.test_env['NOMINATIM_IMPORT_STYLE'] = 'full'
-         self.test_env['NOMINATIM_USE_US_TIGER_DATA'] = 'yes'
+diff --git a/test/bdd/steps/steps_api_queries.py b/test/bdd/steps/steps_api_queries.py
+index 3d3b16c7..08964ac4 100644
+--- a/test/bdd/steps/steps_api_queries.py
++++ b/test/bdd/steps/steps_api_queries.py
+@@ -45,7 +45,9 @@ BASE_SERVER_ENV = {
+     'GATEWAY_INTERFACE' : 'CGI/1.1',
+     'SERVER_PROTOCOL' : 'HTTP/1.1',
+     'REQUEST_METHOD' : 'GET',
+-    'REDIRECT_STATUS' : 'CGI'
++    'REDIRECT_STATUS' : 'CGI',
++    'NOMINATIM_OSM_URL': 'https://www.openstreetmap.org',
++    'NOMINATIM_OSM_API_URL':  'https://www.openstreetmap.org',
+ }
+ 
+ 

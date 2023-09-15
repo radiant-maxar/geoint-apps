@@ -1,3 +1,31 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 536b21bc..3627d5e7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -138,6 +138,10 @@ if (BUILD_TESTS)
+             set_tests_properties(bdd_${test}
+                 PROPERTIES ENVIRONMENT "NOMINATIM_DIR=${PROJECT_BINARY_DIR}")
+         endforeach()
++        # Do not run "bdd_{api,db,osm2pgsql}" in parallel with any other test.
++        set_tests_properties(bdd_api PROPERTIES RUN_SERIAL TRUE)
++        set_tests_properties(bdd_db PROPERTIES RUN_SERIAL TRUE TIMEOUT 2400)
++        set_tests_properties(bdd_osm2pgsql PROPERTIES RUN_SERIAL TRUE)
+     else()
+         message(WARNING "behave not found. BDD tests disabled." )
+     endif()
+diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
+index 8464e151..f210b6df 100644
+--- a/nominatim/clicmd/setup.py
++++ b/nominatim/clicmd/setup.py
+@@ -67,7 +67,7 @@ class SetupAll:
+                            help='Do not perform analyse operations during index (expert only)')
+ 
+ 
+-    def run(self, args: NominatimArgs) -> int: # pylint: disable=too-many-statements
++    def run(self, args: NominatimArgs) -> int: # pylint: disable=too-many-branches, too-many-statements
+         from ..data import country_info
+         from ..tools import database_import, refresh, postcodes, freeze
+         from ..indexer.indexer import Indexer
 diff --git a/nominatim/config.py b/nominatim/config.py
 index 3344a425..b02d6b3c 100644
 --- a/nominatim/config.py

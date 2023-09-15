@@ -49,9 +49,8 @@ Source4:        https://geoint-deps.s3.amazonaws.com/support-files/monaco-latest
 Patch0:         nominatim-external-osm2pgsql.patch
 Patch1:         nominatim-setup.patch
 Patch2:         nominatim-legacy-tokenizer.patch
-Patch3:         nominatim-tests-run-serial.patch
+Patch3:         nominatim-tests-fixes.patch
 Patch4:         nominatim-osm-urls.patch
-Patch5:         nominatim-tests-fixes.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
