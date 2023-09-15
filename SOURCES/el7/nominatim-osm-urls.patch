@@ -38,10 +38,10 @@ index 59b352ca..c9061a9b 100644
  if (isset($aMoreParams['viewbox'])) {
      echo " viewbox='".htmlspecialchars($aMoreParams['viewbox'], ENT_QUOTES)."'";
 diff --git a/nominatim/db/status.py b/nominatim/db/status.py
-index 71e58787..6d072c91 100644
+index 71e58787..105d61d8 100644
 --- a/nominatim/db/status.py
 +++ b/nominatim/db/status.py
-@@ -3,12 +3,14 @@ Access and helper functions for the status and status log table.
+@@ -3,12 +3,15 @@ Access and helper functions for the status and status log table.
  """
  import datetime as dt
  import logging
@@ -53,18 +53,47 @@ index 71e58787..6d072c91 100644
  
  LOG = logging.getLogger()
 +OSM_API_URL = os.getenv('NOMINATIM_OSM_API_URL', 'https://www.openstreetmap.org')
++OSM_TIMESTAMP = os.getenv('NOMINATIM_OSM_TIMESTAMP')
  ISODATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
  
  def compute_database_date(conn):
-@@ -28,7 +30,7 @@ def compute_database_date(conn):
+@@ -26,21 +29,25 @@ def compute_database_date(conn):
+             LOG.fatal("No data found in the database.")
+             raise UsageError("No data found in the database.")
  
-     LOG.info("Using node id %d for timestamp lookup", osmid)
-     # Get the node from the API to find the timestamp when it was created.
+-    LOG.info("Using node id %d for timestamp lookup", osmid)
+-    # Get the node from the API to find the timestamp when it was created.
 -    node_url = 'https://www.openstreetmap.org/api/0.6/node/{}/1'.format(osmid)
-+    node_url = f'{OSM_API_URL}/api/0.6/node/{osmid}/1'
-     data = get_url(node_url)
+-    data = get_url(node_url)
++    if OSM_TIMESTAMP:
++        osm_timestamp = OSM_TIMESTAMP
++    else:
++        LOG.info("Using node id %d for timestamp lookup", osmid)
++        # Get the node from the API to find the timestamp when it was created.
++        node_url = f'{OSM_API_URL}/api/0.6/node/{osmid}/1'
++        data = get_url(node_url)
  
-     match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
+-    match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
++        match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
+ 
+-    if match is None:
+-        LOG.fatal("The node data downloaded from the API does not contain valid data.\n"
+-                  "URL used: %s", node_url)
+-        raise UsageError("Bad API data.")
++        if match is None:
++            LOG.fatal("The node data downloaded from the API does not contain valid data.\n"
++                      "URL used: %s", node_url)
++            raise UsageError("Bad API data.")
++        osm_timestamp = match.group(1)
+ 
+-    LOG.debug("Found timestamp %s", match.group(1))
++    LOG.debug("Found timestamp %s", osm_timestamp)
+ 
+-    return dt.datetime.strptime(match.group(1), ISODATE_FORMAT).replace(tzinfo=dt.timezone.utc)
++    return dt.datetime.strptime(osm_timestamp, ISODATE_FORMAT).replace(tzinfo=dt.timezone.utc)
+ 
+ 
+ def set_status(conn, date, seq=None, indexed=True):
 diff --git a/nominatim/tools/add_osm_data.py b/nominatim/tools/add_osm_data.py
 index fa356673..a15dc45c 100644
 --- a/nominatim/tools/add_osm_data.py
@@ -111,3 +140,16 @@ index 00f5569a..61648315 100644
  ### Log settings
  #
  # The following options allow to enable logging of API requests.
+diff --git a/test/bdd/steps/nominatim_environment.py b/test/bdd/steps/nominatim_environment.py
+index 76f90cfa..dc118b7a 100644
+--- a/test/bdd/steps/nominatim_environment.py
++++ b/test/bdd/steps/nominatim_environment.py
+@@ -91,6 +91,8 @@ class NominatimEnvironment:
+         self.test_env['NOMINATIM_DATABASE_DSN'] = dsn
+         self.test_env['NOMINATIM_FLATNODE_FILE'] = ''
+         self.test_env['NOMINATIM_IMPORT_STYLE'] = 'full'
++        self.test_env['NOMINATIM_OSM_URL'] = 'https://www.openstreetmap.org'
++        self.test_env['NOMINATIM_OSM_API_URL'] = 'https://www.openstreetmap.org'
+         self.test_env['NOMINATIM_USE_US_TIGER_DATA'] = 'yes'
+         self.test_env['NOMINATIM_DATADIR'] = str((self.src_dir / 'data').resolve())
+         self.test_env['NOMINATIM_SQLDIR'] = str((self.src_dir / 'lib-sql').resolve())
