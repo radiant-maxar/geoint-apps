@@ -313,7 +313,6 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 %config %{nominatim_conf}/icu-rules
 %config %{nominatim_conf}/*.json
 %config %{nominatim_conf}/*.lua
-%config %{nominatim_conf}/*.style
 %config %{nominatim_conf}/*.yaml
 # Allow nominatim user access to home, data and www directories.
 %defattr(0644,%{nominatim_user},%{nominatim_group},0755)
@@ -351,7 +350,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
         --uid %{nominatim_uid} \
         --gid %{nominatim_group} \
         --comment "Nominatim User" \
-        --shell /sbin/nologin \
+        --shell %{_sbindir}/nologin \
         --home-dir %{nominatim_home} \
         --system \
         %{nominatim_user}
