@@ -1,40 +1,38 @@
+diff --git a/cmake/tool-installed.tmpl b/cmake/tool-installed.tmpl
+index a6384f14..36dce971 100644
+--- a/cmake/tool-installed.tmpl
++++ b/cmake/tool-installed.tmpl
+@@ -10,4 +10,4 @@ from nominatim import version
+ version.GIT_COMMIT_HASH = '@GIT_HASH@'
+ 
+ exit(cli.nominatim(module_dir='@NOMINATIM_LIBDIR@/module',
+-                   osm2pgsql_path='@NOMINATIM_LIBDIR@/osm2pgsql'))
++                   osm2pgsql_path='/usr/bin/osm2pgsql'))
 diff --git a/cmake/tool.tmpl b/cmake/tool.tmpl
-index c1ecd3f0..6dfcbcef 100755
+index fcdbe899..158af126 100755
 --- a/cmake/tool.tmpl
 +++ b/cmake/tool.tmpl
-@@ -12,7 +12,7 @@ from nominatim import version
+@@ -10,4 +10,4 @@ from nominatim import version
  version.GIT_COMMIT_HASH = '@GIT_HASH@'
  
  exit(cli.nominatim(module_dir='@CMAKE_BINARY_DIR@/module',
--                   osm2pgsql_path='@CMAKE_BINARY_DIR@/osm2pgsql/osm2pgsql',
-+                   osm2pgsql_path='/usr/bin/osm2pgsql',
-                    phplib_dir='@CMAKE_SOURCE_DIR@/lib-php',
-                    sqllib_dir='@CMAKE_SOURCE_DIR@/lib-sql',
-                    data_dir='@CMAKE_SOURCE_DIR@/data',
+-                   osm2pgsql_path='@CMAKE_BINARY_DIR@/osm2pgsql/osm2pgsql'))
++                   osm2pgsql_path='/usr/bin/osm2pgsql'))
 diff --git a/test/bdd/steps/nominatim_environment.py b/test/bdd/steps/nominatim_environment.py
-index 5145327c..1e976dfa 100644
+index 7299988b..115a03eb 100644
 --- a/test/bdd/steps/nominatim_environment.py
 +++ b/test/bdd/steps/nominatim_environment.py
-@@ -104,7 +104,7 @@ class NominatimEnvironment:
+@@ -106,7 +106,7 @@ class NominatimEnvironment:
          self.test_env['NOMINATIM_SQLDIR'] = str((self.src_dir / 'lib-sql').resolve())
          self.test_env['NOMINATIM_CONFIGDIR'] = str((self.src_dir / 'settings').resolve())
          self.test_env['NOMINATIM_DATABASE_MODULE_SRC_PATH'] = str((self.build_dir / 'module').resolve())
 -        self.test_env['NOMINATIM_OSM2PGSQL_BINARY'] = str((self.build_dir / 'osm2pgsql' / 'osm2pgsql').resolve())
-+        self.test_env['NOMINATIM_OSM2PGSQL_BINARY'] = str('/usr/bin/osm2pgsql')
-         self.test_env['NOMINATIM_NOMINATIM_TOOL'] = str((self.build_dir / 'nominatim').resolve())
++        self.test_env['NOMINATIM_OSM2PGSQL_BINARY'] = '/usr/bin/osm2pgsql'
          if self.tokenizer is not None:
              self.test_env['NOMINATIM_TOKENIZER'] = self.tokenizer
-@@ -306,7 +306,7 @@ class NominatimEnvironment:
-             cmdline = list(cmdline) + ['--project-dir', self.website_dir.name]
- 
-         cli.nominatim(module_dir='',
--                      osm2pgsql_path=str(self.build_dir / 'osm2pgsql' / 'osm2pgsql'),
-+                      osm2pgsql_path=str('/usr/bin/osm2pgsql'),
-                       phplib_dir=str(self.src_dir / 'lib-php'),
-                       sqllib_dir=str(self.src_dir / 'lib-sql'),
-                       data_dir=str(self.src_dir / 'data'),
+         if self.import_style is not None:
 diff --git a/test/bdd/steps/steps_osm_data.py b/test/bdd/steps/steps_osm_data.py
-index 7590b17c..8f6c80ff 100644
+index 336fb707..c6656463 100644
 --- a/test/bdd/steps/steps_osm_data.py
 +++ b/test/bdd/steps/steps_osm_data.py
 @@ -16,7 +16,7 @@ from geometry_alias import ALIASES
@@ -42,7 +40,7 @@ index 7590b17c..8f6c80ff 100644
  def get_osm2pgsql_options(nominatim_env, fname, append):
      return dict(import_file=fname,
 -                osm2pgsql=str(nominatim_env.build_dir / 'osm2pgsql' / 'osm2pgsql'),
-+                osm2pgsql=str('/usr/bin/osm2pgsql'),
++                osm2pgsql='/usr/bin/osm2pgsql',
                  osm2pgsql_cache=50,
                  osm2pgsql_style=str(nominatim_env.get_test_config().get_import_style_file()),
                  osm2pgsql_style_path=nominatim_env.get_test_config().config_dir,

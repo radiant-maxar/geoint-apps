@@ -45,7 +45,7 @@ x-rpmbuild:
       version: &mod_tile_version 0.6.1-5
     nominatim:
       image: rpmbuild-nominatim
-      version: &nominatim_version 4.2.3-2
+      version: &nominatim_version 4.3.0-1
     nominatim-ui:
       image: rpmbuild-nominatim-ui
       version: &nominatim_ui_version 3.4.0-1
