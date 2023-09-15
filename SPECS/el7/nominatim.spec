@@ -2,8 +2,8 @@
 
 %{!?datrie_version: %global datrie_version 0.8.2}
 %{!?python_dotenv_version: %global python_dotenv_version 0.20.0}
-%{!?pyicu_version: %global pyicu_version 2.9}
-%{!?pyyaml_version: %global pyyaml_version 6.0}
+%{!?pyicu_version: %global pyicu_version 2.11}
+%{!?pyyaml_version: %global pyyaml_version 6.0.1}
 
 %bcond_without tests
 
