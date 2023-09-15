@@ -285,7 +285,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 echo "max-statements=100" >> .pylintrc
 
 # Disable newer pylint checkers
-%{__sed} -i "s/disable=/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,unspecified-encoding,use-dict-literal,/g" .pylintrc
+%{__sed} -i "s/disable=/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,unspecified-encoding,use-dict-literal,too-many-branches/g" .pylintrc
 
 # The ICU tokenizer tests won't work with CentOS 7's older ICU version.
 %{__rm} -f test/python/test_tokenizer_icu.py
