@@ -1,0 +1,104 @@
+diff --git a/nominatim/clicmd/setup.py b/nominatim/clicmd/setup.py
+index 9a2a73de..d409a918 100644
+--- a/nominatim/clicmd/setup.py
++++ b/nominatim/clicmd/setup.py
+@@ -41,6 +41,12 @@ class SetupAll:
+                            help='Size of cache to be used by osm2pgsql (in MB)')
+         group.add_argument('--reverse-only', action='store_true',
+                            help='Do not create tables and indexes for searching')
++        group.add_argument('--no-calculate-postcodes', action='store_true',
++                           help="Do not calculate postcodes.")
++        group.add_argument('--no-create-db', action='store_true',
++                           help="Do not create the database, assume it's created.")
++        group.add_argument('--no-indexing', action='store_true',
++                           help="Do not perform indexing.")
+         group.add_argument('--no-partitions', action='store_true',
+                            help=("Do not partition search indices "
+                                  "(speeds up import of single country extracts)"))
+@@ -64,9 +70,12 @@ class SetupAll:
+         if args.continue_at is None:
+             files = args.get_osm_file_list()
+ 
+-            LOG.warning('Creating database')
+-            database_import.setup_database_skeleton(args.config.get_libpq_dsn(),
+-                                                    rouser=args.config.DATABASE_WEBUSER)
++            if args.no_create_db or args.config.get_bool('NO_CREATE_DB'):
++                LOG.warning('Ignoring database creation')
++            else:
++                LOG.warning('Creating database')
++                database_import.setup_database_skeleton(args.config.get_libpq_dsn(),
++                                                        rouser=args.config.DATABASE_WEBUSER)
+ 
+             LOG.warning('Setting up country tables')
+             country_info.setup_country_tables(args.config.get_libpq_dsn(),
+@@ -101,18 +110,24 @@ class SetupAll:
+         tokenizer = SetupAll._get_tokenizer(args.continue_at, args.config)
+ 
+         if args.continue_at is None or args.continue_at == 'load-data':
+-            LOG.warning('Calculate postcodes')
+-            postcodes.update_postcodes(args.config.get_libpq_dsn(),
+-                                       args.project_dir, tokenizer)
++            if args.no_calculate_postcodes or args.config.get_bool('NO_CALCULATE_POSTCODES'):
++                LOG.warning('Ignoring postcodes')
++            else:
++                LOG.warning('Calculate postcodes')
++                postcodes.update_postcodes(args.config.get_libpq_dsn(),
++                                           args.project_dir, tokenizer)
+ 
+         if args.continue_at is None or args.continue_at in ('load-data', 'indexing'):
+-            if args.continue_at is not None and args.continue_at != 'load-data':
+-                with connect(args.config.get_libpq_dsn()) as conn:
+-                    SetupAll._create_pending_index(conn, args.config.TABLESPACE_ADDRESS_INDEX)
+-            LOG.warning('Indexing places')
+-            indexer = Indexer(args.config.get_libpq_dsn(), tokenizer,
+-                              args.threads or psutil.cpu_count() or 1)
+-            indexer.index_full(analyse=not args.index_noanalyse)
++            if args.no_indexing or args.config.get_bool('NO_INDEXING'):
++                LOG.warning('Ignoring indexing')
++            else:
++                if args.continue_at is not None and args.continue_at != 'load-data':
++                    with connect(args.config.get_libpq_dsn()) as conn:
++                        SetupAll._create_pending_index(conn, args.config.TABLESPACE_ADDRESS_INDEX)
++                LOG.warning('Indexing places')
++                indexer = Indexer(args.config.get_libpq_dsn(), tokenizer,
++                                  args.threads or psutil.cpu_count() or 1)
++                indexer.index_full(analyse=not args.index_noanalyse)
+ 
+         LOG.warning('Post-process tables')
+         with connect(args.config.get_libpq_dsn()) as conn:
+diff --git a/settings/env.defaults b/settings/env.defaults
+index 00f5569a..86f1ca86 100644
+--- a/settings/env.defaults
++++ b/settings/env.defaults
+@@ -33,6 +33,16 @@ NOMINATIM_MAX_WORD_FREQUENCY=50000
+ # If true, admin level changes on places with many contained children are blocked.
+ NOMINATIM_LIMIT_REINDEXING=yes
+ 
++# When set, then postcodes won't be calculated on initial import.
++NOMINATIM_NO_CALCULATE_POSTCODES=no
++
++# When set, then assume Nominatim's database is already created with the proper extensions
++# on initial import.
++NOMINATIM_NO_CREATE_DB=no
++
++# When set, then indexing won't be done on initial import.
++NOMINATIM_NO_INDEXING=no
++
+ # Restrict search languages.
+ # Normally Nominatim will include all language variants of name:XX
+ # in the search index. Set this to a comma separated list of language
+diff --git a/test/bdd/steps/steps_api_queries.py b/test/bdd/steps/steps_api_queries.py
+index fc0a2156..ea267f8c 100644
+--- a/test/bdd/steps/steps_api_queries.py
++++ b/test/bdd/steps/steps_api_queries.py
+@@ -36,7 +36,9 @@ BASE_SERVER_ENV = {
+     'GATEWAY_INTERFACE' : 'CGI/1.1',
+     'SERVER_PROTOCOL' : 'HTTP/1.1',
+     'REQUEST_METHOD' : 'GET',
+-    'REDIRECT_STATUS' : 'CGI'
++    'REDIRECT_STATUS' : 'CGI',
++    'NOMINATIM_OSM_URL': 'https://www.openstreetmap.org',
++    'NOMINATIM_OSM_API_URL':  'https://www.openstreetmap.org',
+ }
+ 
+ 

@@ -2,8 +2,8 @@
 
 %{!?datrie_version: %global datrie_version 0.8.2}
 %{!?python_dotenv_version: %global python_dotenv_version 0.20.0}
-%{!?pyicu_version: %global pyicu_version 2.9}
-%{!?pyyaml_version: %global pyyaml_version 6.0}
+%{!?pyicu_version: %global pyicu_version 2.11}
+%{!?pyyaml_version: %global pyyaml_version 6.0.1}
 
 %bcond_without tests
 
@@ -41,9 +41,11 @@ Source4:        https://geoint-deps.s3.amazonaws.com/support-files/monaco-latest
 
 Patch0:         nominatim-external-osm2pgsql.patch
 Patch1:         nominatim-phpunit-resolve-deprecation-warnings.patch
-Patch2:         nominatim-no-calculate-postcodes.patch
+Patch2:         nominatim-setup.patch
 Patch3:         nominatim-legacy-tokenizer.patch
 Patch4:         nominatim-tests-run-serial.patch
+Patch5:         nominatim-osm-urls.patch
+Patch6:         nominatim-postgis-3.4.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
@@ -283,7 +285,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 echo "max-statements=100" >> .pylintrc
 
 # Disable newer pylint checkers
-%{__sed} -i "s/disable=/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,unspecified-encoding,use-dict-literal,/g" .pylintrc
+%{__sed} -i "s/disable=/disable=arguments-differ,arguments-renamed,consider-using-f-string,consider-using-generator,consider-using-with,unspecified-encoding,use-dict-literal,too-many-branches/g" .pylintrc
 
 # The ICU tokenizer tests won't work with CentOS 7's older ICU version.
 %{__rm} -f test/python/test_tokenizer_icu.py

@@ -1,0 +1,15 @@
+diff --git a/lib-sql/functions/utils.sql b/lib-sql/functions/utils.sql
+index f7d2093c..47f9df70 100644
+--- a/lib-sql/functions/utils.sql
++++ b/lib-sql/functions/utils.sql
+@@ -275,8 +275,8 @@ BEGIN
+   END IF;
+ 
+   RETURN ST_Envelope(ST_Collect(
+-                     ST_Project(geom, radius, 0.785398)::geometry,
+-                     ST_Project(geom, radius, 3.9269908)::geometry));
++                     ST_Project(geom::geography, radius, 0.785398)::geometry,
++                     ST_Project(geom::geography, radius, 3.9269908)::geometry));
+ END;
+ $$
+ LANGUAGE plpgsql IMMUTABLE;
