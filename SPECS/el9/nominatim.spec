@@ -1,9 +1,16 @@
 # Force CMake to use `build` for its directory, tests assume it.
 %global _vpath_builddir build
 
-%global osm2pgsql_min_version 1.6.0
-%{!?datrie_version: %global datrie_version 0.8.2}
-%{!?pyicu_version: %global pyicu_version 2.10.2}
+%global osm2pgsql_min_version 1.9.0
+# XXX: Must match versions in nominatim-requirements.txt file during
+#      container build.
+%global asyncpg_version 0.28.0
+%global datrie_version 0.8.2
+%global psycopg_version 3.1.10
+%global pyicu_version 2.11
+%global starlette_version 0.31.1
+%global sqlalchemy_version 2.0.20
+%global uvicorn_version 0.23.2
 
 %bcond_without tests
 
@@ -40,11 +47,10 @@ Source4:        https://geoint-deps.s3.amazonaws.com/support-files/monaco-latest
 %endif
 
 Patch0:         nominatim-external-osm2pgsql.patch
-Patch1:         nominatim-no-calculate-postcodes.patch
+Patch1:         nominatim-setup.patch
 Patch2:         nominatim-legacy-tokenizer.patch
-Patch3:         nominatim-tests-run-serial.patch
-Patch4:         nominatim-setup-no-create-db.patch
-Patch5:         nominatim-postgis-3.4.patch
+Patch3:         nominatim-tests-fixes.patch
+Patch4:         nominatim-osm-urls.patch
 
 BuildRequires:  boost-devel
 BuildRequires:  bzip2-devel
@@ -76,8 +82,6 @@ BuildRequires:  python3-osmium
 BuildRequires:  python3-pip
 BuildRequires:  python3-psutil
 BuildRequires:  python3-psycopg2
-BuildRequires:  python3-pytest
-BuildRequires:  python3-pytest-cov
 BuildRequires:  python3-pyyaml
 BuildRequires:  zlib-devel
 
@@ -112,8 +116,13 @@ Requires:       php-pgsql
 # These requirements are included in Nominatim's lib-python directory,
 # They are not available in any yum repositories.
 # Source: https://github.com/osm-search/Nominatim/blob/master/docs/admin/Installation.md#software
+Provides:       bundled(python3-asyncpg) = %{asyncpg_version}
 Provides:       bundled(python3-datrie) = %{datrie_version}
+Provides:       bundled(python3-psycopg) = %{psycopg_version}
 Provides:       bundled(python3-pyicu) = %{pyicu_version}
+Provides:       bundled(python3-sqlalchemy) = %{sqlalchemy_version}
+Provides:       bundled(python3-starlette) = %{starlette_version}
+Provides:       bundled(python3-uvicorn) = %{uvicorn_version}
 
 
 %description
@@ -167,8 +176,13 @@ export PATH=${HOME}/.local/bin:${PATH}
 %{_bindir}/pip3 install --ignore-installed \
   --target %{buildroot}%{nominatim_base}/lib-python \
   --no-binary datrie -v \
+  asyncpg==%{asyncpg_version} \
   datrie==%{datrie_version} \
-  PyICU==%{pyicu_version}
+  psycopg==%{psycopg_version} \
+  PyICU==%{pyicu_version} \
+  SQLAlchemy==%{sqlalchemy_version} \
+  starlette==%{starlette_version} \
+  uvicorn==%{uvicorn_version}
 export PYTHONPATH=%{buildroot}%{nominatim_base}/lib-python:%{python3_sitearch}:%{python3_sitelib}
 
 # Database needs to exist to run `nominatim refresh`.
@@ -299,7 +313,6 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
 %config %{nominatim_conf}/icu-rules
 %config %{nominatim_conf}/*.json
 %config %{nominatim_conf}/*.lua
-%config %{nominatim_conf}/*.style
 %config %{nominatim_conf}/*.yaml
 # Allow nominatim user access to home, data and www directories.
 %defattr(0644,%{nominatim_user},%{nominatim_group},0755)
@@ -337,7 +350,7 @@ export PYTHONPATH=${HOME}/.local/lib/python%{python3_version}/site-packages:%{py
         --uid %{nominatim_uid} \
         --gid %{nominatim_group} \
         --comment "Nominatim User" \
-        --shell /sbin/nologin \
+        --shell %{_sbindir}/nologin \
         --home-dir %{nominatim_home} \
         --system \
         %{nominatim_user}

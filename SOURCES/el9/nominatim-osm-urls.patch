@@ -1,0 +1,194 @@
+diff --git a/lib-php/lib.php b/lib-php/lib.php
+index f7c6e55e..0db24f33 100644
+--- a/lib-php/lib.php
++++ b/lib-php/lib.php
+@@ -77,7 +77,7 @@ function getDatabaseDate(&$oDB)
+     // Find the newest node in the DB
+     $iLastOSMID = $oDB->getOne("select max(osm_id) from place where osm_type = 'N'");
+     // Lookup the timestamp that node was created
+-    $sLastNodeURL = 'https://www.openstreetmap.org/api/0.6/node/'.$iLastOSMID.'/1';
++    $sLastNodeURL = getSetting('OSM_API_URL').'/api/0.6/node/'.$iLastOSMID.'/1';
+     $sLastNodeXML = file_get_contents($sLastNodeURL);
+ 
+     if ($sLastNodeXML === false) {
+diff --git a/lib-php/template/address-xml.php b/lib-php/template/address-xml.php
+index c418a4c4..4dd284a7 100644
+--- a/lib-php/template/address-xml.php
++++ b/lib-php/template/address-xml.php
+@@ -15,7 +15,7 @@ echo ">\n";
+ 
+ echo '<reversegeocode';
+ echo " timestamp='".date(DATE_RFC822)."'";
+-echo " attribution='Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright'";
++echo " attribution='Data © OpenStreetMap contributors, ODbL 1.0. ".getSetting('OSM_URL')."/copyright'";
+ echo " querystring='".htmlspecialchars($_SERVER['QUERY_STRING'], ENT_QUOTES)."'";
+ echo ">\n";
+ 
+diff --git a/lib-php/template/search-xml.php b/lib-php/template/search-xml.php
+index 8dda65e2..ec083fcd 100644
+--- a/lib-php/template/search-xml.php
++++ b/lib-php/template/search-xml.php
+@@ -16,7 +16,7 @@ echo ">\n";
+ echo '<';
+ echo (isset($sXmlRootTag)?$sXmlRootTag:'searchresults');
+ echo " timestamp='".date(DATE_RFC822)."'";
+-echo " attribution='Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright'";
++echo " attribution='Data © OpenStreetMap contributors, ODbL 1.0. ".getSetting('OSM_URL')."/copyright'";
+ echo " querystring='".htmlspecialchars($sQuery, ENT_QUOTES)."'";
+ if (isset($aMoreParams['viewbox'])) {
+     echo " viewbox='".htmlspecialchars($aMoreParams['viewbox'], ENT_QUOTES)."'";
+diff --git a/nominatim/api/logging.py b/nominatim/api/logging.py
+index 5b6d0e4d..e1ea0bc6 100644
+--- a/nominatim/api/logging.py
++++ b/nominatim/api/logging.py
+@@ -12,6 +12,7 @@ from contextvars import ContextVar
+ import datetime as dt
+ import textwrap
+ import io
++import os
+ import re
+ 
+ import sqlalchemy as sa
+@@ -25,6 +26,7 @@ try:
+ except ModuleNotFoundError:
+     CODE_HIGHLIGHT = False
+ 
++OSM_URL = os.getenv('NOMINATIM_OSM_URL', 'https://www.openstreetmap.org')
+ 
+ def _debug_name(res: Any) -> str:
+     if res.names:
+@@ -187,7 +189,7 @@ class HTMLLogger(BaseLogger):
+             else:
+                 return f'{t}{i}'
+ 
+-            return f'<a href="https://www.openstreetmap.org/{fullt}/{i}">{t}{i}</a>'
++            return f'<a href="{OSM_URL}/{fullt}/{i}">{t}{i}</a>'
+ 
+         self._write(f'<h5>{heading}</h5><p><dl>')
+         total = 0
+diff --git a/nominatim/db/status.py b/nominatim/db/status.py
+index 2c01de71..3e945506 100644
+--- a/nominatim/db/status.py
++++ b/nominatim/db/status.py
+@@ -10,6 +10,7 @@ Access and helper functions for the status and status log table.
+ from typing import Optional, Tuple, cast
+ import datetime as dt
+ import logging
++import os
+ import re
+ 
+ from nominatim.db.connection import Connection
+@@ -18,6 +19,8 @@ from nominatim.errors import UsageError
+ from nominatim.typing import TypedDict
+ 
+ LOG = logging.getLogger()
++OSM_API_URL = os.getenv('NOMINATIM_OSM_API_URL', 'https://www.openstreetmap.org')
++OSM_TIMESTAMP = os.getenv('NOMINATIM_OSM_TIMESTAMP')
+ ISODATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
+ 
+ 
+@@ -44,21 +47,25 @@ def compute_database_date(conn: Connection) -> dt.datetime:
+             LOG.fatal("No data found in the database.")
+             raise UsageError("No data found in the database.")
+ 
+-    LOG.info("Using node id %d for timestamp lookup", osmid)
+-    # Get the node from the API to find the timestamp when it was created.
+-    node_url = f'https://www.openstreetmap.org/api/0.6/node/{osmid}/1'
+-    data = get_url(node_url)
++    if OSM_TIMESTAMP:
++        osm_timestamp = OSM_TIMESTAMP
++    else:
++        LOG.info("Using node id %d for timestamp lookup", osmid)
++        # Get the node from the API to find the timestamp when it was created.
++        node_url = f'{OSM_API_URL}/api/0.6/node/{osmid}/1'
++        data = get_url(node_url)
+ 
+-    match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
++        match = re.search(r'timestamp="((\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}))Z"', data)
+ 
+-    if match is None:
+-        LOG.fatal("The node data downloaded from the API does not contain valid data.\n"
+-                  "URL used: %s", node_url)
+-        raise UsageError("Bad API data.")
++        if match is None:
++            LOG.fatal("The node data downloaded from the API does not contain valid data.\n"
++                      "URL used: %s", node_url)
++            raise UsageError("Bad API data.")
++        osm_timestamp = match.group(1)
+ 
+-    LOG.debug("Found timestamp %s", match.group(1))
++    LOG.debug("Found timestamp %s", osm_timestamp)
+ 
+-    return dt.datetime.strptime(match.group(1), ISODATE_FORMAT).replace(tzinfo=dt.timezone.utc)
++    return dt.datetime.strptime(osm_timestamp, ISODATE_FORMAT).replace(tzinfo=dt.timezone.utc)
+ 
+ 
+ def set_status(conn: Connection, date: Optional[dt.datetime],
+diff --git a/nominatim/tools/add_osm_data.py b/nominatim/tools/add_osm_data.py
+index 1814b921..3ab85691 100644
+--- a/nominatim/tools/add_osm_data.py
++++ b/nominatim/tools/add_osm_data.py
+@@ -10,12 +10,15 @@ Function to add additional OSM data from a file or the API into the database.
+ from typing import Any, MutableMapping
+ from pathlib import Path
+ import logging
++import os
+ import urllib
+ 
+ from nominatim.db.connection import connect
+ from nominatim.tools.exec_utils import run_osm2pgsql, get_url
+ 
+ LOG = logging.getLogger()
++OSM_API_URL = os.getenv('NOMINATIM_OSM_API_URL', 'https://www.openstreetmap.org')
++OVERPASS_API_URL = os.getenv('NOMINATIM_OVERPASS_API_URL', 'https://overpass-api.de')
+ 
+ def _run_osm2pgsql(dsn: str, options: MutableMapping[str, Any]) -> None:
+     run_osm2pgsql(options)
+@@ -45,7 +48,7 @@ def add_osm_object(dsn: str, osm_type: str, osm_id: int, use_main_api: bool,
+         API.
+     """
+     if use_main_api:
+-        base_url = f'https://www.openstreetmap.org/api/0.6/{osm_type}/{osm_id}'
++        base_url = f'{OSM_API_URL}/api/0.6/{osm_type}/{osm_id}'
+         if osm_type in ('way', 'relation'):
+             base_url += '/full'
+     else:
+@@ -56,7 +59,7 @@ def add_osm_object(dsn: str, osm_type: str, osm_id: int, use_main_api: bool,
+             data = f'(way({osm_id});>;);out meta;'
+         else:
+             data = f'(rel(id:{osm_id});>;);out meta;'
+-        base_url = 'https://overpass-api.de/api/interpreter?' \
++        base_url = f'{OVERPASS_API_URL}/api/interpreter?' \
+                    + urllib.parse.urlencode({'data': data})
+ 
+     options['append'] = True
+diff --git a/settings/env.defaults b/settings/env.defaults
+index 64a160c7..1ef36355 100644
+--- a/settings/env.defaults
++++ b/settings/env.defaults
+@@ -220,6 +220,10 @@ NOMINATIM_REQUEST_TIMEOUT=60
+ # to geocode" instead.
+ NOMINATIM_SEARCH_WITHIN_COUNTRIES=False
+ 
++# OpenStreetMap URLs
++NOMINATIM_OSM_API_URL=https://www.openstreetmap.org
++NOMINATIM_OSM_URL=https://www.openstreetmap.org
++
+ ### Log settings
+ #
+ # The following options allow to enable logging of API requests.
+diff --git a/test/bdd/steps/steps_api_queries.py b/test/bdd/steps/steps_api_queries.py
+index 3d3b16c7..08964ac4 100644
+--- a/test/bdd/steps/steps_api_queries.py
++++ b/test/bdd/steps/steps_api_queries.py
+@@ -45,7 +45,9 @@ BASE_SERVER_ENV = {
+     'GATEWAY_INTERFACE' : 'CGI/1.1',
+     'SERVER_PROTOCOL' : 'HTTP/1.1',
+     'REQUEST_METHOD' : 'GET',
+-    'REDIRECT_STATUS' : 'CGI'
++    'REDIRECT_STATUS' : 'CGI',
++    'NOMINATIM_OSM_URL': 'https://www.openstreetmap.org',
++    'NOMINATIM_OSM_API_URL':  'https://www.openstreetmap.org',
+ }
+ 
+ 
