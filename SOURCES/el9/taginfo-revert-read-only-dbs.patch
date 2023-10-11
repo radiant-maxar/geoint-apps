@@ -1,0 +1,88 @@
+Reverts https://github.com/taginfo/taginfo/commit/6c41ab1391956ae285ffc4085a855ffaa64cb30f.
+
+diff --git a/sources/master/history_update.sql b/sources/master/history_update.sql
+index 632c88c..7fc37e0 100644
+--- a/sources/master/history_update.sql
++++ b/sources/master/history_update.sql
+@@ -6,7 +6,7 @@
+ --
+ -- ============================================================================
+ 
+-ATTACH DATABASE 'file:__DIR__/taginfo-master.db?mode=ro' AS master;
++ATTACH DATABASE '__DIR__/taginfo-master.db' AS master;
+ 
+ INSERT INTO history_stats (udate, key, value) SELECT substr(datetime('now'), 1, 10), key, value FROM master.master_stats;
+ 
+diff --git a/sources/master/master-chronology.sql b/sources/master/master-chronology.sql
+index c8eab30..f276407 100644
+--- a/sources/master/master-chronology.sql
++++ b/sources/master/master-chronology.sql
+@@ -6,7 +6,7 @@
+ --
+ -- ============================================================================
+ 
+-ATTACH DATABASE 'file:__DIR__/chronology/taginfo-chronology.db?mode=ro' AS chronology;
++ATTACH DATABASE '__DIR__/chronology/taginfo-chronology.db' AS chronology;
+ 
+ -- ============================================================================
+ 
+diff --git a/sources/master/master-wikidata.sql b/sources/master/master-wikidata.sql
+index d4fd55a..3edf003 100644
+--- a/sources/master/master-wikidata.sql
++++ b/sources/master/master-wikidata.sql
+@@ -6,7 +6,7 @@
+ --
+ -- ============================================================================
+ 
+-ATTACH DATABASE 'file:__DIR__/wikidata/taginfo-wikidata.db?mode=ro' AS wikidata;
++ATTACH DATABASE '__DIR__/wikidata/taginfo-wikidata.db' AS wikidata;
+ 
+ -- ============================================================================
+ 
+diff --git a/sources/master/master.sql b/sources/master/master.sql
+index 2e0374c..931cb8c 100644
+--- a/sources/master/master.sql
++++ b/sources/master/master.sql
+@@ -8,10 +8,10 @@
+ 
+ -- ============================================================================
+ 
+-ATTACH DATABASE '__DIR__/db/taginfo-db.db'                            AS db;
+-ATTACH DATABASE 'file:__DIR__/wiki/taginfo-wiki.db?mode=ro'           AS wiki;
+-ATTACH DATABASE 'file:__DIR__/languages/taginfo-languages.db?mode=ro' AS languages;
+-ATTACH DATABASE 'file:__DIR__/projects/taginfo-projects.db?mode=ro'   AS projects;
++ATTACH DATABASE '__DIR__/db/taginfo-db.db'               AS db;
++ATTACH DATABASE '__DIR__/wiki/taginfo-wiki.db'           AS wiki;
++ATTACH DATABASE '__DIR__/languages/taginfo-languages.db' AS languages;
++ATTACH DATABASE '__DIR__/projects/taginfo-projects.db'   AS projects;
+ 
+ -- ============================================================================
+ 
+diff --git a/sources/master/selection.sql b/sources/master/selection.sql
+index 0eb3268..430f3e8 100644
+--- a/sources/master/selection.sql
++++ b/sources/master/selection.sql
+@@ -11,8 +11,8 @@
+ --
+ -- ============================================================================
+ 
+-ATTACH DATABASE 'file:__DIR__/db/taginfo-db.db?mode=ro'     AS db;
+-ATTACH DATABASE 'file:__DIR__/wiki/taginfo-wiki.db?mode=ro' AS wiki;
++ATTACH DATABASE '__DIR__/db/taginfo-db.db'     AS db;
++ATTACH DATABASE '__DIR__/wiki/taginfo-wiki.db' AS wiki;
+ 
+ -- ============================================================================
+ 
+diff --git a/web/lib/sql.rb b/web/lib/sql.rb
+index 0d411b9..c1a311a 100644
+--- a/web/lib/sql.rb
++++ b/web/lib/sql.rb
+@@ -26,7 +26,7 @@ module SQL
+         end
+ 
+         def attach_source(filename, name)
+-            @db.execute('ATTACH DATABASE ? AS ?', "file:#{ @dir }/#{ filename }?mode=ro", name)
++            @db.execute('ATTACH DATABASE ? AS ?', "#{ @dir }/#{ filename }", name)
+             @db.execute("PRAGMA #{ name }.journal_mode = OFF")
+         end
+ 

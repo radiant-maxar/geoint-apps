@@ -38,6 +38,7 @@ Patch1:         taginfo-logging.patch
 Patch2:         taginfo-use-bundler.patch
 Patch3:         taginfo-sqlite-enable-loadextension.patch
 Patch4:         taginfo-tools-tests-run-serial.patch
+Patch5:         taginfo-revert-read-only-dbs.patch
 
 BuildRequires:  bzip2-devel
 BuildRequires:  cmake3
