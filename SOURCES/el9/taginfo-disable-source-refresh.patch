@@ -1,0 +1,15 @@
+diff --git a/sources/update_all.sh b/sources/update_all.sh
+index f40dfdf..6f3ef41 100755
+--- a/sources/update_all.sh
++++ b/sources/update_all.sh
+@@ -45,7 +45,9 @@ download_source() {
+     print_message "Downloading and uncompressing $source..."
+ 
+     mkdir -p "$DATADIR/$source"
+-    run_exe curl --silent --fail --output "$DATADIR/download/taginfo-$source.db.bz2" --time-cond "$DATADIR/download/taginfo-$source.db.bz2" "https://taginfo.openstreetmap.org/download/taginfo-$source.db.bz2"
++    if ! test -s "$DATADIR/download/taginfo-$source.db.bz2"; then
++        run_exe curl --silent --fail --output "$DATADIR/download/taginfo-$source.db.bz2" "https://taginfo.openstreetmap.org/download/taginfo-$source.db.bz2"
++    fi
+     run_exe "-l$DATADIR/$source/taginfo-$source.db" "$BZIP_COMMAND" -d -c "$DATADIR/download/taginfo-$source.db.bz2"
+ 
+     print_message "Done."
