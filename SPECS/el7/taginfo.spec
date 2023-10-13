@@ -37,7 +37,9 @@ Patch0:         taginfo-default-config.patch
 Patch1:         taginfo-logging.patch
 Patch2:         taginfo-use-bundler.patch
 Patch3:         taginfo-sqlite-enable-loadextension.patch
-Patch4:         taginfo-tools-tests-run-serial.patch
+Patch4:         taginfo-revert-read-only-dbs.patch
+Patch5:         taginfo-disable-source-refresh.patch
+Patch6:         taginfo-tools-tests-run-serial.patch
 
 BuildRequires:  bzip2-devel
 BuildRequires:  cmake3

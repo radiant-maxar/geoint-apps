@@ -63,10 +63,10 @@ x-rpmbuild:
     taginfo:
       defines:
         abseil_git_ref: 384a25d5e19228ceb7641676aefd58c4ca7a9568
-        git_ref: 4fd19892e1acc736ffd0de740fd0c14acbdc76c7
+        git_ref: 4ea603d7d0c121c49b2f92f95c43ee2281258af9
         tools_git_ref: 28264e63a2b3027cec69ae4906ef689029df627b
       image: rpmbuild-taginfo
-      version: &taginfo_version 2023.09.07-1
+      version: &taginfo_version 2023.10.05-1
   service_volumes: &service_volumes
     - ./.cache.el9:/rpmbuild/.cache:rw
     - ./RPMS:/rpmbuild/RPMS:rw
