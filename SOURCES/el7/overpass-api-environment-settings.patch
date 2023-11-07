@@ -1,5 +1,5 @@
 diff --git a/overpass_api/core/settings.cc b/overpass_api/core/settings.cc
-index 50d3351..732fd9a 100644
+index 453d079d..2ad7a559 100644
 --- a/overpass_api/core/settings.cc
 +++ b/overpass_api/core/settings.cc
 @@ -24,6 +24,7 @@
@@ -10,21 +10,17 @@ index 50d3351..732fd9a 100644
  #include <fstream>
  #include <map>
  #include <sstream>
-@@ -95,9 +96,11 @@ Basic_Settings::Basic_Settings()
- 
-   base_directory("./"),
-   logfile_name("transactions.log"),
--  shared_name_base("/osm3s_v0.7.55"),
-+  shared_name_base("/osm3s_v0.7.56"),
-   version("0.7.56.9"),
-   source_hash("76e5016dc2b9fb719ef43f9a89846f5459b1bdd9"),
+@@ -98,6 +99,8 @@ Basic_Settings::Basic_Settings()
+   shared_name_base("/osm3s_v0.7.57"),
+   version("0.7.57"),
+   source_hash("93a4d346e173e1b00d7fec28c8a07d8efe63bc1a"),
 +  enclave(getenv("OVERPASS_API_ENCLAVE") ? getenv("OVERPASS_API_ENCLAVE") : "www.openstreetmap.org"),
 +  generator_note(getenv("OVERPASS_API_GENERATOR_NOTE") ? getenv("OVERPASS_API_GENERATOR_NOTE") : ""),
  #ifdef HAVE_LZ4
    compression_method(File_Blocks_Index< Uint31_Index >::LZ4_COMPRESSION),
  #else
 diff --git a/overpass_api/core/settings.h b/overpass_api/core/settings.h
-index c5b2d61..4617c50 100644
+index c5b2d610..4617c50a 100644
 --- a/overpass_api/core/settings.h
 +++ b/overpass_api/core/settings.h
 @@ -38,6 +38,8 @@ struct Basic_Settings
@@ -37,7 +33,7 @@ index c5b2d61..4617c50 100644
    uint32 compression_method;
    uint32 map_compression_method;
 diff --git a/overpass_api/output_formats/output_json.cc b/overpass_api/output_formats/output_json.cc
-index 64a1afa..22bbc74 100644
+index 64a1afa3..c36ca59c 100644
 --- a/overpass_api/output_formats/output_json.cc
 +++ b/overpass_api/output_formats/output_json.cc
 @@ -43,8 +43,8 @@ void Output_JSON::write_payload_header
@@ -52,7 +48,7 @@ index 64a1afa..22bbc74 100644
    std::cout<< "  \"elements\": [\n\n";
  }
 diff --git a/overpass_api/output_formats/output_xml.cc b/overpass_api/output_formats/output_xml.cc
-index 6b8784c..44ffcb0 100644
+index 6b8784cc..0f57fc66 100644
 --- a/overpass_api/output_formats/output_xml.cc
 +++ b/overpass_api/output_formats/output_xml.cc
 @@ -35,8 +35,8 @@ void Output_XML::write_payload_header

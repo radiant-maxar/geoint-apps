@@ -36,7 +36,8 @@ corresponds to the query.
 
 
 %prep
-%autosetup -p1 -n osm-3s_v%{rpmbuild_version}
+# XXX: 0.7.57.0 in tarball, but not extracted directory.
+%autosetup -p1 -n osm-3s_v0.7.57
 
 
 %build
